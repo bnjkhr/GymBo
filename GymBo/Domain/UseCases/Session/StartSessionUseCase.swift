@@ -43,14 +43,19 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
     // MARK: - Properties
 
     private let sessionRepository: SessionRepositoryProtocol
+    private let exerciseRepository: ExerciseRepositoryProtocol
 
     // TODO: Sprint 1.3 - Add WorkoutRepository to load workout template
     // private let workoutRepository: WorkoutRepositoryProtocol
 
     // MARK: - Initialization
 
-    init(sessionRepository: SessionRepositoryProtocol) {
+    init(
+        sessionRepository: SessionRepositoryProtocol,
+        exerciseRepository: ExerciseRepositoryProtocol
+    ) {
         self.sessionRepository = sessionRepository
+        self.exerciseRepository = exerciseRepository
     }
 
     // MARK: - Execute

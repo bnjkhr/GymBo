@@ -69,6 +69,12 @@ final class DependencyContainer {
         )
     }
 
+    /// Creates ExerciseRepository implementation
+    /// - Returns: Repository conforming to ExerciseRepositoryProtocol
+    func makeExerciseRepository() -> ExerciseRepositoryProtocol {
+        return SwiftDataExerciseRepository(modelContext: modelContext)
+    }
+
     // MARK: - Use Cases (Domain Layer)
 
     /// Creates StartSessionUseCase
@@ -76,7 +82,8 @@ final class DependencyContainer {
     func makeStartSessionUseCase() -> StartSessionUseCase {
         // ✅ Sprint 1.2 COMPLETE
         return DefaultStartSessionUseCase(
-            sessionRepository: makeSessionRepository()
+            sessionRepository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository()
         )
     }
 
@@ -120,7 +127,8 @@ final class DependencyContainer {
     /// - Returns: Use case for updating weight/reps of a set
     func makeUpdateSetUseCase() -> UpdateSetUseCase {
         return DefaultUpdateSetUseCase(
-            repository: makeSessionRepository()
+            repository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository()
         )
     }
 

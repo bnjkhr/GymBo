@@ -34,21 +34,13 @@ struct CompactSetRow: View {
                     .monospacedDigit()
                     .foregroundStyle(set.completed ? .gray : .primary)
                     .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.leading)
-                    .frame(minWidth: 50)
+                    .multilineTextAlignment(.center)
+                    .fixedSize()
                     .focused($focusedField, equals: .weight)
                     .disabled(set.completed)
                     .onSubmit {
                         saveWeight()
-                    }
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Fertig") {
-                                saveCurrentField()
-                                focusedField = nil
-                            }
-                        }
+                        focusedField = nil
                     }
 
                 Text("kg")
@@ -63,21 +55,13 @@ struct CompactSetRow: View {
                     .monospacedDigit()
                     .foregroundStyle(set.completed ? .gray : .primary)
                     .keyboardType(.numberPad)
-                    .multilineTextAlignment(.leading)
-                    .frame(minWidth: 40)
+                    .multilineTextAlignment(.center)
+                    .fixedSize()
                     .focused($focusedField, equals: .reps)
                     .disabled(set.completed)
                     .onSubmit {
                         saveReps()
-                    }
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Fertig") {
-                                saveCurrentField()
-                                focusedField = nil
-                            }
-                        }
+                        focusedField = nil
                     }
 
                 Text("reps")
@@ -102,6 +86,15 @@ struct CompactSetRow: View {
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 4)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Fertig") {
+                    saveCurrentField()
+                    focusedField = nil
+                }
+            }
+        }
         .onAppear {
             // Initialize text fields with current values
             weightText = formatNumber(set.weight)

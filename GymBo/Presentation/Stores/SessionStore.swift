@@ -424,13 +424,20 @@ extension SessionStore {
         /// Create a mock SessionStore for previews
         static var preview: SessionStore {
             let repository = MockSessionRepository()
+            let exerciseRepository = MockExerciseRepository()
             return SessionStore(
-                startSessionUseCase: DefaultStartSessionUseCase(sessionRepository: repository),
+                startSessionUseCase: DefaultStartSessionUseCase(
+                    sessionRepository: repository,
+                    exerciseRepository: exerciseRepository
+                ),
                 completeSetUseCase: DefaultCompleteSetUseCase(sessionRepository: repository),
                 endSessionUseCase: DefaultEndSessionUseCase(sessionRepository: repository),
                 pauseSessionUseCase: DefaultPauseSessionUseCase(sessionRepository: repository),
                 resumeSessionUseCase: DefaultResumeSessionUseCase(sessionRepository: repository),
-                updateSetUseCase: DefaultUpdateSetUseCase(repository: repository),
+                updateSetUseCase: DefaultUpdateSetUseCase(
+                    repository: repository,
+                    exerciseRepository: exerciseRepository
+                ),
                 sessionRepository: repository
             )
         }

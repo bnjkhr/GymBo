@@ -51,9 +51,14 @@ protocol UpdateSetUseCase {
 final class DefaultUpdateSetUseCase: UpdateSetUseCase {
 
     private let repository: SessionRepositoryProtocol
+    private let exerciseRepository: ExerciseRepositoryProtocol
 
-    init(repository: SessionRepositoryProtocol) {
+    init(
+        repository: SessionRepositoryProtocol,
+        exerciseRepository: ExerciseRepositoryProtocol
+    ) {
         self.repository = repository
+        self.exerciseRepository = exerciseRepository
     }
 
     func execute(
@@ -89,6 +94,9 @@ final class DefaultUpdateSetUseCase: UpdateSetUseCase {
             throw UpdateSetError.setNotFound(setId)
         }
 
+        // Get the exercise's exerciseId (reference to Exercise catalog)
+        let catalogExerciseId = session.exercises[exerciseIndex].exerciseId
+
         // 5. Update weight if provided
         if let newWeight = weight {
             guard newWeight > 0 else {
@@ -105,8 +113,20 @@ final class DefaultUpdateSetUseCase: UpdateSetUseCase {
             session.exercises[exerciseIndex].sets[setIndex].reps = newReps
         }
 
-        // 7. Persist changes
+        // 7. Persist changes to session
         try await repository.update(session)
+
+        // 8. Update exercise history (lastUsedWeight, lastUsedReps)
+        // Use the final weight/reps values from the set
+        let finalWeight = session.exercises[exerciseIndex].sets[setIndex].weight
+        let finalReps = session.exercises[exerciseIndex].sets[setIndex].reps
+
+        try? await exerciseRepository.updateLastUsed(
+            exerciseId: catalogExerciseId,
+            weight: finalWeight,
+            reps: finalReps,
+            date: Date()
+        )
 
         print(
             "✏️ Updated set \(setId): weight=\(weight?.description ?? "unchanged"), reps=\(reps?.description ?? "unchanged")"
