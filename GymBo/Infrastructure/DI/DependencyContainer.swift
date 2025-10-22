@@ -44,6 +44,7 @@ final class DependencyContainer {
             endSessionUseCase: makeEndSessionUseCase(),
             pauseSessionUseCase: makePauseSessionUseCase(),
             resumeSessionUseCase: makeResumeSessionUseCase(),
+            updateSetUseCase: makeUpdateSetUseCase(),
             sessionRepository: makeSessionRepository()
         )
     }()
@@ -112,6 +113,14 @@ final class DependencyContainer {
         // ✅ Sprint 1.2 COMPLETE
         return DefaultResumeSessionUseCase(
             sessionRepository: makeSessionRepository()
+        )
+    }
+
+    /// Creates UpdateSetUseCase
+    /// - Returns: Use case for updating weight/reps of a set
+    func makeUpdateSetUseCase() -> UpdateSetUseCase {
+        return DefaultUpdateSetUseCase(
+            repository: makeSessionRepository()
         )
     }
 

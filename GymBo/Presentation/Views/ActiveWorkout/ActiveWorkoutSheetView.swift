@@ -154,6 +154,28 @@ struct ActiveWorkoutSheetView: View {
                                         }
                                     }
                                 },
+                                onUpdateWeight: { setId, newWeight in
+                                    Task {
+                                        print(
+                                            "✏️ Update weight: setId \(setId), newWeight \(newWeight)"
+                                        )
+                                        await sessionStore.updateSet(
+                                            exerciseId: exercise.id,
+                                            setId: setId,
+                                            weight: newWeight
+                                        )
+                                    }
+                                },
+                                onUpdateReps: { setId, newReps in
+                                    Task {
+                                        print("✏️ Update reps: setId \(setId), newReps \(newReps)")
+                                        await sessionStore.updateSet(
+                                            exerciseId: exercise.id,
+                                            setId: setId,
+                                            reps: newReps
+                                        )
+                                    }
+                                },
                                 onAddSet: {
                                     // TODO: Add set to exercise
                                     print("Add set to exercise \(index)")

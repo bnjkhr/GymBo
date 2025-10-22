@@ -63,6 +63,7 @@ final class SessionStore {
     private let endSessionUseCase: EndSessionUseCase
     private let pauseSessionUseCase: PauseSessionUseCase
     private let resumeSessionUseCase: ResumeSessionUseCase
+    private let updateSetUseCase: UpdateSetUseCase
     private let sessionRepository: SessionRepositoryProtocol
 
     // MARK: - Private State
@@ -77,6 +78,7 @@ final class SessionStore {
         endSessionUseCase: EndSessionUseCase,
         pauseSessionUseCase: PauseSessionUseCase,
         resumeSessionUseCase: ResumeSessionUseCase,
+        updateSetUseCase: UpdateSetUseCase,
         sessionRepository: SessionRepositoryProtocol
     ) {
         self.startSessionUseCase = startSessionUseCase
@@ -84,6 +86,7 @@ final class SessionStore {
         self.endSessionUseCase = endSessionUseCase
         self.pauseSessionUseCase = pauseSessionUseCase
         self.resumeSessionUseCase = resumeSessionUseCase
+        self.updateSetUseCase = updateSetUseCase
         self.sessionRepository = sessionRepository
     }
 
@@ -219,6 +222,50 @@ final class SessionStore {
         }
     }
 
+    /// Update weight and/or reps of a set
+    /// - Parameters:
+    ///   - exerciseId: ID of the exercise containing the set
+    ///   - setId: ID of the set to update
+    ///   - weight: New weight value (optional)
+    ///   - reps: New reps value (optional)
+    func updateSet(
+        exerciseId: UUID,
+        setId: UUID,
+        weight: Double? = nil,
+        reps: Int? = nil
+    ) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        // OPTIMISTIC UPDATE: Update UI immediately
+        updateLocalSetValues(exerciseId: exerciseId, setId: setId, weight: weight, reps: reps)
+
+        do {
+            let updatedSession = try await updateSetUseCase.execute(
+                sessionId: sessionId,
+                exerciseId: exerciseId,
+                setId: setId,
+                weight: weight,
+                reps: reps
+            )
+
+            // Update with persisted session
+            currentSession = updatedSession
+
+        } catch {
+            self.error = error
+            print("❌ Failed to update set: \(error)")
+
+            // Revert optimistic update on error
+            await refreshCurrentSession()
+        }
+    }
+
     /// Refresh current session from repository
     /// Useful after background operations or app returning from background
     func refreshCurrentSession() async {
@@ -273,6 +320,51 @@ final class SessionStore {
         // Update published state (TRIGGERS @Published)
         currentSession = session
         print("✅ updateLocalSet: currentSession @Published updated!")
+    }
+
+    /// Optimistic update of set weight/reps in local state
+    private func updateLocalSetValues(
+        exerciseId: UUID,
+        setId: UUID,
+        weight: Double?,
+        reps: Int?
+    ) {
+        guard var session = currentSession else {
+            print("❌ updateLocalSetValues: No current session")
+            return
+        }
+
+        // Find exercise index
+        guard let exerciseIndex = session.exercises.firstIndex(where: { $0.id == exerciseId })
+        else {
+            print("❌ updateLocalSetValues: Exercise not found: \(exerciseId)")
+            return
+        }
+
+        // Find set index
+        guard
+            let setIndex = session.exercises[exerciseIndex].sets.firstIndex(where: {
+                $0.id == setId
+            })
+        else {
+            print("❌ updateLocalSetValues: Set not found: \(setId)")
+            return
+        }
+
+        // Update weight if provided
+        if let newWeight = weight {
+            session.exercises[exerciseIndex].sets[setIndex].weight = newWeight
+            print("✏️ Updated local weight to \(newWeight)")
+        }
+
+        // Update reps if provided
+        if let newReps = reps {
+            session.exercises[exerciseIndex].sets[setIndex].reps = newReps
+            print("✏️ Updated local reps to \(newReps)")
+        }
+
+        // Update published state
+        currentSession = session
     }
 
     /// Show success message with auto-dismiss
@@ -338,6 +430,7 @@ extension SessionStore {
                 endSessionUseCase: DefaultEndSessionUseCase(sessionRepository: repository),
                 pauseSessionUseCase: DefaultPauseSessionUseCase(sessionRepository: repository),
                 resumeSessionUseCase: DefaultResumeSessionUseCase(sessionRepository: repository),
+                updateSetUseCase: DefaultUpdateSetUseCase(repository: repository),
                 sessionRepository: repository
             )
         }

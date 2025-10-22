@@ -33,6 +33,8 @@ struct CompactExerciseCard: View {
 
     /// Callbacks
     let onToggleCompletion: ((UUID) -> Void)?  // Set ID (not index!)
+    let onUpdateWeight: ((UUID, Double) -> Void)?  // (setId, newWeight)
+    let onUpdateReps: ((UUID, Int) -> Void)?  // (setId, newReps)
     let onAddSet: (() -> Void)?
     let onMarkAllComplete: (() -> Void)?
 
@@ -78,12 +80,10 @@ struct CompactExerciseCard: View {
                             onToggleCompletion?(set.id)  // Pass setId, not index!
                         },
                         onUpdateWeight: { newWeight in
-                            // TODO: Implement UpdateSetUseCase
-                            print("Update weight for set \(set.id): \(newWeight)")
+                            onUpdateWeight?(set.id, newWeight)
                         },
                         onUpdateReps: { newReps in
-                            // TODO: Implement UpdateSetUseCase
-                            print("Update reps for set \(set.id): \(newReps)")
+                            onUpdateReps?(set.id, newReps)
                         }
                     )
                     .padding(.horizontal, Layout.setPadding)
@@ -244,6 +244,8 @@ struct CompactExerciseCard: View {
         exerciseName: "Bankdrücken",
         equipment: "Barbell",
         onToggleCompletion: { _ in },
+        onUpdateWeight: { _, _ in },
+        onUpdateReps: { _, _ in },
         onAddSet: {},
         onMarkAllComplete: {}
     )
@@ -258,6 +260,8 @@ struct CompactExerciseCard: View {
         exerciseName: "Lat Pulldown",
         equipment: "Cable",
         onToggleCompletion: { _ in },
+        onUpdateWeight: { _, _ in },
+        onUpdateReps: { _, _ in },
         onAddSet: {},
         onMarkAllComplete: {}
     )
