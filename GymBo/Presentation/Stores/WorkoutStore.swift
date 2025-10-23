@@ -193,7 +193,8 @@ final class WorkoutStore {
         static var preview: WorkoutStore {
             let store = WorkoutStore(
                 getAllWorkoutsUseCase: MockGetAllWorkoutsUseCase(),
-                getWorkoutByIdUseCase: MockGetWorkoutByIdUseCase()
+                getWorkoutByIdUseCase: MockGetWorkoutByIdUseCase(),
+                toggleFavoriteUseCase: MockToggleFavoriteUseCase()
             )
 
             // Populate with sample data
@@ -221,6 +222,14 @@ final class WorkoutStore {
     private final class MockGetWorkoutByIdUseCase: GetWorkoutByIdUseCase {
         func execute(id: UUID) async throws -> Workout {
             Workout(name: "Mock Workout")
+        }
+    }
+
+    private final class MockToggleFavoriteUseCase: ToggleFavoriteUseCase {
+        func execute(workoutId: UUID) async throws -> Workout {
+            var workout = Workout(name: "Mock Workout", isFavorite: false)
+            workout.isFavorite.toggle()
+            return workout
         }
     }
 #endif
