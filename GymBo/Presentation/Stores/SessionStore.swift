@@ -173,11 +173,8 @@ final class SessionStore {
             let completedSession = try await endSessionUseCase.execute(sessionId: sessionId)
             currentSession = completedSession
 
-            // Clear current session after short delay (for UI feedback)
-            Task {
-                try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5s
-                currentSession = nil
-            }
+            // Note: We keep currentSession set to allow UI to show summary
+            // The View will set currentSession = nil when appropriate
 
             showSuccessMessage("Workout abgeschlossen! 🎉")
         } catch {

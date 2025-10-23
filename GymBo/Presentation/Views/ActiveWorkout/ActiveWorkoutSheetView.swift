@@ -32,8 +32,8 @@ struct ActiveWorkoutSheetView: View {
     @StateObject private var restTimerManager = RestTimerStateManager()
 
     @State private var showAllExercises = false
-    @State private var showEndConfirmation = false
     @State private var showSummary = false
+    @State private var completedSession: DomainWorkoutSession? = nil  // Store session for summary
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var exerciseEquipment: [UUID: String] = [:]
 
@@ -42,7 +42,8 @@ struct ActiveWorkoutSheetView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                if let session = sessionStore.currentSession {
+                // Show workout UI if session exists OR if showing summary with completed session
+                if let session = sessionStore.currentSession ?? completedSession {
                     VStack(spacing: 0) {
                         // Timer Section (ALWAYS visible)
                         TimerSection(
@@ -88,28 +89,30 @@ struct ActiveWorkoutSheetView: View {
                     noSessionView
                 }
             }
-            .confirmationDialog(
-                "Workout beenden?",
-                isPresented: $showEndConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Workout beenden", role: .destructive) {
-                    Task {
-                        await sessionStore.endSession()
-                        showSummary = true
-                    }
-                }
-                Button("Abbrechen", role: .cancel) {}
-            } message: {
-                Text("Möchtest du das Workout wirklich beenden?")
-            }
             .sheet(isPresented: $showSummary) {
-                if let session = sessionStore.currentSession {
-                    WorkoutSummaryView(session: session) {
-                        dismiss()
+                ZStack {
+                    if let session = completedSession {
+                        WorkoutSummaryView(session: session) {
+                            // Clear currentSession and dismiss
+                            sessionStore.currentSession = nil
+                            showSummary = false
+                            dismiss()
+                        }
+                        .onAppear {
+                            print("🔍 Sheet: Showing WorkoutSummaryView")
+                        }
+                    } else {
+                        Text("No session data")
+                            .onAppear {
+                                print("❌ Sheet: completedSession is nil!")
+                            }
                     }
                 }
+                .onAppear {
+                    print("🔍 Sheet: showSummary is true, completedSession: \(completedSession?.id.uuidString ?? "nil")")
+                }
             }
+            .interactiveDismissDisabled(showSummary)  // Prevent swipe-to-dismiss while summary shown
             .task(id: sessionStore.currentSession?.id) {
                 await loadExerciseNames()
             }
@@ -211,6 +214,12 @@ struct ActiveWorkoutSheetView: View {
                                 ))
                         }
                     }
+
+                    // Workout Complete Message (when all exercises completed)
+                    if allExercisesCompleted(session: session) {
+                        workoutCompleteMessage
+                            .padding(.top, 16)
+                    }
                 }
             }
             .padding(.horizontal, 12)
@@ -278,7 +287,14 @@ struct ActiveWorkoutSheetView: View {
     }
 
     private var endSessionButton: some View {
-        Button(action: { showEndConfirmation = true }) {
+        Button {
+            Task {
+                // Save session before ending (for summary display)
+                completedSession = sessionStore.currentSession
+                await sessionStore.endSession()
+                showSummary = true
+            }
+        } label: {
             Text("Beenden")
                 .font(.subheadline)
                 .fontWeight(.semibold)
@@ -286,6 +302,75 @@ struct ActiveWorkoutSheetView: View {
     }
 
     // MARK: - Helpers
+
+    /// Check if all exercises are completed
+    private func allExercisesCompleted(session: DomainWorkoutSession) -> Bool {
+        let allCompleted = session.exercises.allSatisfy { exercise in
+            exercise.sets.allSatisfy { $0.completed }
+        }
+        print("🔍 allExercisesCompleted: \(allCompleted)")
+        print("   - Total exercises: \(session.exercises.count)")
+        for (index, exercise) in session.exercises.enumerated() {
+            let completedSets = exercise.sets.filter { $0.completed }.count
+            print("   - Exercise \(index): \(completedSets)/\(exercise.sets.count) sets completed")
+        }
+        return allCompleted
+    }
+
+    /// Workout complete message with hint and button
+    private var workoutCompleteMessage: some View {
+        VStack(spacing: 20) {
+            // Success Icon
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.primary)
+
+            // Title
+            Text("Workout abgeschlossen!")
+                .font(.title2)
+                .fontWeight(.bold)
+
+            // Hint about Eye icon
+            HStack(spacing: 8) {
+                Image(systemName: "eye.fill")
+                    .foregroundColor(.primary)
+                Text("Tippe auf das Auge-Symbol oben, um alle Übungen zu sehen")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal)
+
+            // Finish Workout Button
+            Button {
+                Task {
+                    // Save session before ending (for summary display)
+                    completedSession = sessionStore.currentSession
+                    print("🔍 Button: completedSession saved: \(completedSession?.id.uuidString ?? "nil")")
+
+                    await sessionStore.endSession()
+                    print("🔍 Button: endSession completed")
+                    print("🔍 Button: currentSession is now: \(sessionStore.currentSession?.id.uuidString ?? "nil")")
+
+                    showSummary = true
+                    print("🔍 Button: showSummary set to true")
+                }
+            } label: {
+                Text("Workout beenden")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.black)
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal)
+        }
+        .padding(.vertical, 24)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+    }
 
     /// Load exercise names and equipment for all exercises in the session
     private func loadExerciseNames() async {
