@@ -137,9 +137,10 @@ struct ActiveWorkoutSheetView: View {
                         let shouldHide = exercise.isFinished && !showAllExercises
 
                         if !shouldHide {
-                            // Create unique ID based on exercise + all set states
-                            let setsSignature = exercise.sets.map { "\($0.id)-\($0.completed)" }
-                                .joined(separator: ",")
+                            // Create unique ID based on exercise + set IDs only (not completion status)
+                            // This ensures view updates on set add/remove but NOT on completion toggle
+                            let setsSignature = exercise.sets.map { $0.id.uuidString }.joined(
+                                separator: ",")
 
                             exerciseCardView(for: exercise, at: index, in: session)
                                 .id("\(exercise.id)-\(setsSignature)")
@@ -270,9 +271,6 @@ struct ActiveWorkoutSheetView: View {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                 }
             }
-        )
-        .id(
-            "\(exercise.id)-\(exercise.sets.map { "\($0.weight)-\($0.reps)-\($0.completed)" }.joined())"
         )
         .transition(
             .asymmetric(
