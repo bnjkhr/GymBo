@@ -1,10 +1,19 @@
 # GymBo V2 - Aktueller Stand (2025-10-23)
 
-**Status:** ✅ MVP FUNKTIONSFÄHIG + Progressive Overload + Complete Set Management
+**Status:** ✅ WORKOUT REPOSITORY KOMPLETT! + Progressive Overload + Complete Set Management
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
-**Design:** ScrollView-basiertes Active Workout + Sheet-basiertes Editing
+**Design:** Workout Picker + ScrollView Active Workout + Sheet-basiertes Editing
 
-**Letzte Session (2025-10-23 - Session 4):**
+**Letzte Session (2025-10-23 - Session 5 - WORKOUT REPOSITORY):**
+- ✅ Workout Repository mit vollständiger Clean Architecture
+- ✅ Workout Picker UI mit Favoriten-Support
+- ✅ StartSessionUseCase lädt echte Workouts
+- ✅ Progressive Overload mit lastUsed Values
+- ✅ Workout Seed Data (Push/Pull/Legs)
+- ✅ WorkoutStore (@Observable) für UI
+- ✅ 13 neue Dateien, 7 geändert, ~1500 LOC
+
+**Session 4 (2025-10-23):**
 - ✅ Add Set Feature (Quick-Add Field + Plus Button)
 - ✅ Delete Set Feature (Long-Press Context Menu)
 - ✅ AddSetUseCase + RemoveSetUseCase mit Clean Architecture
@@ -36,6 +45,80 @@
 ---
 
 ## 📊 Implementierungsstatus
+
+### ✅ NEU IMPLEMENTIERT (Session 5 - 2025-10-23 - WORKOUT REPOSITORY)
+
+**1. Domain Layer - Workout Entities**
+- ✅ Workout.swift - Workout Template Entity
+  - ID, Name, Exercises, DefaultRestTime
+  - Notes, CreatedAt, UpdatedAt, IsFavorite
+  - Computed: exerciseCount, totalSets, estimatedDuration
+- ✅ WorkoutExercise.swift - Exercise Template
+  - ExerciseId, TargetSets, TargetReps, TargetWeight
+  - RestTime, OrderIndex, Notes
+
+**2. Domain Layer - Repository & Use Cases**
+- ✅ WorkoutRepositoryProtocol
+  - save, update, fetch, fetchAll, fetchFavorites, search, delete
+  - MockWorkoutRepository für Tests
+- ✅ GetAllWorkoutsUseCase
+  - Lädt alle Workouts sortiert (Favoriten zuerst)
+- ✅ GetWorkoutByIdUseCase
+  - Lädt einzelnes Workout mit Validierung
+
+**3. Data Layer - Repository & Mapper**
+- ✅ SwiftDataWorkoutRepository
+  - Vollständige CRUD Implementation
+  - WorkoutEntity (bereits vorhanden) wird wiederverwendet
+  - Favorites Filtering, Search
+- ✅ WorkoutMapper
+  - Bidirektionales Mapping: Workout ↔ WorkoutEntity
+  - WorkoutExercise → WorkoutExerciseEntity Konvertierung
+  - Sets werden aus targetSets generiert
+
+**4. Presentation Layer - Store & UI**
+- ✅ WorkoutStore (@Observable)
+  - loadWorkouts, refresh, loadWorkout(id:)
+  - Computed: favoriteWorkouts, regularWorkouts
+  - Error handling & loading states
+- ✅ HomeViewPlaceholder - Workout Picker
+  - Liste aller Workouts mit Favoriten-Sektion
+  - WorkoutRow Component (Icon, Name, Stats)
+  - Continue Session View
+  - Pull-to-refresh Support
+
+**5. Infrastructure - Seed Data & DI**
+- ✅ WorkoutSeedData
+  - Push Day: Bankdrücken 4×8 @ 100kg ⭐
+  - Pull Day: Lat Pulldown 3×10 @ 80kg
+  - Leg Day: Kniebeugen 4×12 @ 60kg ⭐
+- ✅ DependencyContainer Updates
+  - makeWorkoutRepository()
+  - makeGetAllWorkoutsUseCase(), makeGetWorkoutByIdUseCase()
+  - makeWorkoutStore()
+  - makeStartSessionUseCase() mit WorkoutRepository
+- ✅ DependencyContainerEnvironmentKey
+  - Environment-Support für DI Container
+
+**6. StartSessionUseCase - Komplett überarbeitet**
+- ✅ Lädt echte Workouts via WorkoutRepository
+- ✅ convertToSessionExercises() implementiert
+  - WorkoutExercise → SessionExercise Konvertierung
+  - Progressive Overload: lastUsedWeight/Reps aus ExerciseEntity
+  - Fallback zu Template-Werten wenn keine History
+  - Dynamische Set-Anzahl aus Workout Template
+- ✅ Keine Hardcoded Test-Data mehr
+
+**7. Dokumentation für Phase 2**
+- ✅ PROGRESSION_FEATURE_PLAN.md
+  - Vollständige Spezifikation (~14h geschätzt)
+  - Data Model Extensions (optional, backward compatible)
+  - 3 Progression Strategien (Linear, Double, Wave)
+  - Use Cases, Repositories, UI Components
+  - Implementation Roadmap
+- ✅ PROGRESSION_QUICK_REF.md
+  - Quick Reference für Phase 2
+  - TL;DR: Was existiert vs. was fehlt
 
 ### ✅ NEU IMPLEMENTIERT (Session 4 - 2025-10-23)
 
@@ -640,9 +723,26 @@ final class ExerciseEntity {
 - Long-Press Context Menu für Delete
 - Business Rules (Cannot delete last set)
 
-### 7. Workout Repository
-**Status:** 🔴 FEHLT
-**Benötigt:** Richtige Workout Templates statt Test-Data
+### 7. ~~Workout Repository~~ ✅ ERLEDIGT
+**Status:** ✅ KOMPLETT (Session 5)
+**Implementiert:**
+- Vollständige Clean Architecture (Domain → Data → Presentation)
+- WorkoutRepositoryProtocol + SwiftDataWorkoutRepository
+- GetAllWorkoutsUseCase + GetWorkoutByIdUseCase
+- WorkoutStore + Workout Picker UI
+- Workout Seed Data (Push/Pull/Legs)
+- StartSessionUseCase lädt echte Workouts
+- Progressive Overload mit lastUsed Values
+
+### 8. ~~Progression Features (Phase 2)~~ 📋 DOKUMENTIERT
+**Status:** 📋 Vollständig geplant (PROGRESSION_FEATURE_PLAN.md)
+**Geschätzt:** ~14 Stunden Implementation
+**Enthält:**
+- Data Model Extensions (optional, backward compatible)
+- 3 Progression Strategien (Linear, Double, Wave Loading)
+- Use Cases: SuggestProgressionUseCase, RecordProgressionEventUseCase
+- UI: Progression Banner, Settings, Timeline
+- ProgressionEventEntity für History Tracking
 
 ### 9. Reorder Exercises/Sets
 **Status:** 🔴 FEHLT
@@ -679,15 +779,22 @@ final class ExerciseEntity {
 
 ### Mittelfristig (4-8 Stunden)
 
-4. **Reordering (2-3 Stunden)**
+4. **~~Workout Repository~~ ✅ ERLEDIGT (Session 5)**
+   - ✅ Clean Architecture komplett implementiert
+   - ✅ Workout Picker in HomeView
+   - ✅ Echte Templates (Push/Pull/Legs)
+   - ✅ Progressive Overload funktioniert
+
+5. **Reordering (2-3 Stunden)**
    - `.onMove` für Exercises
    - `.onMove` für Sets  
    - ReorderUseCase
 
-5. **Workout Repository (2-3 Stunden)**
-   - WorkoutEntity & Repository
-   - Workout Picker in HomeView
-   - Echte Templates statt Test-Data
+6. **Progression Features - Phase 2 (~14 Stunden)**
+   - Siehe PROGRESSION_FEATURE_PLAN.md
+   - Data Model Extensions
+   - Progression Strategies Implementation
+   - UI Components (Banner, Settings, Timeline)
 
 ---
 
@@ -712,24 +819,34 @@ final class ExerciseEntity {
 - Testing ist schwierig
 - UX leidet (keine Namen, keine History)
 
+### 8. Clean Architecture zahlt sich aus
+**Learnings aus Session 5:**
+- Workout Repository in 3-4h implementiert (durch klare Layer)
+- Keine Breaking Changes (optional fields, backward compatible)
+- Wiederverwendung von WorkoutEntity (bereits vorhanden)
+- Testing: MockRepositories funktionieren perfekt
+- Dependency Injection macht alles einfach austauschbar
+
 ---
 
 ## 🚀 Current State Summary
 
 **Was jetzt funktioniert (End-to-End):**
 
-1. ✅ **App Start** → Seeds 3 Exercises (first launch only)
-2. ✅ **Start Workout** → Lädt Exercise IDs + Last Used Values aus DB
-3. ✅ **Exercise Names** → Echte Namen statt "Übung 1, 2, 3"
-4. ✅ **Progressive Overload** → Sets starten mit letzten Werten
-5. ✅ **Tap Weight/Reps** → Sheet öffnet sich
-6. ✅ **Edit Values** → Große, gut bedienbare TextFields
-7. ✅ **Update All Sets** → Toggle für alle incomplete Sets
-8. ✅ **Add Set** → Quick-Add Field ("100 x 8") + Plus Button
-9. ✅ **Delete Set** → Long-Press Context Menu
-10. ✅ **Mark All Complete** → Alle Sets auf einmal abhaken
-11. ✅ **Workout Complete** → Summary Sheet mit Statistiken
-12. ✅ **Exercise History** → lastUsedWeight/Reps/Date persistiert
+1. ✅ **App Start** → Seeds 3 Exercises + 3 Workouts (first launch)
+2. ✅ **Workout Picker** → Liste mit Favoriten (Push/Pull/Legs)
+3. ✅ **Start Workout** → Lädt echtes Workout Template aus DB
+4. ✅ **Exercise Names** → Echte Namen aus Workout
+5. ✅ **Progressive Overload** → Sets starten mit letzten Werten
+6. ✅ **Tap Weight/Reps** → Sheet öffnet sich
+7. ✅ **Edit Values** → Große, gut bedienbare TextFields
+8. ✅ **Update All Sets** → Toggle für alle incomplete Sets
+9. ✅ **Add Set** → Quick-Add Field ("100 x 8") + Plus Button
+10. ✅ **Delete Set** → Long-Press Context Menu
+11. ✅ **Mark All Complete** → Alle Sets auf einmal abhaken
+12. ✅ **Workout Complete** → Summary Sheet mit Statistiken
+13. ✅ **Exercise History** → lastUsedWeight/Reps/Date persistiert
+14. ✅ **Nächstes Training** → Selbes Workout, neue Progressive Overload Values!
 
 **Komplettes Set Management:**
 - ✅ Edit Set (Sheet-based UI)
@@ -738,17 +855,27 @@ final class ExerciseEntity {
 - ✅ Delete Set (Context Menu)
 - ✅ Mark All Complete (Batch operation)
 
+**Workout Management:**
+- ✅ Workout Repository (Clean Architecture)
+- ✅ Workout Picker UI mit Favoriten
+- ✅ 3 Seed Workouts (Push/Pull/Legs)
+- ✅ Real Workout Loading in StartSessionUseCase
+- ✅ Progressive Overload Integration
+
 ---
 
 ## 📚 Verwandte Dokumentation
 
 - `TECHNICAL_CONCEPT_V2.md` - Architektur-Specs
 - `UX_CONCEPT_V2.md` - UX/UI Design
-- `TODO.md` - Priorisierte Aufgaben
+- `TODO.md` - Priorisierte Aufgaben + Phase 2 Sektion
 - `README.md` - Projekt-Übersicht
+- `PROGRESSION_FEATURE_PLAN.md` - ⭐ Phase 2 Spec (Auto-Progression, ~14h)
+- `PROGRESSION_QUICK_REF.md` - ⭐ Phase 2 Quick Reference
+- `SESSION_SUMMARY_2025_10_23.md` - Session 5 Detailed Summary
 
 ---
 
-**Letzte Aktualisierung:** 2025-10-23 (Session 4 Ende)
-**Status:** ✅ MVP KOMPLETT! Progressive Overload + Complete Set Management!
-**Nächste Session:** Reordering oder Workout Repository
+**Letzte Aktualisierung:** 2025-10-23 (Session 5 Ende)
+**Status:** ✅ WORKOUT REPOSITORY KOMPLETT! Real Workouts + Progressive Overload + Complete Set Management!
+**Nächste Session:** Reordering, Progression Features (Phase 2), oder Workout History & Statistics
