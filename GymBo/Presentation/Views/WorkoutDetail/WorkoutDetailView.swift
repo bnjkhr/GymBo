@@ -200,12 +200,12 @@ struct WorkoutDetailView: View {
     private func toggleFavorite() async {
         guard let store = workoutStore else { return }
 
-        await store.toggleFavorite(workoutId: workout.id)
+        // Optimistic update (sofortiges UI Feedback)
+        localWorkout.isFavorite.toggle()
+        localWorkout.updatedAt = Date()
 
-        // Update local state
-        if let updatedWorkout = store.workouts.first(where: { $0.id == workout.id }) {
-            localWorkout = updatedWorkout
-        }
+        // Dann Backend update
+        await store.toggleFavorite(workoutId: workout.id)
     }
 }
 
