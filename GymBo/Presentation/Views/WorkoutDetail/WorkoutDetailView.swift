@@ -38,7 +38,6 @@ struct WorkoutDetailView: View {
     @State private var isFavorite: Bool = false
     @State private var showExercisePicker = false
     @State private var exerciseToEdit: WorkoutExercise?
-    @State private var showEditSheet = false
 
     // MARK: - Initialization
 
@@ -109,10 +108,8 @@ struct WorkoutDetailView: View {
             }
             .environment(\.dependencyContainer, dependencyContainer)
         }
-        .sheet(isPresented: $showEditSheet) {
-            if let exercise = exerciseToEdit,
-                let workout = workout
-            {
+        .sheet(item: $exerciseToEdit) { exercise in
+            if let workout = workout {
                 EditExerciseDetailsView(
                     workoutId: workout.id,
                     exercise: exercise,
@@ -194,7 +191,6 @@ struct WorkoutDetailView: View {
                     .listRowBackground(Color.clear)
                     .onTapGesture {
                         exerciseToEdit = exercise
-                        showEditSheet = true
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
