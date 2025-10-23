@@ -52,7 +52,7 @@ struct SuccessPill: View {
                     .fill(Color.green)
                     .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             )
-            .padding(.top, 60)  // Below Dynamic Island
+            .padding(.top, 8)  // Directly below Dynamic Island
 
             Spacer()
         }
