@@ -201,8 +201,13 @@ struct WorkoutDetailView: View {
         guard let store = workoutStore else { return }
 
         // Optimistic update (sofortiges UI Feedback)
-        localWorkout.isFavorite.toggle()
-        localWorkout.updatedAt = Date()
+        // WICHTIG: Neues struct erstellen, damit SwiftUI die Änderung erkennt
+        var updated = localWorkout
+        updated.isFavorite.toggle()
+        updated.updatedAt = Date()
+        localWorkout = updated
+
+        print("🌟 Toggled favorite: \(localWorkout.name) → isFavorite: \(localWorkout.isFavorite)")
 
         // Dann Backend update
         await store.toggleFavorite(workoutId: workout.id)
