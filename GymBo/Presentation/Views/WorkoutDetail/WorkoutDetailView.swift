@@ -34,14 +34,14 @@ struct WorkoutDetailView: View {
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var isLoadingExercises = true
     @State private var workoutStore: WorkoutStore?
-    @State private var localWorkout: Workout
+    @State private var isFavorite: Bool
 
     // MARK: - Initialization
 
     init(workout: Workout, onStartWorkout: @escaping () -> Void) {
         self.workout = workout
         self.onStartWorkout = onStartWorkout
-        self._localWorkout = State(initialValue: workout)
+        self._isFavorite = State(initialValue: workout.isFavorite)
     }
 
     // MARK: - Body
@@ -67,7 +67,7 @@ struct WorkoutDetailView: View {
             }
             .padding()
         }
-        .navigationTitle(localWorkout.name)
+        .navigationTitle(workout.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -76,8 +76,8 @@ struct WorkoutDetailView: View {
                         await toggleFavorite()
                     }
                 } label: {
-                    Image(systemName: localWorkout.isFavorite ? "star.fill" : "star")
-                        .foregroundStyle(localWorkout.isFavorite ? .yellow : .primary)
+                    Image(systemName: isFavorite ? "star.fill" : "star")
+                        .foregroundStyle(isFavorite ? .yellow : .primary)
                 }
             }
         }
@@ -201,13 +201,9 @@ struct WorkoutDetailView: View {
         guard let store = workoutStore else { return }
 
         // Optimistic update (sofortiges UI Feedback)
-        // WICHTIG: Neues struct erstellen, damit SwiftUI die Änderung erkennt
-        var updated = localWorkout
-        updated.isFavorite.toggle()
-        updated.updatedAt = Date()
-        localWorkout = updated
+        isFavorite.toggle()
 
-        print("🌟 Toggled favorite: \(localWorkout.name) → isFavorite: \(localWorkout.isFavorite)")
+        print("🌟 Toggled favorite: \(workout.name) → isFavorite: \(isFavorite)")
 
         // Dann Backend update
         await store.toggleFavorite(workoutId: workout.id)
