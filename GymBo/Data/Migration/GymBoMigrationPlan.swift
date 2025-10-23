@@ -41,9 +41,9 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     /// **IMPORTANT:** Always append new versions, never reorder!
     static var schemas: [any VersionedSchema.Type] {
         [
-            SchemaV1.self
+            SchemaV1.self,
+            SchemaV2.self,  // ✅ Added: exerciseId field to WorkoutExerciseEntity
             // Future versions will be added here:
-            // SchemaV2.self,
             // SchemaV3.self,
             // ...
         ]
@@ -56,13 +56,60 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     /// **IMPORTANT:** Each stage defines how to migrate from one version to the next
     static var stages: [MigrationStage] {
         [
-            // No migrations yet - SchemaV1 is the baseline
+            migrateV1toV2
             // Future migrations will be added here:
-            // migrateV1toV2,
             // migrateV2toV3,
             // ...
         ]
     }
+
+    // MARK: - V1 → V2 Migration
+
+    /// Migration from V1 to V2: Add exerciseId field to WorkoutExerciseEntity
+    ///
+    /// **Changes:**
+    /// - WorkoutExerciseEntity: Add exerciseId field populated from exercise.id
+    ///
+    /// **Why:** Fixes issue where exercise names weren't loading due to lazy relationship loading
+    static let migrateV1toV2 = MigrationStage.custom(
+        fromVersion: SchemaV1.self,
+        toVersion: SchemaV2.self,
+        willMigrate: { context in
+            print("🔄 Starting migration V1 → V2: Adding exerciseId field...")
+
+            // Fetch all WorkoutExerciseEntity instances
+            let descriptor = FetchDescriptor<SchemaV2.WorkoutExerciseEntity>()
+            guard let workoutExercises = try? context.fetch(descriptor) else {
+                print("❌ Failed to fetch workout exercises for migration")
+                return
+            }
+
+            print("📊 Found \(workoutExercises.count) workout exercises to migrate")
+
+            var migratedCount = 0
+            var missingExerciseCount = 0
+
+            for workoutExercise in workoutExercises {
+                // If exercise relationship exists, copy its ID to exerciseId
+                if let exercise = workoutExercise.exercise {
+                    workoutExercise.exerciseId = exercise.id
+                    migratedCount += 1
+                } else {
+                    // Exercise relationship is nil - use placeholder
+                    print(
+                        "⚠️ WorkoutExercise \(workoutExercise.id) has no exercise - using placeholder"
+                    )
+                    workoutExercise.exerciseId = UUID()  // Placeholder, will be cleaned
+                    missingExerciseCount += 1
+                }
+            }
+
+            print("✅ Migration V1 → V2 complete:")
+            print("   - Migrated: \(migratedCount) exercises")
+            print("   - Missing exercise: \(missingExerciseCount) (will be cleaned up)")
+        },
+        didMigrate: nil
+    )
 
     // MARK: - Future Migration Stages (Examples)
 
