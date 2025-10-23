@@ -109,15 +109,12 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
             // Save changes to SwiftData
             try modelContext.save()
 
-            // Refresh entity from persistent store to ensure changes are committed
-            modelContext.refresh(entity, mergeChanges: false)
-
-            print("🔄 AFTER Save & Refresh: Workout '\(entity.name)'")
+            print("🔄 AFTER Save: Workout '\(entity.name)'")
             for ex in entity.exercises.sorted(by: { $0.order < $1.order }) {
                 print("   - Order \(ex.order): \(ex.id)")
             }
 
-            print("✅ Exercise order saved to SwiftData and refreshed")
+            print("✅ Exercise order saved to SwiftData")
         } catch let error as WorkoutRepositoryError {
             throw error
         } catch {
