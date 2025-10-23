@@ -33,6 +33,16 @@ struct WorkoutDetailView: View {
 
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var isLoadingExercises = true
+    @State private var workoutStore: WorkoutStore?
+    @State private var localWorkout: Workout
+
+    // MARK: - Initialization
+
+    init(workout: Workout, onStartWorkout: @escaping () -> Void) {
+        self.workout = workout
+        self.onStartWorkout = onStartWorkout
+        self._localWorkout = State(initialValue: workout)
+    }
 
     // MARK: - Body
 
@@ -57,20 +67,22 @@ struct WorkoutDetailView: View {
             }
             .padding()
         }
-        .navigationTitle(workout.name)
+        .navigationTitle(localWorkout.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    // TODO: Toggle favorite
+                    Task {
+                        await toggleFavorite()
+                    }
                 } label: {
-                    Image(systemName: workout.isFavorite ? "star.fill" : "star")
-                        .foregroundStyle(workout.isFavorite ? .yellow : .primary)
+                    Image(systemName: localWorkout.isFavorite ? "star.fill" : "star")
+                        .foregroundStyle(localWorkout.isFavorite ? .yellow : .primary)
                 }
             }
         }
         .task {
-            await loadExerciseNames()
+            await loadData()
         }
     }
 
@@ -154,6 +166,17 @@ struct WorkoutDetailView: View {
 
     // MARK: - Actions
 
+    /// Load initial data
+    private func loadData() async {
+        // Initialize workout store
+        if workoutStore == nil, let container = dependencyContainer {
+            workoutStore = container.makeWorkoutStore()
+        }
+
+        // Load exercise names
+        await loadExerciseNames()
+    }
+
     /// Load exercise names from database
     private func loadExerciseNames() async {
         isLoadingExercises = true
@@ -170,6 +193,18 @@ struct WorkoutDetailView: View {
             } catch {
                 print("❌ Failed to load exercise name: \(error)")
             }
+        }
+    }
+
+    /// Toggle favorite status
+    private func toggleFavorite() async {
+        guard let store = workoutStore else { return }
+
+        await store.toggleFavorite(workoutId: workout.id)
+
+        // Update local state
+        if let updatedWorkout = store.workouts.first(where: { $0.id == workout.id }) {
+            localWorkout = updatedWorkout
         }
     }
 }

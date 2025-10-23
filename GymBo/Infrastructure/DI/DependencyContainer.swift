@@ -60,7 +60,8 @@ final class DependencyContainer {
     private lazy var _workoutStore: WorkoutStore = {
         WorkoutStore(
             getAllWorkoutsUseCase: makeGetAllWorkoutsUseCase(),
-            getWorkoutByIdUseCase: makeGetWorkoutByIdUseCase()
+            getWorkoutByIdUseCase: makeGetWorkoutByIdUseCase(),
+            toggleFavoriteUseCase: makeToggleFavoriteUseCase()
         )
     }()
 
@@ -210,6 +211,12 @@ final class DependencyContainer {
     /// - Returns: Use case for fetching a specific workout template
     func makeGetWorkoutByIdUseCase() -> GetWorkoutByIdUseCase {
         return DefaultGetWorkoutByIdUseCase(
+            repository: makeWorkoutRepository()
+        )
+    }
+
+    func makeToggleFavoriteUseCase() -> ToggleFavoriteUseCase {
+        return DefaultToggleFavoriteUseCase(
             repository: makeWorkoutRepository()
         )
     }
