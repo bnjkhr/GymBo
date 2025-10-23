@@ -316,7 +316,7 @@ struct WorkoutDetailView: View {
 
             // Update local workout from store
             if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
-                workout = updatedWorkout
+                self.workout = updatedWorkout
             }
         }
     }
