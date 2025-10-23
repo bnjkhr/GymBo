@@ -40,26 +40,25 @@ struct GymBoApp: App {
     // MARK: - Initialization
 
     init() {
-        // Configure SwiftData with V2 entities only
-        let schema = Schema([
-            // V2 Session entities
-            WorkoutSessionEntity.self,
-            SessionExerciseEntity.self,
-            SessionSetEntity.self,
-
-            // Shared entities (reused from V1)
-            ExerciseEntity.self,
-            ExerciseSetEntity.self,
-            WorkoutExerciseEntity.self,
-            WorkoutEntity.self,
-            UserProfileEntity.self,
-            ExerciseRecordEntity.self,
-            WorkoutFolderEntity.self,
-        ])
-
+        // ✅ Production-Ready: ModelContainer with standard entities
+        // NOTE: SchemaV1 & GymBoMigrationPlan are frozen baselines for future migrations
+        // We currently use the original entities to avoid type namespace issues
         do {
-            // Try persistent storage first
+            let schema = Schema([
+                WorkoutSessionEntity.self,
+                SessionExerciseEntity.self,
+                SessionSetEntity.self,
+                ExerciseEntity.self,
+                ExerciseSetEntity.self,
+                WorkoutExerciseEntity.self,
+                WorkoutEntity.self,
+                UserProfileEntity.self,
+                ExerciseRecordEntity.self,
+                WorkoutFolderEntity.self,
+            ])
+
             container = try ModelContainer(for: schema)
+
             AppLogger.app.info("✅ SwiftData container created successfully")
         } catch {
             // Fallback to in-memory if persistent fails
@@ -68,6 +67,18 @@ struct GymBoApp: App {
             AppLogger.app.warning("⚠️ Using in-memory container (data will be lost on restart)")
 
             let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let schema = Schema([
+                WorkoutSessionEntity.self,
+                SessionExerciseEntity.self,
+                SessionSetEntity.self,
+                ExerciseEntity.self,
+                ExerciseSetEntity.self,
+                WorkoutExerciseEntity.self,
+                WorkoutEntity.self,
+                UserProfileEntity.self,
+                ExerciseRecordEntity.self,
+                WorkoutFolderEntity.self,
+            ])
             container = try! ModelContainer(for: schema, configurations: [config])
         }
 
