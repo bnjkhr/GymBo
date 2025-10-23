@@ -44,7 +44,7 @@ struct GymBoApp: App {
         // Migrates from V1 (no exerciseId) → V2 (with exerciseId in WorkoutExerciseEntity)
 
         // 🔧 DEVELOPMENT MODE: Force delete database on every start
-        // TODO: Remove this before production - this is only for testing schema changes
+        // Since we delete DB on every DEBUG run, we don't need versioned schemas yet
         #if DEBUG
             let fileManager = FileManager.default
             if let storeURL = fileManager.urls(
@@ -59,16 +59,32 @@ struct GymBoApp: App {
                 try? fileManager.removeItem(
                     at: storeURL.deletingPathExtension().appendingPathExtension("store-wal"))
             }
+
+            // Use non-versioned schema (direct entities) to avoid type casting issues
+            let schema = Schema([
+                WorkoutSessionEntity.self,
+                SessionExerciseEntity.self,
+                SessionSetEntity.self,
+                ExerciseEntity.self,
+                ExerciseSetEntity.self,
+                WorkoutExerciseEntity.self,
+                WorkoutEntity.self,
+                UserProfileEntity.self,
+                ExerciseRecordEntity.self,
+                WorkoutFolderEntity.self,
+            ])
+            container = try! ModelContainer(for: schema)
+            AppLogger.app.info("✅ SwiftData container created (DEBUG mode - fresh DB)")
+
+        #else
+            // PRODUCTION: Use versioned schema with migration plan
+            let schema = Schema(versionedSchema: SchemaV2.self)
+            container = try! ModelContainer(
+                for: schema,
+                migrationPlan: GymBoMigrationPlan.self
+            )
+            AppLogger.app.info("✅ SwiftData container created with V2 schema")
         #endif
-
-        // Create container with V2 schema
-        let schema = Schema(versionedSchema: SchemaV2.self)
-        container = try! ModelContainer(
-            for: schema,
-            migrationPlan: GymBoMigrationPlan.self
-        )
-
-        AppLogger.app.info("✅ SwiftData container created with V2 schema")
 
         // Initialize dependency injection
         dependencyContainer = DependencyContainer(
