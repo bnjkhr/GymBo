@@ -224,15 +224,8 @@ final class WorkoutStore {
                 exerciseIds: exerciseIds
             )
 
-            // Update in local array
-            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
-                workouts[index] = updatedWorkout
-            }
-
-            // Update selected workout if it's the same
-            if selectedWorkout?.id == workoutId {
-                selectedWorkout = updatedWorkout
-            }
+            // Reload all workouts from database to get fresh data
+            await loadWorkouts()
 
             print("✅ Reordered exercises in workout: \(updatedWorkout.name)")
         } catch {

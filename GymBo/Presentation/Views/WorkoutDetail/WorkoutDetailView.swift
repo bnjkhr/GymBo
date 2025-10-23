@@ -331,6 +331,11 @@ struct WorkoutDetailView: View {
         // Update in backend
         Task {
             await store.reorderExercises(in: workoutId, exerciseIds: newOrder)
+
+            // After store reloaded, update local workout from store
+            if let refreshedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+                self.workout = refreshedWorkout
+            }
         }
     }
 }
