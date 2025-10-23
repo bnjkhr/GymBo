@@ -44,24 +44,24 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
 
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
-
-    // TODO: Sprint 1.3 - Add WorkoutRepository to load workout template
-    // private let workoutRepository: WorkoutRepositoryProtocol
+    private let workoutRepository: WorkoutRepositoryProtocol
 
     // MARK: - Initialization
 
     init(
         sessionRepository: SessionRepositoryProtocol,
-        exerciseRepository: ExerciseRepositoryProtocol
+        exerciseRepository: ExerciseRepositoryProtocol,
+        workoutRepository: WorkoutRepositoryProtocol
     ) {
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
+        self.workoutRepository = workoutRepository
     }
 
     // MARK: - Execute
 
     func execute(workoutId: UUID) async throws -> DomainWorkoutSession {
-        print("🔵 StartSessionUseCase: Starting execution")
+        print("🔵 StartSessionUseCase: Starting execution for workout \(workoutId)")
 
         // BUSINESS RULE: Only one active session allowed
         if let existingSession = try await sessionRepository.fetchActiveSession() {
@@ -69,28 +69,32 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
             throw UseCaseError.activeSessionExists(existingSession.id)
         }
 
-        // TODO: Sprint 2 - Load workout template from WorkoutRepository
-        // let workout = try await workoutRepository.fetch(id: workoutId)
-        // guard let workout = workout else {
-        //     throw UseCaseError.workoutNotFound(workoutId)
-        // }
+        // Load workout template from repository
+        print("🔵 StartSessionUseCase: Loading workout template")
+        guard let workout = try await workoutRepository.fetch(id: workoutId) else {
+            print("❌ StartSessionUseCase: Workout not found: \(workoutId)")
+            throw UseCaseError.workoutNotFound(workoutId)
+        }
 
-        // TEMPORARY: Create session with test exercises for MVP demo
-        // Will be replaced when WorkoutRepository is implemented
-        print("🔵 StartSessionUseCase: Creating test exercises")
-        let testExercises = await createTestExercises()
-        print("   - Created \(testExercises.count) exercises")
+        print(
+            "✅ StartSessionUseCase: Loaded workout '\(workout.name)' with \(workout.exercises.count) exercises"
+        )
 
+        // Convert workout exercises to session exercises
+        print("🔵 StartSessionUseCase: Converting workout to session exercises")
+        let sessionExercises = await convertToSessionExercises(workout.exercises)
+        print("   - Created \(sessionExercises.count) session exercises")
+
+        // Create session
         let session = DomainWorkoutSession(
             workoutId: workoutId,
             startDate: Date(),
-            exercises: testExercises,
+            exercises: sessionExercises,
             state: .active,
-            workoutName: "Quick Workout"  // TODO: Load from workout template
+            workoutName: workout.name
         )
 
         print("   - Session created with ID: \(session.id.uuidString)")
-        print("   - Exercises in session: \(session.exercises.count)")
 
         // Save session to repository
         print("🔵 StartSessionUseCase: Saving session to repository")
@@ -105,76 +109,51 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
         return session
     }
 
-    // MARK: - Temporary Test Data (TODO: Remove in Sprint 2)
+    // MARK: - Private Helpers
 
-    /// Create test exercises for MVP demo
-    /// This will be replaced when WorkoutRepository is implemented
-    private func createTestExercises() async -> [DomainSessionExercise] {
-        // Try to load exercise IDs from database (seeded exercises)
-        let exercise1Id = (try? await exerciseRepository.findByName("Bankdrücken")) ?? UUID()
-        let exercise2Id = (try? await exerciseRepository.findByName("Lat Pulldown")) ?? UUID()
-        let exercise3Id = (try? await exerciseRepository.findByName("Kniebeugen")) ?? UUID()
+    /// Convert workout exercises to session exercises with progressive overload
+    /// - Parameter workoutExercises: Exercises from workout template
+    /// - Returns: Session exercises with last used values
+    private func convertToSessionExercises(_ workoutExercises: [WorkoutExercise]) async
+        -> [DomainSessionExercise]
+    {
+        var sessionExercises: [DomainSessionExercise] = []
 
-        print("📋 Loaded exercise IDs:")
-        print("   - Bankdrücken: \(exercise1Id)")
-        print("   - Lat Pulldown: \(exercise2Id)")
-        print("   - Kniebeugen: \(exercise3Id)")
+        for (index, workoutExercise) in workoutExercises.enumerated() {
+            // Load exercise from catalog to get last used values
+            let exerciseEntity = try? await exerciseRepository.fetch(id: workoutExercise.exerciseId)
 
-        // Load last used values for each exercise
-        let exercise1 = try? await exerciseRepository.fetch(id: exercise1Id)
-        let exercise2 = try? await exerciseRepository.fetch(id: exercise2Id)
-        let exercise3 = try? await exerciseRepository.fetch(id: exercise3Id)
+            // Use last used values if available, otherwise use template values
+            let weight = exerciseEntity?.lastUsedWeight ?? workoutExercise.targetWeight ?? 0.0
+            let reps = exerciseEntity?.lastUsedReps ?? workoutExercise.targetReps
 
-        // Use last used values or fall back to defaults
-        let ex1Weight = exercise1?.lastUsedWeight ?? 100
-        let ex1Reps = exercise1?.lastUsedReps ?? 8
+            print("📊 Exercise \(index + 1): ID=\(workoutExercise.exerciseId)")
+            print("   - Weight: \(weight)kg, Reps: \(reps), Sets: \(workoutExercise.targetSets)")
 
-        let ex2Weight = exercise2?.lastUsedWeight ?? 80
-        let ex2Reps = exercise2?.lastUsedReps ?? 10
+            // Create sets based on target count
+            var sets: [DomainSessionSet] = []
+            for setIndex in 0..<workoutExercise.targetSets {
+                let set = DomainSessionSet(
+                    weight: weight,
+                    reps: reps,
+                    orderIndex: setIndex
+                )
+                sets.append(set)
+            }
 
-        let ex3Weight = exercise3?.lastUsedWeight ?? 60
-        let ex3Reps = exercise3?.lastUsedReps ?? 12
+            // Create session exercise
+            let sessionExercise = DomainSessionExercise(
+                exerciseId: workoutExercise.exerciseId,
+                sets: sets,
+                notes: workoutExercise.notes,
+                restTimeToNext: workoutExercise.restTime,
+                orderIndex: index
+            )
 
-        print("📊 Using values:")
-        print("   - Bankdrücken: \(ex1Weight)kg x \(ex1Reps) reps (lastUsed: \(exercise1?.lastUsedDate?.formatted() ?? "never"))")
-        print("   - Lat Pulldown: \(ex2Weight)kg x \(ex2Reps) reps (lastUsed: \(exercise2?.lastUsedDate?.formatted() ?? "never"))")
-        print("   - Kniebeugen: \(ex3Weight)kg x \(ex3Reps) reps (lastUsed: \(exercise3?.lastUsedDate?.formatted() ?? "never"))")
+            sessionExercises.append(sessionExercise)
+        }
 
-        return [
-            DomainSessionExercise(
-                exerciseId: exercise1Id,
-                sets: [
-                    DomainSessionSet(weight: ex1Weight, reps: ex1Reps, orderIndex: 0),
-                    DomainSessionSet(weight: ex1Weight, reps: ex1Reps, orderIndex: 1),
-                    DomainSessionSet(weight: ex1Weight, reps: ex1Reps, orderIndex: 2),
-                ],
-                notes: nil,
-                restTimeToNext: 90,  // 1.5 minutes rest
-                orderIndex: 0
-            ),
-            DomainSessionExercise(
-                exerciseId: exercise2Id,
-                sets: [
-                    DomainSessionSet(weight: ex2Weight, reps: ex2Reps, orderIndex: 0),
-                    DomainSessionSet(weight: ex2Weight, reps: ex2Reps, orderIndex: 1),
-                    DomainSessionSet(weight: ex2Weight, reps: ex2Reps, orderIndex: 2),
-                ],
-                notes: "Focus on form",
-                restTimeToNext: 90,
-                orderIndex: 1
-            ),
-            DomainSessionExercise(
-                exerciseId: exercise3Id,
-                sets: [
-                    DomainSessionSet(weight: ex3Weight, reps: ex3Reps, orderIndex: 0),
-                    DomainSessionSet(weight: ex3Weight, reps: ex3Reps, orderIndex: 1),
-                    DomainSessionSet(weight: ex3Weight, reps: ex3Reps, orderIndex: 2),
-                ],
-                notes: nil,
-                restTimeToNext: 60,  // 1 minute rest
-                orderIndex: 2
-            ),
-        ]
+        return sessionExercises
     }
 }
 
@@ -206,6 +185,12 @@ enum UseCaseError: Error, LocalizedError {
     /// Invalid operation (e.g., completing already completed set)
     case invalidOperation(String)
 
+    /// Repository error (wraps repository-specific errors)
+    case repositoryError(Error)
+
+    /// Unknown error
+    case unknownError(Error)
+
     var errorDescription: String? {
         switch self {
         case .activeSessionExists(let id):
@@ -225,6 +210,10 @@ enum UseCaseError: Error, LocalizedError {
             return "Failed to update: \(error.localizedDescription)"
         case .invalidOperation(let message):
             return "Invalid operation: \(message)"
+        case .repositoryError(let error):
+            return "Repository error: \(error.localizedDescription)"
+        case .unknownError(let error):
+            return "Unknown error: \(error.localizedDescription)"
         }
     }
 }

@@ -23,7 +23,7 @@ protocol ExerciseRepositoryProtocol {
     /// - Parameter id: Exercise ID
     /// - Returns: Exercise entity or nil if not found
     /// - Throws: Repository errors
-    func fetch(id: UUID) async throws -> ExerciseEntity?
+    nonisolated func fetch(id: UUID) async throws -> ExerciseEntity?
 
     /// Update last used values for an exercise
     /// - Parameters:
@@ -32,7 +32,7 @@ protocol ExerciseRepositoryProtocol {
     ///   - reps: Last used reps
     ///   - date: When it was last used (defaults to now)
     /// - Throws: Repository errors
-    func updateLastUsed(
+    nonisolated func updateLastUsed(
         exerciseId: UUID,
         weight: Double,
         reps: Int,
@@ -42,7 +42,7 @@ protocol ExerciseRepositoryProtocol {
     /// Find exercise by name (for test data)
     /// - Parameter name: Exercise name
     /// - Returns: Exercise ID or nil if not found
-    func findByName(_ name: String) async throws -> UUID?
+    nonisolated func findByName(_ name: String) async throws -> UUID?
 }
 
 // MARK: - Mock Implementation for Testing/Previews

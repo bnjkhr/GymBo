@@ -89,6 +89,7 @@ struct GymBoApp: App {
             MainTabView()
                 .modelContainer(container)
                 .environment(sessionStore)
+                .environment(\.dependencyContainer, dependencyContainer)
                 .task {
                     await performStartupTasks()
                 }
@@ -103,6 +104,9 @@ struct GymBoApp: App {
 
         // Seed test exercises if database is empty
         ExerciseSeedData.seedIfNeeded(context: container.mainContext)
+
+        // Seed sample workouts if database is empty
+        WorkoutSeedData.seedIfNeeded(context: container.mainContext)
 
         print("🔵 performStartupTasks: About to load session")
 

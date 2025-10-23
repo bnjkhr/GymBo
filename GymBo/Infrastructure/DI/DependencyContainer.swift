@@ -53,6 +53,14 @@ final class DependencyContainer {
         )
     }()
 
+    /// Singleton WorkoutStore (shared across app)
+    private lazy var _workoutStore: WorkoutStore = {
+        WorkoutStore(
+            getAllWorkoutsUseCase: makeGetAllWorkoutsUseCase(),
+            getWorkoutByIdUseCase: makeGetWorkoutByIdUseCase()
+        )
+    }()
+
     // MARK: - Initialization
 
     /// Initialize the dependency container with required infrastructure dependencies
@@ -79,15 +87,24 @@ final class DependencyContainer {
         return SwiftDataExerciseRepository(modelContext: modelContext)
     }
 
+    /// Creates WorkoutRepository implementation
+    /// - Returns: Repository conforming to WorkoutRepositoryProtocol
+    func makeWorkoutRepository() -> WorkoutRepositoryProtocol {
+        return SwiftDataWorkoutRepository(
+            modelContext: modelContext,
+            mapper: WorkoutMapper()
+        )
+    }
+
     // MARK: - Use Cases (Domain Layer)
 
     /// Creates StartSessionUseCase
     /// - Returns: Use case for starting a workout session
     func makeStartSessionUseCase() -> StartSessionUseCase {
-        // ✅ Sprint 1.2 COMPLETE
         return DefaultStartSessionUseCase(
             sessionRepository: makeSessionRepository(),
-            exerciseRepository: makeExerciseRepository()
+            exerciseRepository: makeExerciseRepository(),
+            workoutRepository: makeWorkoutRepository()
         )
     }
 
@@ -162,12 +179,34 @@ final class DependencyContainer {
         )
     }
 
+    /// Creates GetAllWorkoutsUseCase
+    /// - Returns: Use case for fetching all workout templates
+    func makeGetAllWorkoutsUseCase() -> GetAllWorkoutsUseCase {
+        return DefaultGetAllWorkoutsUseCase(
+            repository: makeWorkoutRepository()
+        )
+    }
+
+    /// Creates GetWorkoutByIdUseCase
+    /// - Returns: Use case for fetching a specific workout template
+    func makeGetWorkoutByIdUseCase() -> GetWorkoutByIdUseCase {
+        return DefaultGetWorkoutByIdUseCase(
+            repository: makeWorkoutRepository()
+        )
+    }
+
     // MARK: - Stores (Presentation Layer)
 
     /// Returns the singleton SessionStore instance
     /// - Returns: Shared SessionStore instance
     func makeSessionStore() -> SessionStore {
         return _sessionStore
+    }
+
+    /// Returns the singleton WorkoutStore instance
+    /// - Returns: Shared WorkoutStore instance
+    func makeWorkoutStore() -> WorkoutStore {
+        return _workoutStore
     }
 }
 

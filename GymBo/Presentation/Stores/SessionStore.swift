@@ -548,7 +548,8 @@ final class SessionStore {
         // Update weight if provided
         if let newWeight = weight {
             session.exercises[exerciseIndex].sets[setIndex].weight = newWeight
-            print("✏️ Updated local weight: \(session.exercises[exerciseIndex].sets[setIndex].weight)")
+            print(
+                "✏️ Updated local weight: \(session.exercises[exerciseIndex].sets[setIndex].weight)")
         }
 
         // Update reps if provided
@@ -622,10 +623,12 @@ extension SessionStore {
         static var preview: SessionStore {
             let repository = MockSessionRepository()
             let exerciseRepository = MockExerciseRepository()
+            let workoutRepository = MockWorkoutRepository()
             return SessionStore(
                 startSessionUseCase: DefaultStartSessionUseCase(
                     sessionRepository: repository,
-                    exerciseRepository: exerciseRepository
+                    exerciseRepository: exerciseRepository,
+                    workoutRepository: workoutRepository
                 ),
                 completeSetUseCase: DefaultCompleteSetUseCase(sessionRepository: repository),
                 endSessionUseCase: DefaultEndSessionUseCase(sessionRepository: repository),

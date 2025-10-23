@@ -1,8 +1,9 @@
 # GymBo V2 - TODO Liste
 
-**Stand:** 2025-10-22 (End of Day)  
-**MVP Status:** ✅ Funktionsfähig (Session Management + Active Workout UI)  
-**Letzte Änderungen:** orderIndex Bug-Fix, @Observable Migration, UI Cleanup
+**Stand:** 2025-10-23  
+**Current Phase:** Workout Repository Implementation  
+**Next Phase:** Progression Features (see PROGRESSION_FEATURE_PLAN.md)  
+**Letzte Änderungen:** Progression features documented, ready for Workout Repository
 
 ---
 
@@ -463,3 +464,79 @@ Jetzt: "Bankdrücken (Barbell)"
 ---
 
 **Letzte Aktualisierung:** 2025-10-22 22:40
+
+---
+
+## 🔮 Phase 2: Progression Features (Future)
+
+**Status:** 📋 PLANNED - Fully documented, ready for implementation  
+**Documentation:** See `PROGRESSION_FEATURE_PLAN.md` (detailed) or `PROGRESSION_QUICK_REF.md` (quick overview)  
+**Estimated Time:** ~14 hours  
+**Dependencies:** Workout Repository (Phase 1) must be complete first
+
+### What's Ready
+
+✅ **Complete feature specification**
+- Linear Progression, Double Progression, Wave Loading strategies
+- Data model extensions documented
+- Clean Architecture implementation plan
+- UI/UX mockups and flows
+
+✅ **No breaking changes**
+- All new fields are optional
+- Backward compatible with Phase 1
+- User can opt-in per workout
+
+✅ **All raw data already captured**
+- ExerciseEntity tracks lastUsed*
+- ExerciseRecordEntity tracks PRs + 1RM
+- UserProfileEntity has goals/experience
+- WorkoutSessionEntity has complete history
+
+### Quick Overview
+
+**New Entities:**
+- `ProgressionEventEntity` - Track all progression events (increases, deloads)
+
+**Entity Extensions:**
+- `WorkoutEntity`: Add `progressionStrategyRaw`, `defaultTargetReps*`
+- `WorkoutExerciseEntity`: Add `progressionIncrement`, `autoProgressionDisabled`
+- `WorkoutSessionEntity`: Add `perceivedDifficulty` (RPE)
+
+**Use Cases:**
+- `SuggestProgressionUseCase` - Analyze history, suggest next workout values
+- `RecordProgressionEventUseCase` - Log progression events
+- `GetProgressionHistoryUseCase` - Display progression timeline
+
+**UI Components:**
+- Progression suggestion banner (accept/decline)
+- Progression settings in workout editor
+- Progression timeline view
+
+### When to Start Phase 2
+
+**Start when:**
+1. ✅ Workout Repository is complete and tested
+2. ✅ User can select workouts from database
+3. ✅ Sessions load real workout templates
+4. ✅ App is stable with Phase 1 features
+
+**Don't start if:**
+- Workout Repository has bugs
+- Session flow isn't working reliably
+- Data model is still changing
+
+---
+
+## 📚 Documentation Index
+
+- `CURRENT_STATE.md` - Current implementation status (Session 4)
+- `TODO.md` - This file - Task prioritization
+- `TECHNICAL_CONCEPT_V2.md` - Architecture details
+- `UX_CONCEPT_V2.md` - UI/UX design
+- `PROGRESSION_FEATURE_PLAN.md` - ⭐ NEW: Complete Phase 2 specification
+- `PROGRESSION_QUICK_REF.md` - ⭐ NEW: Quick reference for Phase 2
+
+---
+
+**Last Updated:** 2025-10-23 - Progression features fully documented and ready

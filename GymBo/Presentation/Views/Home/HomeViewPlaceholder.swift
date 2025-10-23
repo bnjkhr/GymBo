@@ -3,113 +3,192 @@
 //  GymTracker
 //
 //  Created on 2025-10-22.
-//  V2 Clean Architecture - Home View Placeholder
+//  V2 Clean Architecture - Home View with Workout Picker
+//  Updated on 2025-10-23 - Added Workout Selection
 //
 
 import SwiftUI
 
-/// Placeholder home view for V2 MVP
+/// Home view with workout selection
 ///
 /// **Features:**
-/// - Quick start workout button
-/// - Shows V2 branding
-/// - TODO: Replace with full HomeView in Phase 2
+/// - Workout list with favorites
+/// - Start workout button
+/// - Continue active session
 struct HomeViewPlaceholder: View {
 
     @Environment(SessionStore.self) private var sessionStore
+    @Environment(\.dependencyContainer) private var dependencyContainer
+    @State private var workoutStore: WorkoutStore?
     @State private var showActiveWorkout = false
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 32) {
-                Spacer()
-
-                // V2 Branding
-                VStack(spacing: 8) {
-                    Text("GymBo")
-                        .font(.system(size: 48, weight: .bold))
-
-                    Text("V2.0 Clean Architecture")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
-                }
-
-                // Quick Start Button or Continue Session
+            Group {
                 if sessionStore.hasActiveSession {
-                    Button(action: { showActiveWorkout = true }) {
-                        Label("Training fortsetzen", systemImage: "arrow.clockwise")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                    }
-                    .padding(.horizontal, 40)
+                    // Show continue session button
+                    continueSessionView
+                } else if let store = workoutStore {
+                    // Show workout list
+                    workoutListView(store: store)
                 } else {
-                    Button(action: startQuickWorkout) {
-                        Label("Schnelles Training starten", systemImage: "play.fill")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.accentColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                    }
-                    .padding(.horizontal, 40)
+                    // Loading state
+                    ProgressView("Loading...")
                 }
-
-                // Status Info
-                VStack(spacing: 4) {
-                    if sessionStore.isLoading {
-                        ProgressView()
-                    }
-
-                    if let error = sessionStore.error {
-                        Text("Fehler: \(error.localizedDescription)")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                    }
-
-                    if sessionStore.hasActiveSession {
-                        Text("Aktives Training läuft")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                    }
-                }
-
-                Spacer()
-
-                // Footer
-                Text("V2: Clean Architecture")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
             }
-            .navigationTitle("Start")
+            .navigationTitle("Workouts")
             .sheet(isPresented: $showActiveWorkout) {
                 if sessionStore.hasActiveSession {
                     ActiveWorkoutSheetView()
                 }
             }
             .task {
-                await sessionStore.loadActiveSession()
+                await loadData()
             }
+        }
+    }
+
+    // MARK: - Subviews
+
+    private var continueSessionView: some View {
+        VStack(spacing: 32) {
+            Spacer()
+
+            VStack(spacing: 16) {
+                Image(systemName: "figure.strengthtraining.traditional")
+                    .font(.system(size: 64))
+                    .foregroundColor(.green)
+
+                Text("Training läuft")
+                    .font(.title)
+                    .fontWeight(.bold)
+
+                Button(action: { showActiveWorkout = true }) {
+                    Label("Training fortsetzen", systemImage: "arrow.clockwise")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+                .padding(.horizontal, 40)
+            }
+
+            Spacer()
+        }
+    }
+
+    private func workoutListView(store: WorkoutStore) -> some View {
+        List {
+            if store.isLoading {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+            } else if store.workouts.isEmpty {
+                ContentUnavailableView(
+                    "Keine Workouts",
+                    systemImage: "dumbbell",
+                    description: Text("Erstelle dein erstes Workout")
+                )
+            } else {
+                // Favorites section
+                if !store.favoriteWorkouts.isEmpty {
+                    Section("Favoriten") {
+                        ForEach(store.favoriteWorkouts) { workout in
+                            WorkoutRow(workout: workout) {
+                                startWorkout(workout)
+                            }
+                        }
+                    }
+                }
+
+                // Regular workouts
+                if !store.regularWorkouts.isEmpty {
+                    Section("Alle Workouts") {
+                        ForEach(store.regularWorkouts) { workout in
+                            WorkoutRow(workout: workout) {
+                                startWorkout(workout)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .refreshable {
+            await store.refresh()
         }
     }
 
     // MARK: - Actions
 
-    private func startQuickWorkout() {
-        Task {
-            // TODO: Get actual workout ID from workout list
-            // For now, use a hardcoded UUID
-            let dummyWorkoutId = UUID()
+    private func loadData() async {
+        // Initialize workout store if needed
+        if workoutStore == nil, let container = dependencyContainer {
+            workoutStore = container.makeWorkoutStore()
+        }
 
-            await sessionStore.startSession(workoutId: dummyWorkoutId)
+        // Load active session
+        await sessionStore.loadActiveSession()
+
+        // Load workouts if no active session
+        if !sessionStore.hasActiveSession, let store = workoutStore {
+            await store.loadWorkouts()
+        }
+    }
+
+    private func startWorkout(_ workout: Workout) {
+        Task {
+            await sessionStore.startSession(workoutId: workout.id)
 
             if sessionStore.hasActiveSession {
                 showActiveWorkout = true
             }
+        }
+    }
+}
+
+// MARK: - Workout Row
+
+private struct WorkoutRow: View {
+    let workout: Workout
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 16) {
+                // Icon
+                Image(systemName: workout.isFavorite ? "star.fill" : "dumbbell.fill")
+                    .font(.title2)
+                    .foregroundColor(workout.isFavorite ? .yellow : .accentColor)
+                    .frame(width: 40)
+
+                // Content
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(workout.name)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                    HStack(spacing: 12) {
+                        Label(
+                            "\(workout.exerciseCount)",
+                            systemImage: "figure.strengthtraining.traditional")
+                        Label("\(workout.totalSets)", systemImage: "list.bullet")
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                // Arrow
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.vertical, 4)
         }
     }
 }
