@@ -170,7 +170,7 @@ struct SessionMapper {
             notes: entity.notes,
             restTimeToNext: entity.restTimeToNext,
             orderIndex: entity.orderIndex,
-            isFinished: entity.isFinished ?? false  // Default to false for migration
+            isFinished: entity.isFinished
         )
     }
 

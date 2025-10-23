@@ -37,8 +37,7 @@ final class SessionExerciseEntity {
     var orderIndex: Int
 
     /// Whether the user has finished this exercise (moved to next exercise)
-    /// Optional to allow migration from older database versions (defaults to false)
-    var isFinished: Bool?
+    var isFinished: Bool = false
 
     /// Sets for this exercise
     @Relationship(deleteRule: .cascade, inverse: \SessionSetEntity.exercise)
@@ -55,7 +54,7 @@ final class SessionExerciseEntity {
         notes: String? = nil,
         restTimeToNext: TimeInterval? = nil,
         orderIndex: Int = 0,
-        isFinished: Bool? = nil,
+        isFinished: Bool = false,
         sets: [SessionSetEntity] = []
     ) {
         self.id = id
@@ -63,7 +62,7 @@ final class SessionExerciseEntity {
         self.notes = notes
         self.restTimeToNext = restTimeToNext
         self.orderIndex = orderIndex
-        self.isFinished = isFinished ?? false  // Default to false if nil
+        self.isFinished = isFinished
         self.sets = sets
     }
 }
