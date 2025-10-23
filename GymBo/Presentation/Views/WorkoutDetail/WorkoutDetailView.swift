@@ -24,62 +24,90 @@ struct WorkoutDetailView: View {
 
     // MARK: - Properties
 
-    let workout: Workout
+    let workoutId: UUID
     let onStartWorkout: () -> Void
 
     @Environment(SessionStore.self) private var sessionStore
     @Environment(\.dependencyContainer) private var dependencyContainer
     @Environment(\.dismiss) private var dismiss
 
+    @State private var workout: Workout?
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var isLoadingExercises = true
     @State private var workoutStore: WorkoutStore?
-    @State private var isFavorite: Bool
+    @State private var isFavorite: Bool = false
+    @State private var showExercisePicker = false
 
     // MARK: - Initialization
 
     init(workout: Workout, onStartWorkout: @escaping () -> Void) {
-        self.workout = workout
+        self.workoutId = workout.id
         self.onStartWorkout = onStartWorkout
+        self._workout = State(initialValue: workout)
         self._isFavorite = State(initialValue: workout.isFavorite)
     }
 
     // MARK: - Body
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Stats Section
-                statsSection
+        Group {
+            if let workout = workout {
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Stats Section
+                        statsSection(for: workout)
 
-                // Exercises Section
-                if isLoadingExercises {
-                    ProgressView("Lade Übungen...")
-                        .padding()
-                } else {
-                    exercisesSection
+                        // Exercises Section
+                        if isLoadingExercises {
+                            ProgressView("Lade Übungen...")
+                                .padding()
+                        } else {
+                            exercisesSection(for: workout)
+                        }
+
+                        // Start Button
+                        startButton
+                            .padding(.top, 16)
+                            .padding(.bottom, 32)
+                    }
+                    .padding()
                 }
-
-                // Start Button
-                startButton
-                    .padding(.top, 16)
-                    .padding(.bottom, 32)
+                .navigationTitle(workout.name)
+            } else {
+                ProgressView("Lade Workout...")
             }
-            .padding()
         }
-        .navigationTitle(workout.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await toggleFavorite()
+                HStack(spacing: 16) {
+                    // Add Exercise Button
+                    Button {
+                        showExercisePicker = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.orange)
                     }
-                } label: {
-                    Image(systemName: isFavorite ? "star.fill" : "star")
-                        .foregroundStyle(isFavorite ? .yellow : .primary)
+
+                    // Favorite Button
+                    Button {
+                        Task {
+                            await toggleFavorite()
+                        }
+                    } label: {
+                        Image(systemName: isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(isFavorite ? .yellow : .primary)
+                    }
                 }
             }
+        }
+        .sheet(isPresented: $showExercisePicker) {
+            ExercisePickerView { exercise in
+                Task {
+                    await addExercise(exercise)
+                }
+            }
+            .environment(\.dependencyContainer, dependencyContainer)
         }
         .task {
             await loadData()
@@ -89,7 +117,7 @@ struct WorkoutDetailView: View {
     // MARK: - Subviews
 
     /// Stats cards showing workout overview
-    private var statsSection: some View {
+    private func statsSection(for workout: Workout) -> some View {
         HStack(spacing: 12) {
             StatCard(
                 icon: "figure.strengthtraining.traditional",
@@ -106,13 +134,13 @@ struct WorkoutDetailView: View {
             StatCard(
                 icon: "clock",
                 title: "ca. Dauer",
-                value: estimatedDuration
+                value: estimatedDuration(for: workout)
             )
         }
     }
 
     /// List of exercises in the workout
-    private var exercisesSection: some View {
+    private func exercisesSection(for workout: Workout) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Übungen")
                 .font(.title3)
@@ -148,7 +176,7 @@ struct WorkoutDetailView: View {
 
     // MARK: - Computed Properties
 
-    private var estimatedDuration: String {
+    private func estimatedDuration(for workout: Workout) -> String {
         // Estimate: (totalSets * 30s) + (restTime * sets) = rough estimate
         let workTime = workout.totalSets * 30  // 30 seconds per set
         let restTime = Int(workout.defaultRestTime) * workout.totalSets
@@ -182,7 +210,9 @@ struct WorkoutDetailView: View {
         isLoadingExercises = true
         defer { isLoadingExercises = false }
 
-        guard let container = dependencyContainer else { return }
+        guard let container = dependencyContainer,
+            let workout = workout
+        else { return }
         let repository = container.makeExerciseRepository()
 
         for exercise in workout.exercises {
@@ -203,10 +233,30 @@ struct WorkoutDetailView: View {
         // Optimistic update (sofortiges UI Feedback)
         isFavorite.toggle()
 
-        print("🌟 Toggled favorite: \(workout.name) → isFavorite: \(isFavorite)")
+        print("🌟 Toggled favorite: \(workout?.name ?? "Unknown") → isFavorite: \(isFavorite)")
 
         // Dann Backend update
-        await store.toggleFavorite(workoutId: workout.id)
+        await store.toggleFavorite(workoutId: workoutId)
+
+        // Update local workout from store
+        if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+            workout = updatedWorkout
+        }
+    }
+
+    /// Add exercise to workout
+    private func addExercise(_ exercise: ExerciseEntity) async {
+        guard let store = workoutStore else { return }
+
+        await store.addExercise(exerciseId: exercise.id, to: workoutId)
+
+        // Update local workout from store
+        if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+            workout = updatedWorkout
+        }
+
+        // Reload exercise names for new exercise
+        await loadExerciseNames()
     }
 }
 

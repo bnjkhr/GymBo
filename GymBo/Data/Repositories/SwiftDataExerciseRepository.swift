@@ -72,4 +72,12 @@ final class SwiftDataExerciseRepository: ExerciseRepositoryProtocol {
 
         return try modelContext.fetch(descriptor).first?.id
     }
+
+    func fetchAll() async throws -> [ExerciseEntity] {
+        let descriptor = FetchDescriptor<ExerciseEntity>(
+            sortBy: [SortDescriptor(\.name)]
+        )
+
+        return try modelContext.fetch(descriptor)
+    }
 }

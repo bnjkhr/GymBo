@@ -43,6 +43,11 @@ protocol ExerciseRepositoryProtocol {
     /// - Parameter name: Exercise name
     /// - Returns: Exercise ID or nil if not found
     nonisolated func findByName(_ name: String) async throws -> UUID?
+
+    /// Fetch all exercises from catalog
+    /// - Returns: Array of all exercises
+    /// - Throws: Repository errors
+    nonisolated func fetchAll() async throws -> [ExerciseEntity]
 }
 
 // MARK: - Mock Implementation for Testing/Previews
@@ -72,6 +77,18 @@ protocol ExerciseRepositoryProtocol {
         func findByName(_ name: String) async throws -> UUID? {
             // Mock - return random UUID
             return UUID()
+        }
+
+        func fetchAll() async throws -> [ExerciseEntity] {
+            // Mock - return sample exercises
+            return [
+                ExerciseEntity(
+                    name: "Bankdrücken", muscleGroupsRaw: ["Brust"], equipmentTypeRaw: "Langhantel"),
+                ExerciseEntity(
+                    name: "Kniebeugen", muscleGroupsRaw: ["Beine"], equipmentTypeRaw: "Langhantel"),
+                ExerciseEntity(
+                    name: "Kreuzheben", muscleGroupsRaw: ["Rücken"], equipmentTypeRaw: "Langhantel"),
+            ]
         }
     }
 #endif

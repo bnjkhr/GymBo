@@ -65,6 +65,7 @@ final class WorkoutStore {
     private let getAllWorkoutsUseCase: GetAllWorkoutsUseCase
     private let getWorkoutByIdUseCase: GetWorkoutByIdUseCase
     private let toggleFavoriteUseCase: ToggleFavoriteUseCase
+    private let addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase
 
     // MARK: - Private State
 
@@ -75,11 +76,13 @@ final class WorkoutStore {
     init(
         getAllWorkoutsUseCase: GetAllWorkoutsUseCase,
         getWorkoutByIdUseCase: GetWorkoutByIdUseCase,
-        toggleFavoriteUseCase: ToggleFavoriteUseCase
+        toggleFavoriteUseCase: ToggleFavoriteUseCase,
+        addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase
     ) {
         self.getAllWorkoutsUseCase = getAllWorkoutsUseCase
         self.getWorkoutByIdUseCase = getWorkoutByIdUseCase
         self.toggleFavoriteUseCase = toggleFavoriteUseCase
+        self.addExerciseToWorkoutUseCase = addExerciseToWorkoutUseCase
     }
 
     // MARK: - Public Methods
@@ -145,6 +148,35 @@ final class WorkoutStore {
         }
     }
 
+    /// Add exercise to a workout
+    /// - Parameters:
+    ///   - exerciseId: ID of exercise from catalog
+    ///   - workoutId: ID of workout to add to
+    func addExercise(exerciseId: UUID, to workoutId: UUID) async {
+        do {
+            let updatedWorkout = try await addExerciseToWorkoutUseCase.execute(
+                exerciseId: exerciseId,
+                workoutId: workoutId
+            )
+
+            // Update in local array
+            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                workouts[index] = updatedWorkout
+            }
+
+            // Update selected workout if it's the same
+            if selectedWorkout?.id == workoutId {
+                selectedWorkout = updatedWorkout
+            }
+
+            showSuccess("Übung hinzugefügt")
+            print("✅ Added exercise to workout: \(updatedWorkout.name)")
+        } catch {
+            self.error = error
+            print("❌ Failed to add exercise: \(error.localizedDescription)")
+        }
+    }
+
     /// Clear current error
     func clearError() {
         error = nil
@@ -194,7 +226,8 @@ final class WorkoutStore {
             let store = WorkoutStore(
                 getAllWorkoutsUseCase: MockGetAllWorkoutsUseCase(),
                 getWorkoutByIdUseCase: MockGetWorkoutByIdUseCase(),
-                toggleFavoriteUseCase: MockToggleFavoriteUseCase()
+                toggleFavoriteUseCase: MockToggleFavoriteUseCase(),
+                addExerciseToWorkoutUseCase: MockAddExerciseToWorkoutUseCase()
             )
 
             // Populate with sample data
@@ -229,6 +262,21 @@ final class WorkoutStore {
         func execute(workoutId: UUID) async throws -> Workout {
             var workout = Workout(name: "Mock Workout", isFavorite: false)
             workout.isFavorite.toggle()
+            return workout
+        }
+    }
+
+    private final class MockAddExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase {
+        func execute(exerciseId: UUID, workoutId: UUID) async throws -> Workout {
+            var workout = Workout(name: "Mock Workout")
+            workout.exercises.append(
+                WorkoutExercise(
+                    exerciseId: exerciseId,
+                    targetSets: 3,
+                    targetReps: 10,
+                    orderIndex: 0
+                )
+            )
             return workout
         }
     }

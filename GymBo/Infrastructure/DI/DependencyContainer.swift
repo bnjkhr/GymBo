@@ -61,7 +61,8 @@ final class DependencyContainer {
         WorkoutStore(
             getAllWorkoutsUseCase: makeGetAllWorkoutsUseCase(),
             getWorkoutByIdUseCase: makeGetWorkoutByIdUseCase(),
-            toggleFavoriteUseCase: makeToggleFavoriteUseCase()
+            toggleFavoriteUseCase: makeToggleFavoriteUseCase(),
+            addExerciseToWorkoutUseCase: makeAddExerciseToWorkoutUseCase()
         )
     }()
 
@@ -218,6 +219,13 @@ final class DependencyContainer {
     func makeToggleFavoriteUseCase() -> ToggleFavoriteUseCase {
         return DefaultToggleFavoriteUseCase(
             repository: makeWorkoutRepository()
+        )
+    }
+
+    func makeAddExerciseToWorkoutUseCase() -> AddExerciseToWorkoutUseCase {
+        return DefaultAddExerciseToWorkoutUseCase(
+            workoutRepository: makeWorkoutRepository(),
+            exerciseRepository: makeExerciseRepository()
         )
     }
 
