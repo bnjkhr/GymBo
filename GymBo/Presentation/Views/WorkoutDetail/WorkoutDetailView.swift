@@ -227,12 +227,10 @@ struct WorkoutDetailView: View {
         // Initialize workout store
         if workoutStore == nil, let container = dependencyContainer {
             workoutStore = container.makeWorkoutStore()
-        }
 
-        // Reload workout from store to get latest changes
-        if let store = workoutStore {
-            await store.loadWorkouts()
-            if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+            // Only load workouts if store was just created (first time)
+            await workoutStore?.loadWorkouts()
+            if let updatedWorkout = workoutStore?.workouts.first(where: { $0.id == workoutId }) {
                 workout = updatedWorkout
                 isFavorite = updatedWorkout.isFavorite
             }
