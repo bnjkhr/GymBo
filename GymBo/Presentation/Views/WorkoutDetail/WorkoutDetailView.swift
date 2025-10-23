@@ -51,14 +51,11 @@ struct WorkoutDetailView: View {
 
     var body: some View {
         Group {
-            // Always use workout from store, not from init parameter
-            if let currentWorkout = workoutStore?.workouts.first(where: { $0.id == workoutId })
-                ?? workout
-            {
+            if let workout = workout {
                 ScrollView {
                     VStack(spacing: 24) {
                         // Stats Section
-                        statsSection(for: currentWorkout)
+                        statsSection(for: workout)
 
                         // Start Button (directly below stats)
                         startButton
@@ -68,12 +65,12 @@ struct WorkoutDetailView: View {
                             ProgressView("Lade Übungen...")
                                 .padding()
                         } else {
-                            exercisesSection(for: currentWorkout)
+                            exercisesSection(for: workout)
                         }
                     }
                     .padding()
                 }
-                .navigationTitle(currentWorkout.name)
+                .navigationTitle(workout.name)
             } else {
                 ProgressView("Lade Workout...")
             }
