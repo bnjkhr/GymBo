@@ -233,15 +233,14 @@ struct WorkoutDetailView: View {
         let getWorkoutUseCase = DefaultGetWorkoutByIdUseCase(repository: repository)
 
         do {
-            if let freshWorkout = try await getWorkoutUseCase.execute(id: workoutId) {
-                print("🔵 Loaded FRESH workout from repository:")
-                for (idx, ex) in freshWorkout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }
-                ).enumerated() {
-                    print("🔵   - Order \(idx): \(ex.id)")
-                }
-                workout = freshWorkout
-                isFavorite = freshWorkout.isFavorite
+            let freshWorkout = try await getWorkoutUseCase.execute(id: workoutId)
+            print("🔵 Loaded FRESH workout from repository:")
+            for (idx, ex) in freshWorkout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }
+            ).enumerated() {
+                print("🔵   - Order \(idx): \(ex.id)")
             }
+            workout = freshWorkout
+            isFavorite = freshWorkout.isFavorite
         } catch {
             print("❌ Failed to load fresh workout: \(error)")
         }
