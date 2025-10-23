@@ -32,6 +32,11 @@ protocol ExerciseRepositoryProtocol {
         reps: Int,
         date: Date
     ) async throws
+
+    /// Find exercise by name (for test data)
+    /// - Parameter name: Exercise name
+    /// - Returns: Exercise ID or nil if not found
+    func findByName(_ name: String) async throws -> UUID?
 }
 
 // MARK: - Mock Implementation for Testing/Previews
@@ -46,6 +51,11 @@ protocol ExerciseRepositoryProtocol {
         ) async throws {
             // Mock - do nothing
             print("📝 Mock: Updated exercise \(exerciseId) lastUsed: \(weight)kg x \(reps) reps")
+        }
+
+        func findByName(_ name: String) async throws -> UUID? {
+            // Mock - return random UUID
+            return UUID()
         }
     }
 #endif

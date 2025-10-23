@@ -78,7 +78,7 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
         // TEMPORARY: Create session with test exercises for MVP demo
         // Will be replaced when WorkoutRepository is implemented
         print("🔵 StartSessionUseCase: Creating test exercises")
-        let testExercises = createTestExercises()
+        let testExercises = await createTestExercises()
         print("   - Created \(testExercises.count) exercises")
 
         let session = DomainWorkoutSession(
@@ -109,10 +109,16 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
 
     /// Create test exercises for MVP demo
     /// This will be replaced when WorkoutRepository is implemented
-    private func createTestExercises() -> [DomainSessionExercise] {
-        let exercise1Id = UUID()
-        let exercise2Id = UUID()
-        let exercise3Id = UUID()
+    private func createTestExercises() async -> [DomainSessionExercise] {
+        // Try to load exercise IDs from database (seeded exercises)
+        let exercise1Id = (try? await exerciseRepository.findByName("Bankdrücken")) ?? UUID()
+        let exercise2Id = (try? await exerciseRepository.findByName("Lat Pulldown")) ?? UUID()
+        let exercise3Id = (try? await exerciseRepository.findByName("Kniebeugen")) ?? UUID()
+
+        print("📋 Loaded exercise IDs:")
+        print("   - Bankdrücken: \(exercise1Id)")
+        print("   - Lat Pulldown: \(exercise2Id)")
+        print("   - Kniebeugen: \(exercise3Id)")
 
         return [
             DomainSessionExercise(

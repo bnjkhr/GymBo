@@ -101,6 +101,9 @@ struct GymBoApp: App {
     private func performStartupTasks() async {
         AppLogger.app.info("✅ App gestartet")
 
+        // Seed test exercises if database is empty
+        ExerciseSeedData.seedIfNeeded(context: container.mainContext)
+
         print("🔵 performStartupTasks: About to load session")
 
         // Load any active session from previous app run
