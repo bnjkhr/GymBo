@@ -1,10 +1,17 @@
 # GymBo V2 - Aktueller Stand (2025-10-23)
 
-**Status:** ✅ MVP FUNKTIONSFÄHIG + Progressive Overload komplett
+**Status:** ✅ MVP FUNKTIONSFÄHIG + Progressive Overload + Update All Sets
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
 **Design:** ScrollView-basiertes Active Workout + Sheet-basiertes Editing
 
-**Letzte Session (2025-10-23 - Session 2):**
+**Letzte Session (2025-10-23 - Session 3):**
+- ✅ "Update All Sets" Feature (Toggle in EditSetSheet)
+- ✅ Alle incomplete Sets auf einmal aktualisieren
+- ✅ Debug Logging für Mark All Complete Bug
+- ✅ Equipment Display in UI
+- ✅ UpdateAllSetsUseCase mit Clean Architecture
+
+**Session 2 (2025-10-23):**
 - ✅ Exercise Names in UI (aus Datenbank geladen)
 - ✅ Last Used Values beim Session Start (Progressive Overload!)
 - ✅ Sofortiges UI Update nach Save (Forced Observable Update)
@@ -20,6 +27,31 @@
 ---
 
 ## 📊 Implementierungsstatus
+
+### ✅ NEU IMPLEMENTIERT (Session 3 - 2025-10-23)
+
+**1. Update All Sets Feature**
+- ✅ Toggle "Alle Sätze aktualisieren" in EditSetSheet
+  - Orange Toggle (App Accent Color)
+  - German UI Text: "Werte für alle verbleibenden Sätze übernehmen"
+  - Aktualisiert nur incomplete Sets
+- ✅ UpdateAllSetsUseCase implementiert (Clean Architecture)
+  - Domain Layer: Use Case mit Validierung
+  - Presentation Layer: SessionStore.updateAllSets()
+  - UI Layer: Callbacks durch alle Komponenten
+- ✅ Forced Observable Update für sofortiges UI Feedback
+- ✅ Haptic Success Feedback
+- ✅ Progressive Overload Integration (lastUsed* wird aktualisiert)
+
+**2. Equipment Display**
+- ✅ SessionStore.getExerciseEquipment() implementiert
+- ✅ Equipment in CompactExerciseCard angezeigt
+- ✅ Lädt asynchron wie Exercise Names
+
+**3. Debug Improvements**
+- ✅ Debug Logging für markAllSetsComplete()
+  - Zeigt Exercise ID, Total Sets, Set Details
+  - Hilft "0 sets marked complete" Bug zu diagnostizieren
 
 ### ✅ NEU IMPLEMENTIERT (Session 2 - 2025-10-23)
 
@@ -399,24 +431,38 @@ final class ExerciseEntity {
 **Status:** ✅ KOMPLETT
 **Implementiert:** StartSessionUseCase nutzt lastUsedWeight/Reps aus Exercise-DB
 
-### 3. Workout Repository
-**Status:** 🔴 FEHLT  
+### 3. ~~Update All Sets Feature~~ ✅ ERLEDIGT
+**Status:** ✅ KOMPLETT
+**Implementiert:** UpdateAllSetsUseCase + Toggle in EditSetSheet
+
+### 4. ~~Equipment Display~~ ✅ ERLEDIGT
+**Status:** ✅ KOMPLETT
+**Implementiert:** SessionStore.getExerciseEquipment() + UI Integration
+
+### 5. Mark All Complete Bug
+**Status:** 🟡 DEBUG IN PROGRESS
+**Problem:** Findet 0 incomplete Sets
+**Added:** Debug Logging (Exercise ID, Set Details)
+**Next:** Testen auf Device mit Console Output
+
+### 7. Workout Repository
+**Status:** 🔴 FEHLT
 **Benötigt:** Richtige Workout Templates statt Test-Data
 
-### 4. Add/Remove Sets während Session
-**Status:** 🔴 FEHLT  
-**UI:** Quick-Add Feld vorhanden  
+### 8. Add/Remove Sets während Session
+**Status:** 🔴 FEHLT
+**UI:** Quick-Add Feld vorhanden
 **Benötigt:** `AddSetUseCase`, `RemoveSetUseCase`
 
-### 5. Reorder Exercises/Sets
-**Status:** 🔴 FEHLT  
-**UI:** Buttons vorhanden  
+### 9. Reorder Exercises/Sets
+**Status:** 🔴 FEHLT
+**UI:** Buttons vorhanden
 **Benötigt:** Drag & Drop + `ReorderUseCase`
 
-### 6. Workout History & Statistics
+### 10. Workout History & Statistics
 **Status:** 🔴 FEHLT
 
-### 7. Tests
+### 11. Tests
 **Status:** 🔴 FEHLT
 
 ---
@@ -425,15 +471,16 @@ final class ExerciseEntity {
 
 ### Quick Wins (30-60 Min)
 
-1. **"Mark All Complete" Button implementieren (30 Min)**
-   - Button ist vorhanden, funktioniert noch nicht
-   - Alle Sets einer Übung auf einmal abhaken
-   - Praktisch für schnellen Workout-Abschluss
+1. **~~"Mark All Complete" Button implementieren~~ ✅ TEILWEISE**
+   - ✅ Button vorhanden & implementiert
+   - 🟡 Bug: Findet 0 incomplete Sets
+   - 🟡 Debug Logging hinzugefügt
+   - ⏳ Nächster Schritt: Testen & Bug fixen
 
-2. **Equipment in UI anzeigen (15 Min)**
-   - Wie Exercise Name, aber Equipment-Type
-   - "Barbell", "Cable", "Bodyweight" etc.
-   - Zusätzliche Info in CompactExerciseCard
+2. **~~Equipment in UI anzeigen~~ ✅ ERLEDIGT**
+   - ✅ SessionStore.getExerciseEquipment()
+   - ✅ CompactExerciseCard zeigt Equipment
+   - ✅ Asynchrones Laden wie Exercise Names
 
 ### Mittelfristig (4-8 Stunden)
 
@@ -505,6 +552,6 @@ final class ExerciseEntity {
 
 ---
 
-**Letzte Aktualisierung:** 2025-10-23 (Session 2 Ende)
-**Status:** ✅ Progressive Overload komplett funktionsfähig!
-**Nächste Session:** Mark All Complete + Equipment Display
+**Letzte Aktualisierung:** 2025-10-23 (Session 3 Ende)
+**Status:** ✅ Progressive Overload + Update All Sets + Equipment Display!
+**Nächste Session:** Mark All Complete Bug fixen + Add/Remove Sets
