@@ -68,6 +68,7 @@ final class WorkoutStore {
     private let toggleFavoriteUseCase: ToggleFavoriteUseCase
     private let addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase
     private let removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
+    private let reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase
 
     // MARK: - Private State
 
@@ -80,13 +81,15 @@ final class WorkoutStore {
         getWorkoutByIdUseCase: GetWorkoutByIdUseCase,
         toggleFavoriteUseCase: ToggleFavoriteUseCase,
         addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase,
-        removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
+        removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase,
+        reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase
     ) {
         self.getAllWorkoutsUseCase = getAllWorkoutsUseCase
         self.getWorkoutByIdUseCase = getWorkoutByIdUseCase
         self.toggleFavoriteUseCase = toggleFavoriteUseCase
         self.addExerciseToWorkoutUseCase = addExerciseToWorkoutUseCase
         self.removeExerciseFromWorkoutUseCase = removeExerciseFromWorkoutUseCase
+        self.reorderWorkoutExercisesUseCase = reorderWorkoutExercisesUseCase
     }
 
     // MARK: - Public Methods
@@ -210,6 +213,34 @@ final class WorkoutStore {
         }
     }
 
+    /// Reorder exercises in a workout
+    /// - Parameters:
+    ///   - workoutId: ID of workout
+    ///   - exerciseIds: Array of exercise IDs in new order
+    func reorderExercises(in workoutId: UUID, exerciseIds: [UUID]) async {
+        do {
+            let updatedWorkout = try await reorderWorkoutExercisesUseCase.execute(
+                workoutId: workoutId,
+                exerciseIds: exerciseIds
+            )
+
+            // Update in local array
+            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                workouts[index] = updatedWorkout
+            }
+
+            // Update selected workout if it's the same
+            if selectedWorkout?.id == workoutId {
+                selectedWorkout = updatedWorkout
+            }
+
+            print("✅ Reordered exercises in workout: \(updatedWorkout.name)")
+        } catch {
+            self.error = error
+            print("❌ Failed to reorder exercises: \(error.localizedDescription)")
+        }
+    }
+
     /// Clear current error
     func clearError() {
         error = nil
@@ -263,7 +294,8 @@ final class WorkoutStore {
                 getWorkoutByIdUseCase: MockGetWorkoutByIdUseCase(),
                 toggleFavoriteUseCase: MockToggleFavoriteUseCase(),
                 addExerciseToWorkoutUseCase: MockAddExerciseToWorkoutUseCase(),
-                removeExerciseFromWorkoutUseCase: MockRemoveExerciseFromWorkoutUseCase()
+                removeExerciseFromWorkoutUseCase: MockRemoveExerciseFromWorkoutUseCase(),
+                reorderWorkoutExercisesUseCase: MockReorderWorkoutExercisesUseCase()
             )
 
             // Populate with sample data
@@ -321,6 +353,14 @@ final class WorkoutStore {
         func execute(exerciseId: UUID, from workoutId: UUID) async throws -> Workout {
             var workout = Workout(name: "Mock Workout")
             // Mock: return workout with exercise removed
+            return workout
+        }
+    }
+
+    private final class MockReorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase {
+        func execute(workoutId: UUID, exerciseIds: [UUID]) async throws -> Workout {
+            var workout = Workout(name: "Mock Workout")
+            // Mock: return workout with reordered exercises
             return workout
         }
     }

@@ -63,7 +63,8 @@ final class DependencyContainer {
             getWorkoutByIdUseCase: makeGetWorkoutByIdUseCase(),
             toggleFavoriteUseCase: makeToggleFavoriteUseCase(),
             addExerciseToWorkoutUseCase: makeAddExerciseToWorkoutUseCase(),
-            removeExerciseFromWorkoutUseCase: makeRemoveExerciseFromWorkoutUseCase()
+            removeExerciseFromWorkoutUseCase: makeRemoveExerciseFromWorkoutUseCase(),
+            reorderWorkoutExercisesUseCase: makeReorderWorkoutExercisesUseCase()
         )
     }()
 
@@ -232,6 +233,12 @@ final class DependencyContainer {
 
     func makeRemoveExerciseFromWorkoutUseCase() -> RemoveExerciseFromWorkoutUseCase {
         return DefaultRemoveExerciseFromWorkoutUseCase(
+            workoutRepository: makeWorkoutRepository()
+        )
+    }
+
+    func makeReorderWorkoutExercisesUseCase() -> ReorderWorkoutExercisesUseCase {
+        return DefaultReorderWorkoutExercisesUseCase(
             workoutRepository: makeWorkoutRepository()
         )
     }

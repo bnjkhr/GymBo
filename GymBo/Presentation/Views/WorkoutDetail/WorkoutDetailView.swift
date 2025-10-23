@@ -177,10 +177,14 @@ struct WorkoutDetailView: View {
                         }
                     }
                 }
+                .onMove { indexSet, destination in
+                    moveExercises(from: indexSet, to: destination, in: workout)
+                }
             }
             .listStyle(.plain)
             .scrollDisabled(true)
             .frame(height: CGFloat(workout.exercises.count) * 90)  // Approximate row height
+            .environment(\.editMode, .constant(.active))  // Enable drag handles
         }
     }
 
@@ -292,6 +296,28 @@ struct WorkoutDetailView: View {
         // Update local workout from store
         if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
+        }
+    }
+
+    /// Move exercises (drag & drop reordering)
+    private func moveExercises(from source: IndexSet, to destination: Int, in workout: Workout) {
+        guard let store = workoutStore else { return }
+
+        // Create new order based on move
+        var sortedExercises = workout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex })
+        sortedExercises.move(fromOffsets: source, toOffset: destination)
+
+        // Extract IDs in new order
+        let newOrder = sortedExercises.map { $0.id }
+
+        // Update in backend
+        Task {
+            await store.reorderExercises(in: workoutId, exerciseIds: newOrder)
+
+            // Update local workout from store
+            if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+                workout = updatedWorkout
+            }
         }
     }
 }
