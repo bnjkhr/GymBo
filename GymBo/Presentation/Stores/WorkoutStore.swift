@@ -57,8 +57,9 @@ final class WorkoutStore {
     /// Error state (cleared on next operation)
     var error: Error?
 
-    /// Success message for user feedback
+    /// Success message for user feedback (pill notification)
     var successMessage: String?
+    var showSuccessPill: Bool = false
 
     // MARK: - Dependencies (Injected)
 
@@ -182,18 +183,20 @@ final class WorkoutStore {
         error = nil
     }
 
-    /// Show success message (auto-clears after 3 seconds)
+    /// Show success message (auto-clears after 2 seconds)
     /// - Parameter message: Message to display
     func showSuccess(_ message: String) {
         successMessage = message
+        showSuccessPill = true
 
         // Cancel previous task if exists
         successMessageTask?.cancel()
 
-        // Auto-clear after 3 seconds
+        // Auto-clear after 2 seconds
         successMessageTask = Task {
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
             if !Task.isCancelled {
+                showSuccessPill = false
                 successMessage = nil
             }
         }

@@ -109,6 +109,13 @@ struct WorkoutDetailView: View {
             }
             .environment(\.dependencyContainer, dependencyContainer)
         }
+        .successPill(
+            isPresented: Binding(
+                get: { workoutStore?.showSuccessPill ?? false },
+                set: { newValue in workoutStore?.showSuccessPill = newValue }
+            ),
+            message: workoutStore?.successMessage ?? ""
+        )
         .task {
             await loadData()
         }
