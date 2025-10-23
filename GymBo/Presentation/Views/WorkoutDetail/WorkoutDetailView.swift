@@ -154,25 +154,35 @@ struct WorkoutDetailView: View {
                 .fontWeight(.semibold)
                 .padding(.horizontal, 4)
 
-            ForEach(
-                Array(workout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }).enumerated()),
-                id: \.element.id
-            ) { index, exercise in
-                ExerciseRow(
-                    exercise: exercise,
-                    exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
-                    orderNumber: index + 1
-                )
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    Button(role: .destructive) {
-                        Task {
-                            await removeExercise(exercise)
+            List {
+                ForEach(
+                    Array(
+                        workout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }).enumerated()
+                    ),
+                    id: \.element.id
+                ) { index, exercise in
+                    ExerciseRow(
+                        exercise: exercise,
+                        exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
+                        orderNumber: index + 1
+                    )
+                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            Task {
+                                await removeExercise(exercise)
+                            }
+                        } label: {
+                            Label("Löschen", systemImage: "trash")
                         }
-                    } label: {
-                        Label("Löschen", systemImage: "trash")
                     }
                 }
             }
+            .listStyle(.plain)
+            .scrollDisabled(true)
+            .frame(height: CGFloat(workout.exercises.count) * 90)  // Approximate row height
         }
     }
 
