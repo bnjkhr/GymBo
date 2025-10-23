@@ -15,66 +15,60 @@ struct CompactSetRow: View {
     let onUpdateWeight: ((Double) -> Void)?
     let onUpdateReps: ((Int) -> Void)?
 
-    // Local state for editing
-    @State private var weightText: String = ""
-    @State private var repsText: String = ""
-    @FocusState private var focusedField: Field?
-
-    enum Field: Hashable {
-        case weight
-        case reps
-    }
+    @State private var showEditSheet = false
+    @State private var editingWeight: String = ""
+    @State private var editingReps: String = ""
 
     var body: some View {
         HStack(spacing: 16) {
-            // Weight TextField
-            HStack(spacing: 4) {
-                TextField("", text: $weightText)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(set.completed ? .gray : .primary)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.center)
-                    .fixedSize()
-                    .focused($focusedField, equals: .weight)
-                    .disabled(set.completed)
-                    .onSubmit {
-                        saveWeight()
-                        focusedField = nil
-                    }
+            // Weight (Tappable)
+            Button {
+                if !set.completed {
+                    editingWeight = formatNumber(set.weight)
+                    editingReps = "\(set.reps)"
+                    showEditSheet = true
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(formatNumber(set.weight))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(set.completed ? .gray : .primary)
 
-                Text("kg")
-                    .font(.system(size: 16))
-                    .foregroundStyle(.gray)
+                    Text("kg")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.gray)
+                }
             }
 
-            // Reps TextField
-            HStack(spacing: 4) {
-                TextField("", text: $repsText)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(set.completed ? .gray : .primary)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.center)
-                    .fixedSize()
-                    .focused($focusedField, equals: .reps)
-                    .disabled(set.completed)
-                    .onSubmit {
-                        saveReps()
-                        focusedField = nil
-                    }
+            .buttonStyle(.plain)
 
-                Text("reps")
-                    .font(.system(size: 16))
-                    .foregroundStyle(.gray)
+            // Reps (Tappable)
+            Button {
+                if !set.completed {
+                    editingWeight = formatNumber(set.weight)
+                    editingReps = "\(set.reps)"
+                    showEditSheet = true
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("\(set.reps)")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(set.completed ? .gray : .primary)
+
+                    Text("reps")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.gray)
+                }
             }
+
+            .buttonStyle(.plain)
 
             Spacer()
 
             // Checkbox
             Button {
-                saveCurrentField()
-                focusedField = nil
                 onToggle()
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             } label: {
@@ -95,22 +89,16 @@ struct CompactSetRow: View {
                 }
             }
         }
-        .onAppear {
-            // Initialize text fields with current values
-            weightText = formatNumber(set.weight)
-            repsText = "\(set.reps)"
-        }
-        .onChange(of: set.weight) { _, newValue in
-            // Update text when set changes externally
-            if focusedField != .weight {
-                weightText = formatNumber(newValue)
-            }
-        }
-        .onChange(of: set.reps) { _, newValue in
-            // Update text when set changes externally
-            if focusedField != .reps {
-                repsText = "\(newValue)"
-            }
+        .sheet(isPresented: $showEditSheet) {
+            EditSetSheet(
+                weight: $editingWeight,
+                reps: $editingReps,
+                onSave: {
+                    saveChanges()
+                }
+            )
+            .presentationDetents([.height(280)])
+            .presentationDragIndicator(.visible)
         }
     }
 
@@ -124,32 +112,103 @@ struct CompactSetRow: View {
         }
     }
 
-    private func saveCurrentField() {
-        switch focusedField {
-        case .weight:
-            saveWeight()
-        case .reps:
-            saveReps()
-        case nil:
-            break
+    private func saveChanges() {
+        // Parse and validate weight
+        if let weight = Double(editingWeight), weight > 0 {
+            onUpdateWeight?(weight)
+        }
+
+        // Parse and validate reps
+        if let reps = Int(editingReps), reps > 0 {
+            onUpdateReps?(reps)
         }
     }
+}
+// MARK: - Edit Sheet
 
-    private func saveWeight() {
-        guard let weight = Double(weightText), weight > 0 else {
-            // Revert to original value if invalid
-            weightText = formatNumber(set.weight)
-            return
-        }
-        onUpdateWeight?(weight)
+struct EditSetSheet: View {
+    @Binding var weight: String
+    @Binding var reps: String
+    let onSave: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var focusedField: Field?
+
+    enum Field {
+        case weight, reps
     }
 
-    private func saveReps() {
-        guard let reps = Int(repsText), reps > 0 else {
-            // Revert to original value if invalid
-            repsText = "\(set.reps)"
-            return
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Weight Field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Gewicht")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    HStack {
+                        TextField("100", text: $weight)
+                            .keyboardType(.decimalPad)
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .focused($focusedField, equals: .weight)
+
+                        Text("kg")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                }
+
+                // Reps Field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Wiederholungen")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    HStack {
+                        TextField("8", text: $reps)
+                            .keyboardType(.numberPad)
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .focused($focusedField, equals: .reps)
+
+                        Text("reps")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                }
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Satz bearbeiten")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Abbrechen") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Fertig") {
+                        onSave()
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+            .onAppear {
+                // Auto-focus weight field
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    focusedField = .weight
+                }
+            }
         }
-        onUpdateReps?(reps)
     }
 }
