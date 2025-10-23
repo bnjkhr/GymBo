@@ -81,22 +81,39 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
                 throw WorkoutRepositoryError.workoutNotFound(workoutId)
             }
 
-            print(
-                "💾 Direct update: Workout '\(entity.name)' has \(entity.exercises.count) exercises")
+            print("🔄 BEFORE Reorder: Workout '\(entity.name)'")
+            for ex in entity.exercises.sorted(by: { $0.order < $1.order }) {
+                print("   - Order \(ex.order): \(ex.id)")
+            }
+
+            print("🔄 NEW ORDER requested:")
+            for (idx, id) in exerciseOrder.enumerated() {
+                print("   - \(idx): \(id)")
+            }
 
             // Update orderIndex of each exercise WITHOUT recreating them
             // Note: exerciseId is the WorkoutExerciseEntity.id, not ExerciseEntity.id
+            var foundCount = 0
             for (newIndex, exerciseId) in exerciseOrder.enumerated() {
                 if let exercise = entity.exercises.first(where: { $0.id == exerciseId }) {
                     exercise.order = newIndex
+                    foundCount += 1
                     print("💾 Updated exercise order: \(exerciseId) → index \(newIndex)")
                 } else {
                     print("❌ Exercise not found in workout: \(exerciseId)")
                 }
             }
 
+            print("🔄 Updated \(foundCount) of \(exerciseOrder.count) exercises")
+
             // Save changes to SwiftData
             try modelContext.save()
+
+            print("🔄 AFTER Save: Workout '\(entity.name)'")
+            for ex in entity.exercises.sorted(by: { $0.order < $1.order }) {
+                print("   - Order \(ex.order): \(ex.id)")
+            }
+
             print("✅ Exercise order saved to SwiftData")
         } catch let error as WorkoutRepositoryError {
             throw error
