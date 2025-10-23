@@ -47,6 +47,9 @@ final class WorkoutSessionEntity {
     /// Current state of the session
     var state: String  // SessionState.rawValue
 
+    /// Workout name (cached for display)
+    var workoutName: String?
+
     /// Exercises in this session
     @Relationship(deleteRule: .cascade, inverse: \SessionExerciseEntity.session)
     var exercises: [SessionExerciseEntity]
@@ -59,6 +62,7 @@ final class WorkoutSessionEntity {
         startDate: Date,
         endDate: Date? = nil,
         state: String = "active",
+        workoutName: String? = nil,
         exercises: [SessionExerciseEntity] = []
     ) {
         self.id = id
@@ -66,6 +70,7 @@ final class WorkoutSessionEntity {
         self.startDate = startDate
         self.endDate = endDate
         self.state = state
+        self.workoutName = workoutName
         self.exercises = exercises
     }
 }

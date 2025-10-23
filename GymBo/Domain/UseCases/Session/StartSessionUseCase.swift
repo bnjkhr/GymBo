@@ -125,7 +125,8 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
 
             // Use last used values if available, otherwise use template values
             let weight = exerciseEntity?.lastUsedWeight ?? workoutExercise.targetWeight ?? 0.0
-            let reps = exerciseEntity?.lastUsedReps ?? workoutExercise.targetReps
+            // For time-based exercises (targetReps == nil), use 0 reps as placeholder
+            let reps = exerciseEntity?.lastUsedReps ?? workoutExercise.targetReps ?? 0
 
             print(
                 "📊 Exercise: ID=\(workoutExercise.exerciseId), orderIndex=\(workoutExercise.orderIndex)"

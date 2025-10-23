@@ -127,9 +127,13 @@ struct WorkoutMapper {
         // Clear and rebuild sets as they define the template structure
         entity.sets.removeAll()
         for _ in 0..<domain.targetSets {
+            // For time-based exercises (targetTime != nil), store 0 reps
+            // For rep-based exercises, store targetReps
+            let reps = domain.targetReps ?? 0
+
             let setEntity = ExerciseSetEntity(
                 id: UUID(),
-                reps: domain.targetReps,
+                reps: reps,
                 weight: domain.targetWeight ?? 0.0,
                 restTime: domain.restTime ?? 90,
                 completed: false
@@ -159,9 +163,13 @@ struct WorkoutMapper {
 
         // Create sets based on target values
         for _ in 0..<domain.targetSets {
+            // For time-based exercises (targetTime != nil), store 0 reps
+            // For rep-based exercises, store targetReps
+            let reps = domain.targetReps ?? 0
+
             let setEntity = ExerciseSetEntity(
                 id: UUID(),
-                reps: domain.targetReps,
+                reps: reps,
                 weight: domain.targetWeight ?? 0.0,
                 restTime: domain.restTime ?? 90,
                 completed: false
@@ -183,11 +191,19 @@ struct WorkoutMapper {
         // Get exerciseId: prefer direct field, fallback to relationship, then generate placeholder
         let exerciseId = entity.exerciseId ?? entity.exercise?.id ?? UUID()
 
+        // If reps is 0, this is a time-based exercise
+        // Note: We can't store targetTime in current schema, so for now we lose that info on reload
+        // TODO: Add targetTime field to ExerciseSetEntity in future schema version
+        let reps = firstSet?.reps ?? 8
+        let targetReps = reps > 0 ? reps : nil
+        let targetTime: TimeInterval? = reps == 0 ? 60 : nil  // Default 60s for time-based
+
         return WorkoutExercise(
             id: entity.id,
             exerciseId: exerciseId,
             targetSets: entity.sets.count,
-            targetReps: firstSet?.reps ?? 8,
+            targetReps: targetReps,
+            targetTime: targetTime,
             targetWeight: firstSet?.weight,
             restTime: firstSet?.restTime,
             orderIndex: entity.order,

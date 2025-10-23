@@ -14,40 +14,44 @@ import Foundation
 /// - `WorkoutExercise` = Template (planned exercise with target values)
 /// - `SessionExercise` = Active execution (actual sets with completed status)
 struct WorkoutExercise: Identifiable, Equatable {
-    
+
     // MARK: - Properties
-    
+
     /// Unique identifier for this exercise in the workout
     let id: UUID
-    
+
     /// Reference to the exercise catalog entry
     let exerciseId: UUID
-    
+
     /// Target number of sets for this exercise
     var targetSets: Int
-    
-    /// Target number of reps per set
-    var targetReps: Int
-    
+
+    /// Target number of reps per set (nil for time-based exercises)
+    var targetReps: Int?
+
+    /// Target time per set in seconds (nil for rep-based exercises)
+    var targetTime: TimeInterval?
+
     /// Target weight in kg (optional - may be bodyweight exercises)
     var targetWeight: Double?
-    
+
     /// Rest time between sets in seconds (nil = use workout default)
     var restTime: TimeInterval?
-    
+
     /// Order of this exercise in the workout
     var orderIndex: Int
-    
+
     /// Optional notes for this specific exercise
     var notes: String?
-    
+
     // MARK: - Initialization
-    
+
     init(
         id: UUID = UUID(),
         exerciseId: UUID,
         targetSets: Int = 3,
-        targetReps: Int = 8,
+        targetReps: Int? = 8,
+        targetTime: TimeInterval? = nil,
         targetWeight: Double? = nil,
         restTime: TimeInterval? = nil,
         orderIndex: Int = 0,
@@ -57,14 +61,15 @@ struct WorkoutExercise: Identifiable, Equatable {
         self.exerciseId = exerciseId
         self.targetSets = targetSets
         self.targetReps = targetReps
+        self.targetTime = targetTime
         self.targetWeight = targetWeight
         self.restTime = restTime
         self.orderIndex = orderIndex
         self.notes = notes
     }
-    
+
     // MARK: - Equatable
-    
+
     static func == (lhs: WorkoutExercise, rhs: WorkoutExercise) -> Bool {
         lhs.id == rhs.id
     }
@@ -73,25 +78,25 @@ struct WorkoutExercise: Identifiable, Equatable {
 // MARK: - Preview Helpers
 
 #if DEBUG
-extension WorkoutExercise {
-    static var preview: WorkoutExercise {
-        WorkoutExercise(
-            exerciseId: UUID(),
-            targetSets: 3,
-            targetReps: 8,
-            targetWeight: 100.0,
-            restTime: 90
-        )
+    extension WorkoutExercise {
+        static var preview: WorkoutExercise {
+            WorkoutExercise(
+                exerciseId: UUID(),
+                targetSets: 3,
+                targetReps: 8,
+                targetWeight: 100.0,
+                restTime: 90
+            )
+        }
+
+        static var previewWithNotes: WorkoutExercise {
+            WorkoutExercise(
+                exerciseId: UUID(),
+                targetSets: 4,
+                targetReps: 10,
+                targetWeight: 80.0,
+                notes: "Focus on form, slow eccentric"
+            )
+        }
     }
-    
-    static var previewWithNotes: WorkoutExercise {
-        WorkoutExercise(
-            exerciseId: UUID(),
-            targetSets: 4,
-            targetReps: 10,
-            targetWeight: 80.0,
-            notes: "Focus on form, slow eccentric"
-        )
-    }
-}
 #endif

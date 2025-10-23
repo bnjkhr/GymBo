@@ -242,7 +242,8 @@ final class WorkoutStore {
         in workoutId: UUID,
         exerciseId: UUID,
         targetSets: Int,
-        targetReps: Int,
+        targetReps: Int?,
+        targetTime: TimeInterval?,
         targetWeight: Double?,
         restTime: TimeInterval?,
         notes: String?
@@ -253,6 +254,7 @@ final class WorkoutStore {
                 exerciseId: exerciseId,
                 targetSets: targetSets,
                 targetReps: targetReps,
+                targetTime: targetTime,
                 targetWeight: targetWeight,
                 restTime: restTime,
                 notes: notes
@@ -401,7 +403,8 @@ final class WorkoutStore {
             workoutId: UUID,
             exerciseId: UUID,
             targetSets: Int,
-            targetReps: Int,
+            targetReps: Int?,
+            targetTime: TimeInterval?,
             targetWeight: Double?,
             restTime: TimeInterval?,
             notes: String?

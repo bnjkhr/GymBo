@@ -33,6 +33,12 @@ struct TimerSection: View {
     /// Workout name to display
     let workoutName: String?
 
+    /// Current exercise number (1-based)
+    let currentExercise: Int?
+
+    /// Total number of exercises
+    let totalExercises: Int?
+
     // MARK: - State
 
     @State private var currentTime = Date()
@@ -114,9 +120,18 @@ struct TimerSection: View {
                     .font(.system(size: Layout.timerFontSize, weight: .heavy))
                     .monospacedDigit()
 
-                Text(workoutName ?? "Workout")
-                    .font(.caption)
-                    .foregroundStyle(.gray)
+                VStack(spacing: 4) {
+                    Text(workoutName ?? "Workout")
+                        .font(.caption)
+                        .foregroundStyle(.gray)
+
+                    if let current = currentExercise, let total = totalExercises {
+                        Text("\(current)/\(total)")
+                            .font(.caption2)
+                            .foregroundStyle(.gray.opacity(0.7))
+                            .monospacedDigit()
+                    }
+                }
             } else {
                 Text("00:00")
                     .font(.system(size: Layout.timerFontSize, weight: .heavy))
@@ -228,7 +243,9 @@ extension Notification.Name {
     return TimerSection(
         restTimerManager: manager,
         workoutStartDate: Date().addingTimeInterval(-300),  // 5 minutes ago
-        workoutName: "Push Day"
+        workoutName: "Push Day",
+        currentExercise: 2,
+        totalExercises: 7
     )
 }
 
@@ -236,7 +253,9 @@ extension Notification.Name {
     TimerSection(
         restTimerManager: nil,
         workoutStartDate: Date().addingTimeInterval(-180),  // 3 minutes ago
-        workoutName: "Pull Day"
+        workoutName: "Pull Day",
+        currentExercise: 3,
+        totalExercises: 5
     )
 }
 
@@ -244,6 +263,8 @@ extension Notification.Name {
     TimerSection(
         restTimerManager: nil,
         workoutStartDate: nil,
-        workoutName: nil
+        workoutName: nil,
+        currentExercise: nil,
+        totalExercises: nil
     )
 }

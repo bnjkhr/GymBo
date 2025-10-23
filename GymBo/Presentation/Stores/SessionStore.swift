@@ -160,6 +160,19 @@ final class SessionStore {
             // Refresh from repository to ensure consistency
             await refreshCurrentSession()
 
+            // Check if exercise is now complete (AFTER refresh to get accurate state)
+            let exerciseCompleted = checkIfExerciseCompleted(exerciseId: exerciseId)
+            print("🔍 Exercise completed check: \(exerciseCompleted) for exerciseId: \(exerciseId)")
+
+            // Show notification if exercise was just completed
+            if exerciseCompleted {
+                // Check if this was the last exercise
+                let isLastExercise = checkIfAllExercisesCompleted()
+                let message = isLastExercise ? "Workout done! 💪🏼" : "Nächste Übung"
+                print("✅ Showing notification: \(message)")
+                showSuccessMessage(message)
+            }
+
         } catch {
             self.error = error
             print("❌ Failed to complete set: \(error)")
@@ -602,6 +615,42 @@ final class SessionStore {
         // Update published state (TRIGGERS @Published)
         currentSession = session
         print("✅ updateLocalSet: currentSession @Published updated!")
+    }
+
+    /// Check if an exercise is now fully completed (all sets done)
+    /// - Parameter exerciseId: ID of the exercise to check
+    /// - Returns: true if all sets are completed, false otherwise
+    private func checkIfExerciseCompleted(exerciseId: UUID) -> Bool {
+        guard let session = currentSession else {
+            print("⚠️ checkIfExerciseCompleted: No current session")
+            return false
+        }
+
+        guard let exercise = session.exercises.first(where: { $0.id == exerciseId }) else {
+            print("⚠️ checkIfExerciseCompleted: Exercise not found")
+            return false
+        }
+
+        let completedSets = exercise.sets.filter { $0.completed }.count
+        let totalSets = exercise.sets.count
+        let isCompleted = exercise.isCompleted
+
+        print(
+            "🔍 checkIfExerciseCompleted: \(completedSets)/\(totalSets) sets, isCompleted: \(isCompleted)"
+        )
+
+        // Check if all sets are completed
+        return isCompleted
+    }
+
+    /// Check if all exercises in the current session are completed
+    /// - Returns: true if all exercises are completed, false otherwise
+    private func checkIfAllExercisesCompleted() -> Bool {
+        guard let session = currentSession else { return false }
+
+        let allCompleted = session.exercises.allSatisfy { $0.isCompleted }
+        print("🔍 checkIfAllExercisesCompleted: \(allCompleted)")
+        return allCompleted
     }
 
     /// Optimistic update of set weight/reps in local state

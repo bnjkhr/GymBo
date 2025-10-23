@@ -38,7 +38,8 @@ protocol UpdateWorkoutExerciseUseCase {
         workoutId: UUID,
         exerciseId: UUID,
         targetSets: Int,
-        targetReps: Int,
+        targetReps: Int?,
+        targetTime: TimeInterval?,
         targetWeight: Double?,
         restTime: TimeInterval?,
         notes: String?
@@ -65,7 +66,8 @@ final class DefaultUpdateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase {
         workoutId: UUID,
         exerciseId: UUID,
         targetSets: Int,
-        targetReps: Int,
+        targetReps: Int?,
+        targetTime: TimeInterval?,
         targetWeight: Double?,
         restTime: TimeInterval?,
         notes: String?
@@ -74,8 +76,22 @@ final class DefaultUpdateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase {
         guard targetSets >= 1 else {
             throw UseCaseError.invalidInput("Sets must be at least 1")
         }
-        guard targetReps >= 1 else {
+
+        // Must have either reps or time
+        guard targetReps != nil || targetTime != nil else {
+            throw UseCaseError.invalidInput("Must specify either reps or time")
+        }
+
+        // Cannot have both reps and time
+        if targetReps != nil && targetTime != nil {
+            throw UseCaseError.invalidInput("Cannot specify both reps and time")
+        }
+
+        if let reps = targetReps, reps < 1 {
             throw UseCaseError.invalidInput("Reps must be at least 1")
+        }
+        if let time = targetTime, time < 1 {
+            throw UseCaseError.invalidInput("Time must be at least 1 second")
         }
         if let weight = targetWeight, weight < 0 {
             throw UseCaseError.invalidInput("Weight cannot be negative")
@@ -98,6 +114,7 @@ final class DefaultUpdateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase {
         // Update exercise
         workout.exercises[exerciseIndex].targetSets = targetSets
         workout.exercises[exerciseIndex].targetReps = targetReps
+        workout.exercises[exerciseIndex].targetTime = targetTime
         workout.exercises[exerciseIndex].targetWeight = targetWeight
         workout.exercises[exerciseIndex].restTime = restTime
         workout.exercises[exerciseIndex].notes = notes
@@ -107,7 +124,11 @@ final class DefaultUpdateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase {
         try await workoutRepository.update(workout)
 
         print("✅ Updated exercise \(exerciseId) in workout \(workoutId)")
-        print("   - Sets: \(targetSets), Reps: \(targetReps), Weight: \(targetWeight ?? 0)kg")
+        if let reps = targetReps {
+            print("   - Sets: \(targetSets), Reps: \(reps), Weight: \(targetWeight ?? 0)kg")
+        } else if let time = targetTime {
+            print("   - Sets: \(targetSets), Time: \(Int(time))s, Weight: \(targetWeight ?? 0)kg")
+        }
 
         return workout
     }

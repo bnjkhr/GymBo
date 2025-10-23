@@ -50,7 +50,9 @@ struct ActiveWorkoutSheetView: View {
                         TimerSection(
                             restTimerManager: restTimerManager,
                             workoutStartDate: session.startDate,
-                            workoutName: session.workoutName
+                            workoutName: session.workoutName,
+                            currentExercise: currentExerciseNumber(session: session),
+                            totalExercises: session.exercises.count
                         )
 
                         // Exercise List (ScrollView)
@@ -128,7 +130,35 @@ struct ActiveWorkoutSheetView: View {
             .task(id: sessionStore.currentSession?.id) {
                 await loadExerciseNames()
             }
+            .onAppear {
+                // Clear any leftover rest timer from previous workout
+                restTimerManager.cancelRest()
+            }
+            .overlay(alignment: .top) {
+                // Success Pill for notifications (e.g., "Nächste Übung")
+                if let message = sessionStore.successMessage {
+                    SuccessPill(message: message)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .animation(.spring(duration: 0.3), value: sessionStore.successMessage)
+                        .zIndex(1000)  // Above all other content
+                }
+            }
         }
+    }
+
+    // MARK: - Helpers
+
+    /// Get the current exercise number (1-based) - first incomplete exercise
+    private func currentExerciseNumber(session: DomainWorkoutSession) -> Int? {
+        let sortedExercises = session.exercises.sorted { $0.orderIndex < $1.orderIndex }
+
+        // Find first incomplete exercise
+        if let currentIndex = sortedExercises.firstIndex(where: { !$0.isCompleted }) {
+            return currentIndex + 1  // 1-based
+        }
+
+        // All exercises completed - return total count
+        return sortedExercises.count
     }
 
     // MARK: - Subviews
@@ -284,9 +314,12 @@ struct ActiveWorkoutSheetView: View {
             showAllExercises.toggle()
             UISelectionFeedbackGenerator().selectionChanged()
         } label: {
-            Image(systemName: showAllExercises ? "eye.fill" : "eye.slash.fill")
-                .font(.title3)
-                .foregroundStyle(showAllExercises ? .orange : .primary)
+            Image(
+                systemName: showAllExercises
+                    ? "list.bullet.clipboard.fill" : "list.bullet.clipboard"
+            )
+            .font(.title3)
+            .foregroundStyle(showAllExercises ? .orange : .primary)
         }
     }
 
@@ -402,16 +435,12 @@ struct ActiveWorkoutSheetView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            // Hint about Eye icon
-            HStack(spacing: 8) {
-                Image(systemName: "eye.fill")
-                    .foregroundColor(.primary)
-                Text("Tippe auf das Auge-Symbol oben, um alle Übungen zu sehen")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.horizontal)
+            // Hint about List icon
+            Text("Tippe auf die Übersicht oben, um alle Übungen zu sehen")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
 
             // Finish Workout Button
             Button {

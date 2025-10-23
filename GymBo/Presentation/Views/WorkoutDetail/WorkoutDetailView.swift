@@ -114,12 +114,13 @@ struct WorkoutDetailView: View {
                     workoutId: workout.id,
                     exercise: exercise,
                     exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung",
-                    onSave: { sets, reps, weight, rest, notes in
+                    onSave: { sets, reps, time, weight, rest, notes in
                         Task {
                             await updateExercise(
                                 exercise,
                                 targetSets: sets,
                                 targetReps: reps,
+                                targetTime: time,
                                 targetWeight: weight,
                                 restTime: rest,
                                 notes: notes
@@ -351,7 +352,8 @@ struct WorkoutDetailView: View {
     private func updateExercise(
         _ exercise: WorkoutExercise,
         targetSets: Int,
-        targetReps: Int,
+        targetReps: Int?,
+        targetTime: TimeInterval?,
         targetWeight: Double?,
         restTime: TimeInterval?,
         notes: String?
@@ -363,6 +365,7 @@ struct WorkoutDetailView: View {
             exerciseId: exercise.id,
             targetSets: targetSets,
             targetReps: targetReps,
+            targetTime: targetTime,
             targetWeight: targetWeight,
             restTime: restTime,
             notes: notes
@@ -470,9 +473,16 @@ private struct ExerciseRow: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Text("\(exercise.targetSets) × \(exercise.targetReps)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    // Show either reps or time
+                    if let reps = exercise.targetReps {
+                        Text("\(exercise.targetSets) × \(reps)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else if let time = exercise.targetTime {
+                        Text("\(exercise.targetSets) × \(Int(time))s")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
 
                     if let restTime = exercise.restTime {
                         Text("• \(Int(restTime))s Pause")
