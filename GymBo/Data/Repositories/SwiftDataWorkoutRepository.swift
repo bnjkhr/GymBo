@@ -85,8 +85,9 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
                 "💾 Direct update: Workout '\(entity.name)' has \(entity.exercises.count) exercises")
 
             // Update orderIndex of each exercise WITHOUT recreating them
+            // Note: exerciseId is the WorkoutExerciseEntity.id, not ExerciseEntity.id
             for (newIndex, exerciseId) in exerciseOrder.enumerated() {
-                if let exercise = entity.exercises.first(where: { $0.exercise?.id == exerciseId }) {
+                if let exercise = entity.exercises.first(where: { $0.id == exerciseId }) {
                     exercise.order = newIndex
                     print("💾 Updated exercise order: \(exerciseId) → index \(newIndex)")
                 } else {
