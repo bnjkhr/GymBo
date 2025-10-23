@@ -371,22 +371,21 @@ final class SessionStore {
             return
         }
 
-        print("🔍 DEBUG markAllSetsComplete:")
-        print("   - Exercise ID: \(exerciseId)")
-        print("   - Exercise found with \(exercise.sets.count) total sets")
-        for (index, set) in exercise.sets.enumerated() {
-            print("   - Set \(index): weight=\(set.weight)kg, reps=\(set.reps), completed=\(set.completed)")
+        let incompleteSets = exercise.sets.filter { !$0.completed }
+
+        guard !incompleteSets.isEmpty else {
+            print("ℹ️ All sets already completed for exercise")
+            return
         }
 
-        let incompleteSets = exercise.sets.filter { !$0.completed }
-        print("🔵 Marking \(incompleteSets.count) sets as complete for exercise \(exerciseId)")
+        print("🔵 Marking \(incompleteSets.count) sets as complete")
 
         // Complete each set
         for set in incompleteSets {
             await completeSet(exerciseId: exerciseId, setId: set.id)
         }
 
-        print("✅ All sets marked complete for exercise")
+        print("✅ All sets marked complete")
     }
 
     // MARK: - Private Helpers
