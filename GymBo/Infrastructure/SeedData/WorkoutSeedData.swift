@@ -64,7 +64,7 @@ struct WorkoutSeedData {
         var workouts: [WorkoutEntity] = []
 
         // 1. Push Day (Chest, Shoulders, Triceps)
-        if let benchPress = exercises["Bench Press"] {
+        if let benchPress = exercises["Bankdrücken"] {
             let pushDay = WorkoutEntity(
                 name: "Push Day",
                 date: Date(),
@@ -89,7 +89,7 @@ struct WorkoutSeedData {
         }
 
         // 2. Pull Day (Back, Biceps)
-        if let latPulldown = exercises["Lat Pulldown"] {  // Already correct
+        if let latPulldown = exercises["Latzug zur Brust"] {
             let pullDay = WorkoutEntity(
                 name: "Pull Day",
                 date: Date(),
@@ -99,7 +99,7 @@ struct WorkoutSeedData {
                 isFavorite: false
             )
 
-            // Lat Pulldown: 3x10
+            // Latzug zur Brust: 3x10
             let latExercise = WorkoutExerciseEntity(
                 exercise: latPulldown,
                 sets: createSets(count: 3, reps: 10, weight: 80.0),
@@ -114,7 +114,7 @@ struct WorkoutSeedData {
         }
 
         // 3. Leg Day (Legs, Glutes)
-        if let squats = exercises["Squats"] {
+        if let squats = exercises["Kniebeugen"] {
             let legDay = WorkoutEntity(
                 name: "Leg Day",
                 date: Date(),
@@ -150,8 +150,8 @@ struct WorkoutSeedData {
 
         var exerciseOrder = 0
 
-        // Exercise 1: Bench Press
-        if let benchPress = exercises["Bench Press"] {
+        // Exercise 1: Bankdrücken
+        if let benchPress = exercises["Bankdrücken"] {
             let ex1 = WorkoutExerciseEntity(
                 exercise: benchPress,
                 sets: createSets(count: 3, reps: 10, weight: 80.0),
@@ -162,8 +162,8 @@ struct WorkoutSeedData {
             exerciseOrder += 1
         }
 
-        // Exercise 2: Squats
-        if let squats = exercises["Squats"] {
+        // Exercise 2: Kniebeugen
+        if let squats = exercises["Kniebeugen"] {
             let ex2 = WorkoutExerciseEntity(
                 exercise: squats,
                 sets: createSets(count: 3, reps: 12, weight: 60.0),
@@ -174,8 +174,8 @@ struct WorkoutSeedData {
             exerciseOrder += 1
         }
 
-        // Exercise 3: Lat Pulldown (already correct)
-        if let latPulldown = exercises["Lat Pulldown"] {
+        // Exercise 3: Latzug zur Brust
+        if let latPulldown = exercises["Latzug zur Brust"] {
             let ex3 = WorkoutExerciseEntity(
                 exercise: latPulldown,
                 sets: createSets(count: 3, reps: 10, weight: 70.0),
@@ -186,8 +186,8 @@ struct WorkoutSeedData {
             exerciseOrder += 1
         }
 
-        // Exercise 4: Deadlift
-        if let deadlift = exercises["Deadlift"] {
+        // Exercise 4: Kreuzheben
+        if let deadlift = exercises["Kreuzheben"] {
             let ex4 = WorkoutExerciseEntity(
                 exercise: deadlift,
                 sets: createSets(count: 3, reps: 8, weight: 100.0),
