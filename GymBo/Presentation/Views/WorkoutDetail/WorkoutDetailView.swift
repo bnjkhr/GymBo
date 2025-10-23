@@ -51,11 +51,14 @@ struct WorkoutDetailView: View {
 
     var body: some View {
         Group {
-            if let workout = workout {
+            // Always use workout from store, not from init parameter
+            if let currentWorkout = workoutStore?.workouts.first(where: { $0.id == workoutId })
+                ?? workout
+            {
                 ScrollView {
                     VStack(spacing: 24) {
                         // Stats Section
-                        statsSection(for: workout)
+                        statsSection(for: currentWorkout)
 
                         // Start Button (directly below stats)
                         startButton
@@ -65,12 +68,12 @@ struct WorkoutDetailView: View {
                             ProgressView("Lade Übungen...")
                                 .padding()
                         } else {
-                            exercisesSection(for: workout)
+                            exercisesSection(for: currentWorkout)
                         }
                     }
                     .padding()
                 }
-                .navigationTitle(workout.name)
+                .navigationTitle(currentWorkout.name)
             } else {
                 ProgressView("Lade Workout...")
             }
@@ -178,7 +181,7 @@ struct WorkoutDetailView: View {
                     }
                 }
                 .onMove { indexSet, destination in
-                    moveExercises(from: indexSet, to: destination, in: workout)
+                    moveExercises(from: indexSet, to: destination, in: currentWorkout)
                 }
             }
             .listStyle(.plain)
