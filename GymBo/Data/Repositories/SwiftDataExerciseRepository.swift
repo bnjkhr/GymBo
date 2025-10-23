@@ -51,14 +51,4 @@ final class SwiftDataExerciseRepository: ExerciseRepositoryProtocol {
 
         print("✅ Updated exercise \(exercise.name): lastWeight=\(weight), lastReps=\(reps)")
     }
-
-    func fetch(id: UUID) async throws -> ExerciseEntity? {
-        let descriptor = FetchDescriptor<ExerciseEntity>(
-            predicate: #Predicate<ExerciseEntity> { entity in
-                entity.id == id
-            }
-        )
-
-        return try modelContext.fetch(descriptor).first
-    }
 }

@@ -32,12 +32,6 @@ protocol ExerciseRepositoryProtocol {
         reps: Int,
         date: Date
     ) async throws
-
-    /// Fetch an exercise by ID
-    /// - Parameter id: Exercise ID
-    /// - Returns: Exercise details or nil if not found
-    /// - Throws: Repository errors
-    func fetch(id: UUID) async throws -> ExerciseEntity?
 }
 
 // MARK: - Mock Implementation for Testing/Previews
@@ -52,11 +46,6 @@ protocol ExerciseRepositoryProtocol {
         ) async throws {
             // Mock - do nothing
             print("📝 Mock: Updated exercise \(exerciseId) lastUsed: \(weight)kg x \(reps) reps")
-        }
-
-        func fetch(id: UUID) async throws -> ExerciseEntity? {
-            // Mock - return nil
-            return nil
         }
     }
 #endif

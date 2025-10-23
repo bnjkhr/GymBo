@@ -80,15 +80,6 @@ struct CompactSetRow: View {
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 4)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Fertig") {
-                    saveCurrentField()
-                    focusedField = nil
-                }
-            }
-        }
         .sheet(isPresented: $showEditSheet) {
             EditSetSheet(
                 weight: $editingWeight,
