@@ -385,6 +385,15 @@ final class SessionStore {
             await completeSet(exerciseId: exerciseId, setId: set.id)
         }
 
+        // Force UI update by fetching fresh session from DB
+        do {
+            let freshSession = try await sessionRepository.fetch(id: sessionId)
+            currentSession = nil
+            currentSession = freshSession
+        } catch {
+            print("❌ Failed to refresh session after marking complete: \(error)")
+        }
+
         print("✅ All sets marked complete")
     }
 
