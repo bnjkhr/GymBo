@@ -65,6 +65,8 @@ final class SessionStore {
     private let resumeSessionUseCase: ResumeSessionUseCase
     private let updateSetUseCase: UpdateSetUseCase
     private let updateAllSetsUseCase: UpdateAllSetsUseCase
+    private let addSetUseCase: AddSetUseCase
+    private let removeSetUseCase: RemoveSetUseCase
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
 
@@ -82,6 +84,8 @@ final class SessionStore {
         resumeSessionUseCase: ResumeSessionUseCase,
         updateSetUseCase: UpdateSetUseCase,
         updateAllSetsUseCase: UpdateAllSetsUseCase,
+        addSetUseCase: AddSetUseCase,
+        removeSetUseCase: RemoveSetUseCase,
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol
     ) {
@@ -92,6 +96,8 @@ final class SessionStore {
         self.resumeSessionUseCase = resumeSessionUseCase
         self.updateSetUseCase = updateSetUseCase
         self.updateAllSetsUseCase = updateAllSetsUseCase
+        self.addSetUseCase = addSetUseCase
+        self.removeSetUseCase = removeSetUseCase
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
     }
@@ -304,6 +310,79 @@ final class SessionStore {
         } catch {
             self.error = error
             print("❌ Failed to update all sets: \(error)")
+        }
+    }
+
+    /// Add a new set to an exercise
+    /// - Parameters:
+    ///   - exerciseId: ID of the exercise
+    ///   - weight: Weight for the new set (optional, defaults to last set's weight)
+    ///   - reps: Reps for the new set (optional, defaults to last set's reps)
+    func addSet(
+        exerciseId: UUID,
+        weight: Double? = nil,
+        reps: Int? = nil
+    ) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        do {
+            let updatedSession = try await addSetUseCase.execute(
+                sessionId: sessionId,
+                exerciseId: exerciseId,
+                weight: weight,
+                reps: reps
+            )
+
+            // Force UI update
+            currentSession = nil
+            currentSession = updatedSession
+
+            print("✅ Set added successfully")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to add set: \(error)")
+        }
+    }
+
+    /// Remove a set from an exercise
+    /// - Parameters:
+    ///   - exerciseId: ID of the exercise
+    ///   - setId: ID of the set to remove
+    func removeSet(
+        exerciseId: UUID,
+        setId: UUID
+    ) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        do {
+            let updatedSession = try await removeSetUseCase.execute(
+                sessionId: sessionId,
+                exerciseId: exerciseId,
+                setId: setId
+            )
+
+            // Force UI update
+            currentSession = nil
+            currentSession = updatedSession
+
+            print("✅ Set removed successfully")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to remove set: \(error)")
         }
     }
 
@@ -559,6 +638,13 @@ extension SessionStore {
                 updateAllSetsUseCase: DefaultUpdateAllSetsUseCase(
                     repository: repository,
                     exerciseRepository: exerciseRepository
+                ),
+                addSetUseCase: DefaultAddSetUseCase(
+                    repository: repository,
+                    exerciseRepository: exerciseRepository
+                ),
+                removeSetUseCase: DefaultRemoveSetUseCase(
+                    repository: repository
                 ),
                 sessionRepository: repository,
                 exerciseRepository: exerciseRepository

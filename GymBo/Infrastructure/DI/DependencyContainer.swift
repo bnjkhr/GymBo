@@ -46,6 +46,8 @@ final class DependencyContainer {
             resumeSessionUseCase: makeResumeSessionUseCase(),
             updateSetUseCase: makeUpdateSetUseCase(),
             updateAllSetsUseCase: makeUpdateAllSetsUseCase(),
+            addSetUseCase: makeAddSetUseCase(),
+            removeSetUseCase: makeRemoveSetUseCase(),
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository()
         )
@@ -140,6 +142,23 @@ final class DependencyContainer {
         return DefaultUpdateAllSetsUseCase(
             repository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository()
+        )
+    }
+
+    /// Creates AddSetUseCase
+    /// - Returns: Use case for adding a new set to an exercise
+    func makeAddSetUseCase() -> AddSetUseCase {
+        return DefaultAddSetUseCase(
+            repository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository()
+        )
+    }
+
+    /// Creates RemoveSetUseCase
+    /// - Returns: Use case for removing a set from an exercise
+    func makeRemoveSetUseCase() -> RemoveSetUseCase {
+        return DefaultRemoveSetUseCase(
+            repository: makeSessionRepository()
         )
     }
 

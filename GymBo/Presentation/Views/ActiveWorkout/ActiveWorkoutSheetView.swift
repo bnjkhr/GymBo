@@ -132,7 +132,33 @@ struct ActiveWorkoutSheetView: View {
                         let shouldHide = allSetsCompleted && !showAllExercises
 
                         if !shouldHide {
-                            CompactExerciseCard(
+                            exerciseCardView(for: exercise, at: index, in: session)
+                        }
+                    }
+
+                    // Workout Complete Message (when all exercises completed)
+                    if allExercisesCompleted(session: session) {
+                        workoutCompleteMessage
+                            .padding(.top, 16)
+                    }
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .animation(
+                .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
+        }
+        .background(Color.gray.opacity(0.1))
+    }
+
+    /// Exercise card view with all callbacks
+    @ViewBuilder
+    private func exerciseCardView(
+        for exercise: DomainSessionExercise,
+        at index: Int,
+        in session: DomainWorkoutSession
+    ) -> some View {
+        CompactExerciseCard(
                                 exercise: exercise,
                                 exerciseIndex: index,
                                 totalExercises: session.exercises.count,
@@ -195,9 +221,26 @@ struct ActiveWorkoutSheetView: View {
                                         UINotificationFeedbackGenerator().notificationOccurred(.success)
                                     }
                                 },
-                                onAddSet: {
-                                    // TODO: Add set to exercise
-                                    print("Add set to exercise \(index)")
+                                onAddSet: { weight, reps in
+                                    Task {
+                                        print("➕ Add set: \(weight)kg x \(reps) reps")
+                                        await sessionStore.addSet(
+                                            exerciseId: exercise.id,
+                                            weight: weight,
+                                            reps: reps
+                                        )
+                                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                                    }
+                                },
+                                onRemoveSet: { setId in
+                                    Task {
+                                        print("🗑️ Remove set: \(setId)")
+                                        await sessionStore.removeSet(
+                                            exerciseId: exercise.id,
+                                            setId: setId
+                                        )
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    }
                                 },
                                 onMarkAllComplete: {
                                     Task {
@@ -212,22 +255,6 @@ struct ActiveWorkoutSheetView: View {
                                     insertion: .opacity.combined(with: .move(edge: .bottom)),
                                     removal: .opacity.combined(with: .move(edge: .top))
                                 ))
-                        }
-                    }
-
-                    // Workout Complete Message (when all exercises completed)
-                    if allExercisesCompleted(session: session) {
-                        workoutCompleteMessage
-                            .padding(.top, 16)
-                    }
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .animation(
-                .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
-        }
-        .background(Color.gray.opacity(0.1))
     }
 
     /// Eye toggle button for show/hide completed exercises

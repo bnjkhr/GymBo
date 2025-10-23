@@ -36,7 +36,8 @@ struct CompactExerciseCard: View {
     let onUpdateWeight: ((UUID, Double) -> Void)?  // (setId, newWeight)
     let onUpdateReps: ((UUID, Int) -> Void)?  // (setId, newReps)
     let onUpdateAllSets: ((Double, Int) -> Void)?  // (weight, reps) - updates all incomplete sets
-    let onAddSet: (() -> Void)?
+    let onAddSet: ((Double, Int) -> Void)?  // (weight, reps) - Add new set
+    let onRemoveSet: ((UUID) -> Void)?  // (setId) - Remove set
     let onMarkAllComplete: (() -> Void)?
 
     // MARK: - State
@@ -91,6 +92,16 @@ struct CompactExerciseCard: View {
                         }
                     )
                     .padding(.horizontal, Layout.setPadding)
+                    .contextMenu {
+                        // Only show delete if not the last set
+                        if exercise.sets.count > 1 {
+                            Button(role: .destructive) {
+                                onRemoveSet?(set.id)
+                            } label: {
+                                Label("Satz löschen", systemImage: "trash")
+                            }
+                        }
+                    }
                 }
             }
             .padding(.top, 12)
@@ -176,7 +187,14 @@ struct CompactExerciseCard: View {
 
             // Add set
             Button {
-                onAddSet?()
+                // Use last set's values, or defaults if no sets exist
+                let lastSet = exercise.sets.last
+                let weight = lastSet?.weight ?? 0.0
+                let reps = lastSet?.reps ?? 0
+
+                if weight > 0 && reps > 0 {
+                    onAddSet?(weight, reps)
+                }
             } label: {
                 Image(systemName: "plus.circle")
                     .font(.title3)
@@ -203,12 +221,12 @@ struct CompactExerciseCard: View {
 
         // Try to parse as set (e.g., "100 x 8")
         if let (weight, reps) = parseSetInput(trimmed) {
-            print("Quick-add set: \(weight)kg x \(reps) reps")
-            // TODO: Add set via callback
+            print("➕ Quick-add set: \(weight)kg x \(reps) reps")
+            onAddSet?(weight, reps)
         } else {
             // Save as note
-            print("Quick-add note: \(trimmed)")
-            // TODO: Save note via callback
+            print("📝 Quick-add note: \(trimmed)")
+            // TODO: Save note via callback (future feature)
         }
 
         quickAddText = ""
@@ -251,7 +269,8 @@ struct CompactExerciseCard: View {
         onUpdateWeight: { _, _ in },
         onUpdateReps: { _, _ in },
         onUpdateAllSets: { _, _ in },
-        onAddSet: {},
+        onAddSet: { _, _ in },
+        onRemoveSet: { _ in },
         onMarkAllComplete: {}
     )
     .padding()
@@ -268,7 +287,8 @@ struct CompactExerciseCard: View {
         onUpdateWeight: { _, _ in },
         onUpdateReps: { _, _ in },
         onUpdateAllSets: { _, _ in },
-        onAddSet: {},
+        onAddSet: { _, _ in },
+        onRemoveSet: { _ in },
         onMarkAllComplete: {}
     )
     .padding()
