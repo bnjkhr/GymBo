@@ -176,6 +176,7 @@ struct CompactExerciseCard: View {
         HStack(spacing: 16) {
             // Mark all complete
             Button {
+                print("🔴🔴🔴 BUTTON CLICKED: Mark All Complete")
                 onMarkAllComplete?()
             } label: {
                 Image(systemName: "checkmark.circle")
@@ -187,6 +188,7 @@ struct CompactExerciseCard: View {
 
             // Add set
             Button {
+                print("🟠🟠🟠 BUTTON CLICKED: Add Set")
                 // Use last set's values, or defaults if no sets exist
                 let lastSet = exercise.sets.last
                 let weight = lastSet?.weight ?? 0.0
