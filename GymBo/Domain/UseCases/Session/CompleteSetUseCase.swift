@@ -75,8 +75,20 @@ final class DefaultCompleteSetUseCase: CompleteSetUseCase {
             throw UseCaseError.setNotFound(setId)
         }
 
-        // Mark set as completed
+        // Mark set as completed (toggles completed status)
         session.exercises[exerciseIndex].sets[setIndex].markCompleted()
+
+        // Auto-finish exercise if all sets are completed
+        let allSetsCompleted = session.exercises[exerciseIndex].sets.allSatisfy { $0.completed }
+        if allSetsCompleted && !session.exercises[exerciseIndex].isFinished {
+            session.exercises[exerciseIndex].isFinished = true
+            print("✅ All sets completed - exercise auto-finished")
+        }
+        // Un-finish exercise if user uncompletes a set
+        else if !allSetsCompleted && session.exercises[exerciseIndex].isFinished {
+            session.exercises[exerciseIndex].isFinished = false
+            print("⚠️ Set uncompleted - exercise un-finished")
+        }
 
         // Update session in repository
         do {
@@ -91,7 +103,6 @@ final class DefaultCompleteSetUseCase: CompleteSetUseCase {
         // }
     }
 }
-
 
 // MARK: - Tests
 // TODO: Move inline tests to separate Test target file

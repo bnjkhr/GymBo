@@ -33,6 +33,7 @@ struct ActiveWorkoutSheetView: View {
 
     @State private var showAllExercises = false
     @State private var showSummary = false
+    @State private var showReorderSheet = false
     @State private var completedSession: DomainWorkoutSession? = nil  // Store session for summary
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var exerciseEquipment: [UUID: String] = [:]
@@ -74,7 +75,7 @@ struct ActiveWorkoutSheetView: View {
                         ToolbarItem(placement: .topBarLeading) {
                             HStack(spacing: 16) {
                                 eyeToggleButton
-                                EditButton()
+                                reorderButton
                             }
                         }
 
@@ -115,6 +116,23 @@ struct ActiveWorkoutSheetView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showReorderSheet) {
+                if let session = sessionStore.currentSession {
+                    ReorderExercisesSheet(
+                        exercises: session.exercises.sorted { $0.orderIndex < $1.orderIndex },
+                        exerciseNames: exerciseNames,
+                        workoutId: session.workoutId,
+                        onReorder: { reorderedExercises, savePermanently in
+                            Task {
+                                await sessionStore.reorderExercises(
+                                    reorderedExercises: reorderedExercises,
+                                    savePermanently: savePermanently
+                                )
+                            }
+                        }
+                    )
+                }
+            }
             .interactiveDismissDisabled(showSummary)  // Prevent swipe-to-dismiss while summary shown
             .task(id: sessionStore.currentSession?.id) {
                 await loadExerciseNames()
@@ -124,49 +142,39 @@ struct ActiveWorkoutSheetView: View {
 
     // MARK: - Subviews
 
-    /// ScrollView with all exercises (using List for drag & drop support)
+    /// ScrollView with all exercises (REPLACED List to fix drag-and-drop button bug)
     private func exerciseListView() -> some View {
         ZStack {
             if let session = sessionStore.currentSession {
                 let sortedExercises = session.exercises.sorted { $0.orderIndex < $1.orderIndex }
 
-                List {
-                    ForEach(Array(sortedExercises.enumerated()), id: \.element.id) {
-                        index, exercise in
-                        // Hide exercise if it's finished (unless eye toggle is on)
-                        let shouldHide = exercise.isFinished && !showAllExercises
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(Array(sortedExercises.enumerated()), id: \.element.id) {
+                            index, exercise in
+                            // Hide exercise if it's finished (unless eye toggle is on)
+                            let shouldHide = exercise.isFinished && !showAllExercises
 
-                        if !shouldHide {
-                            // Create unique ID based on exercise + set IDs only (not completion status)
-                            // This ensures view updates on set add/remove but NOT on completion toggle
-                            let setsSignature = exercise.sets.map { $0.id.uuidString }.joined(
-                                separator: ",")
+                            if !shouldHide {
+                                // Create unique ID based on exercise + set IDs only (not completion status)
+                                // This ensures view updates on set add/remove but NOT on completion toggle
+                                let setsSignature = exercise.sets.map { $0.id.uuidString }.joined(
+                                    separator: ",")
 
-                            exerciseCardView(for: exercise, at: index, in: session)
-                                .id("\(exercise.id)-\(setsSignature)")
-                                .listRowInsets(
-                                    EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12)
-                                )
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
+                                exerciseCardView(for: exercise, at: index, in: session)
+                                    .id("\(exercise.id)-\(setsSignature)")
+                                    .padding(.horizontal, 12)
+                            }
+                        }
+
+                        // Workout Complete Message (when all exercises completed)
+                        if allExercisesCompleted(session: session) {
+                            workoutCompleteMessage
+                                .padding(.horizontal, 12)
                         }
                     }
-                    .onMove { source, destination in
-                        Task {
-                            await sessionStore.reorderExercises(from: source, to: destination)
-                        }
-                    }
-
-                    // Workout Complete Message (when all exercises completed)
-                    if allExercisesCompleted(session: session) {
-                        workoutCompleteMessage
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                    }
+                    .padding(.vertical, 4)
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
                 .background(Color.gray.opacity(0.1))
                 .animation(
                     .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
@@ -288,6 +296,18 @@ struct ActiveWorkoutSheetView: View {
             Image(systemName: showAllExercises ? "eye.fill" : "eye.slash.fill")
                 .font(.title3)
                 .foregroundStyle(showAllExercises ? .orange : .primary)
+        }
+    }
+
+    /// Reorder button to open reorder sheet
+    private var reorderButton: some View {
+        Button {
+            showReorderSheet = true
+            UISelectionFeedbackGenerator().selectionChanged()
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.title3)
+                .foregroundStyle(.primary)
         }
     }
 
@@ -526,6 +546,109 @@ struct WorkoutSummaryView: View {
 
             Text(value)
                 .fontWeight(.semibold)
+        }
+    }
+}
+
+// MARK: - Reorder Exercises Sheet
+
+/// Separate sheet for reordering exercises
+/// Uses List with drag-and-drop in isolation to avoid button auto-trigger bug
+struct ReorderExercisesSheet: View {
+
+    let exercises: [DomainSessionExercise]
+    let exerciseNames: [UUID: String]
+    let workoutId: UUID
+    let onReorder: ([DomainSessionExercise], Bool) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var localExercises: [DomainSessionExercise]
+    @State private var savePermanently = false
+
+    init(
+        exercises: [DomainSessionExercise],
+        exerciseNames: [UUID: String],
+        workoutId: UUID,
+        onReorder: @escaping ([DomainSessionExercise], Bool) -> Void
+    ) {
+        self.exercises = exercises
+        self.exerciseNames = exerciseNames
+        self.workoutId = workoutId
+        self.onReorder = onReorder
+        self._localExercises = State(initialValue: exercises)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Toggle for permanent save
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle(isOn: $savePermanently) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Reihenfolge dauerhaft speichern")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Text("Ändert die Reihenfolge auch im Workout-Template")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .tint(.orange)
+                }
+                .padding()
+                .background(Color(.systemGroupedBackground))
+
+                Divider()
+
+                // Exercise list
+                List {
+                    ForEach(Array(localExercises.enumerated()), id: \.element.id) {
+                        index, exercise in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)")
+                                    .font(.headline)
+
+                                Text("\(exercise.sets.count) Sätze")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            // Order indicator
+                            Text("\(index + 1)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 30, height: 30)
+                                .background(Color.secondary.opacity(0.1))
+                                .clipShape(Circle())
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .onMove { source, destination in
+                        localExercises.move(fromOffsets: source, toOffset: destination)
+                    }
+                }
+                .environment(\.editMode, .constant(.active))
+            }
+            .navigationTitle("Übungen sortieren")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Abbrechen") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Fertig") {
+                        onReorder(localExercises, savePermanently)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
         }
     }
 }

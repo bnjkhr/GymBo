@@ -74,6 +74,36 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
         }
     }
 
+    func updateExerciseOrder(workoutId: UUID, exerciseOrder: [UUID]) async throws {
+        do {
+            // Fetch existing workout entity
+            guard let entity = try await fetchEntity(id: workoutId) else {
+                throw WorkoutRepositoryError.workoutNotFound(workoutId)
+            }
+
+            print(
+                "💾 Direct update: Workout '\(entity.name)' has \(entity.exercises.count) exercises")
+
+            // Update orderIndex of each exercise WITHOUT recreating them
+            for (newIndex, exerciseId) in exerciseOrder.enumerated() {
+                if let exercise = entity.exercises.first(where: { $0.exercise?.id == exerciseId }) {
+                    exercise.order = newIndex
+                    print("💾 Updated exercise order: \(exerciseId) → index \(newIndex)")
+                } else {
+                    print("❌ Exercise not found in workout: \(exerciseId)")
+                }
+            }
+
+            // Save changes to SwiftData
+            try modelContext.save()
+            print("✅ Exercise order saved to SwiftData")
+        } catch let error as WorkoutRepositoryError {
+            throw error
+        } catch {
+            throw WorkoutRepositoryError.updateFailed(error)
+        }
+    }
+
     // MARK: - Read
 
     func fetch(id: UUID) async throws -> Workout? {

@@ -51,7 +51,8 @@ final class DependencyContainer {
             reorderExercisesUseCase: makeReorderExercisesUseCase(),
             finishExerciseUseCase: makeFinishExerciseUseCase(),
             sessionRepository: makeSessionRepository(),
-            exerciseRepository: makeExerciseRepository()
+            exerciseRepository: makeExerciseRepository(),
+            workoutRepository: makeWorkoutRepository()
         )
     }()
 

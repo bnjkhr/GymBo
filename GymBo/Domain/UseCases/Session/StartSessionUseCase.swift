@@ -119,7 +119,7 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
     {
         var sessionExercises: [DomainSessionExercise] = []
 
-        for (index, workoutExercise) in workoutExercises.enumerated() {
+        for workoutExercise in workoutExercises {
             // Load exercise from catalog to get last used values
             let exerciseEntity = try? await exerciseRepository.fetch(id: workoutExercise.exerciseId)
 
@@ -127,7 +127,9 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
             let weight = exerciseEntity?.lastUsedWeight ?? workoutExercise.targetWeight ?? 0.0
             let reps = exerciseEntity?.lastUsedReps ?? workoutExercise.targetReps
 
-            print("📊 Exercise \(index + 1): ID=\(workoutExercise.exerciseId)")
+            print(
+                "📊 Exercise: ID=\(workoutExercise.exerciseId), orderIndex=\(workoutExercise.orderIndex)"
+            )
             print("   - Weight: \(weight)kg, Reps: \(reps), Sets: \(workoutExercise.targetSets)")
 
             // Create sets based on target count
@@ -141,13 +143,13 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
                 sets.append(set)
             }
 
-            // Create session exercise
+            // Create session exercise - use explicit orderIndex from workout template
             let sessionExercise = DomainSessionExercise(
                 exerciseId: workoutExercise.exerciseId,
                 sets: sets,
                 notes: workoutExercise.notes,
                 restTimeToNext: workoutExercise.restTime,
-                orderIndex: index
+                orderIndex: workoutExercise.orderIndex  // ✅ Use explicit orderIndex instead of array position
             )
 
             sessionExercises.append(sessionExercise)

@@ -71,6 +71,7 @@ final class SessionStore {
     private let finishExerciseUseCase: FinishExerciseUseCase
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
+    private let workoutRepository: WorkoutRepositoryProtocol
 
     // MARK: - Private State
 
@@ -91,7 +92,8 @@ final class SessionStore {
         reorderExercisesUseCase: ReorderExercisesUseCase,
         finishExerciseUseCase: FinishExerciseUseCase,
         sessionRepository: SessionRepositoryProtocol,
-        exerciseRepository: ExerciseRepositoryProtocol
+        exerciseRepository: ExerciseRepositoryProtocol,
+        workoutRepository: WorkoutRepositoryProtocol
     ) {
         self.startSessionUseCase = startSessionUseCase
         self.completeSetUseCase = completeSetUseCase
@@ -104,6 +106,7 @@ final class SessionStore {
         self.removeSetUseCase = removeSetUseCase
         self.reorderExercisesUseCase = reorderExercisesUseCase
         self.finishExerciseUseCase = finishExerciseUseCase
+        self.workoutRepository = workoutRepository
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
     }
@@ -469,7 +472,11 @@ final class SessionStore {
     /// - Parameters:
     ///   - source: Source indices of exercises to move
     ///   - destination: Destination index
-    func reorderExercises(from source: IndexSet, to destination: Int) async {
+    func reorderExercises(reorderedExercises: [DomainSessionExercise], savePermanently: Bool) async
+    {
+        print("🔄 reorderExercises called - savePermanently: \(savePermanently)")
+        print("🔄 Received \(reorderedExercises.count) exercises")
+
         guard let sessionId = currentSession?.id else {
             error = NSError(
                 domain: "SessionStore", code: -1,
@@ -480,57 +487,51 @@ final class SessionStore {
 
         // OPTIMISTIC UPDATE: Update UI immediately
         guard var session = currentSession else { return }
-        var exercises = session.exercises.sorted { $0.orderIndex < $1.orderIndex }
 
-        // Perform the move manually
-        // Convert IndexSet to Array for sorting
-        let sourceIndices = Array(source).sorted()
+        print("🔄 Current session has \(session.exercises.count) exercises")
+        print(
+            "🔄 Old order: \(session.exercises.sorted { $0.orderIndex < $1.orderIndex }.map { $0.exerciseId })"
+        )
 
-        // Collect items to move
-        let itemsToMove: [DomainSessionExercise] = sourceIndices.compactMap { index in
-            guard exercises.indices.contains(index) else { return nil }
-            return exercises[index]
-        }
-
-        // Remove items from source positions (in reverse order to maintain indices)
-        for index in sourceIndices.reversed() {
-            if exercises.indices.contains(index) {
-                exercises.remove(at: index)
-            }
-        }
-
-        // Adjust destination index if needed
-        let adjustedDestination: Int
-        if let firstSourceIndex = source.min(), firstSourceIndex < destination {
-            adjustedDestination = destination - source.count
-        } else {
-            adjustedDestination = destination
-        }
-
-        // Insert items at destination
-        exercises.insert(contentsOf: itemsToMove, at: adjustedDestination)
-
-        // Update orderIndex
-        for (index, var exercise) in exercises.enumerated() {
+        // Update orderIndex based on new order
+        var updatedExercises = reorderedExercises
+        for (index, var exercise) in updatedExercises.enumerated() {
             exercise.orderIndex = index
-            exercises[index] = exercise
+            updatedExercises[index] = exercise
         }
 
-        session.exercises = exercises
-        currentSession = session
+        print("🔄 New order: \(updatedExercises.map { $0.exerciseId })")
 
-        // Persist changes
+        session.exercises = updatedExercises
+
+        // Force SwiftUI to detect the change by setting to nil first
+        let updatedSession = session
+        currentSession = nil
+        currentSession = updatedSession
+
+        print("✅ UI updated optimistically")
+
+        // Persist changes to session
         do {
-            try await reorderExercisesUseCase.execute(
-                sessionId: sessionId,
-                from: source,
-                to: destination
-            )
+            try await sessionRepository.update(session)
+            print("✅ Session updated in repository")
 
-            // Refresh to ensure consistency
-            await refreshCurrentSession()
+            // If savePermanently is enabled, also update the workout template
+            if savePermanently {
+                print("💾 Saving permanently to workout template...")
+                await updateWorkoutOrder(
+                    workoutId: session.workoutId,
+                    exerciseOrder: updatedExercises.map { $0.exerciseId }
+                )
+            } else {
+                print("⚠️ NOT saving permanently (toggle was OFF)")
+            }
 
-            print("✅ Exercises reordered: \(source) → \(destination)")
+            // DO NOT refresh - we already updated UI optimistically
+            // Refreshing would reload from DB and overwrite our changes
+            // await refreshCurrentSession()
+
+            print("✅ Exercises reordered successfully")
         } catch {
             self.error = error
             print("❌ Failed to reorder exercises: \(error)")
@@ -541,6 +542,26 @@ final class SessionStore {
     }
 
     // MARK: - Private Helpers
+
+    /// Update workout template exercise order (for permanent save)
+    private func updateWorkoutOrder(workoutId: UUID, exerciseOrder: [UUID]) async {
+        do {
+            print("💾 Updating workout order directly in SwiftData...")
+            print("💾 Workout ID: \(workoutId)")
+            print("💾 Requested order: \(exerciseOrder)")
+
+            // Use new method that updates orderIndex WITHOUT recreating exercises
+            try await workoutRepository.updateExerciseOrder(
+                workoutId: workoutId,
+                exerciseOrder: exerciseOrder
+            )
+
+            print("✅ Workout template order updated permanently")
+        } catch {
+            print("❌ Failed to update workout order: \(error)")
+            self.error = error
+        }
+    }
 
     /// Optimistic update of set completion in local state
     /// This provides instant UI feedback while async operation completes
@@ -723,7 +744,8 @@ extension SessionStore {
                     sessionRepository: repository
                 ),
                 sessionRepository: repository,
-                exerciseRepository: exerciseRepository
+                exerciseRepository: exerciseRepository,
+                workoutRepository: workoutRepository
             )
         }
 

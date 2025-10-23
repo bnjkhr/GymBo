@@ -108,6 +108,7 @@ struct SessionMapper {
         entity.exerciseId = domain.exerciseId
         entity.notes = domain.notes
         entity.restTimeToNext = domain.restTimeToNext
+        entity.orderIndex = domain.orderIndex  // ✅ Update orderIndex for reordering
         entity.isFinished = domain.isFinished
 
         // Update sets IN-PLACE

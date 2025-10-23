@@ -173,12 +173,10 @@ struct CompactExerciseCard: View {
 
     /// Bottom action buttons
     private var bottomButtons: some View {
-        HStack(spacing: 16) {
+        print("🟢 bottomButtons computed - exercise: \(exercise.id)")
+        return HStack(spacing: 16) {
             // Mark all complete
-            Button {
-                print("🔴🔴🔴 BUTTON CLICKED: Mark All Complete")
-                onMarkAllComplete?()
-            } label: {
+            Button(action: handleMarkAllComplete) {
                 Image(systemName: "checkmark.circle")
                     .font(.title3)
                     .foregroundStyle(.orange)
@@ -187,21 +185,38 @@ struct CompactExerciseCard: View {
             Spacer()
 
             // Add set
-            Button {
-                print("🟠🟠🟠 BUTTON CLICKED: Add Set")
-                // Use last set's values, or defaults if no sets exist
-                let lastSet = exercise.sets.last
-                let weight = lastSet?.weight ?? 0.0
-                let reps = lastSet?.reps ?? 0
-
-                if weight > 0 && reps > 0 {
-                    onAddSet?(weight, reps)
-                }
-            } label: {
+            Button(action: handleAddSet) {
                 Image(systemName: "plus.circle")
                     .font(.title3)
                     .foregroundStyle(.orange)
             }
+        }
+    }
+
+    // MARK: - Button Actions
+
+    private func handleMarkAllComplete() {
+        print("🔴🔴🔴 BUTTON ACTION: Mark All Complete")
+        print("🔴 Thread: \(Thread.current)")
+        print("🔴 Is main thread: \(Thread.isMainThread)")
+        print("🔴 Call stack:")
+        Thread.callStackSymbols.prefix(10).forEach { print("  \($0)") }
+        onMarkAllComplete?()
+    }
+
+    private func handleAddSet() {
+        print("🟠🟠🟠 BUTTON ACTION: Add Set")
+        print("🟠 Thread: \(Thread.current)")
+        print("🟠 Is main thread: \(Thread.isMainThread)")
+        print("🟠 Call stack:")
+        Thread.callStackSymbols.prefix(10).forEach { print("  \($0)") }
+
+        let lastSet = exercise.sets.last
+        let weight = lastSet?.weight ?? 0.0
+        let reps = lastSet?.reps ?? 0
+
+        if weight > 0 && reps > 0 {
+            onAddSet?(weight, reps)
         }
     }
 

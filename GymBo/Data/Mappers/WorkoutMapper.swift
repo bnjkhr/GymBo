@@ -90,15 +90,53 @@ struct WorkoutMapper {
         entity.isFavorite = domain.isFavorite
         entity.date = domain.updatedAt
 
-        // Update exercises (clear and rebuild)
-        entity.exercises.removeAll()
-        entity.exercises = domain.exercises.enumerated().map { index, exercise in
-            let exerciseEntity = toEntity(exercise, orderIndex: index)
-            exerciseEntity.workout = entity
-            return exerciseEntity
+        // Update exercises IN-PLACE to preserve SwiftData relationships
+        // Match by ID and update existing entities
+        for domainExercise in domain.exercises {
+            if let existingExercise = entity.exercises.first(where: { $0.id == domainExercise.id })
+            {
+                // Update existing exercise
+                updateExerciseEntity(existingExercise, from: domainExercise)
+            } else {
+                // Add new exercise
+                let newExercise = toEntity(domainExercise, orderIndex: domainExercise.orderIndex)
+                newExercise.workout = entity
+                entity.exercises.append(newExercise)
+            }
         }
 
+        // Remove exercises that are no longer in domain
+        let domainExerciseIds = Set(domain.exercises.map { $0.id })
+        entity.exercises.removeAll { !domainExerciseIds.contains($0.id) }
+
         entity.exerciseCount = domain.exercises.count
+    }
+
+    /// Update existing exercise entity with domain data
+    /// - Parameters:
+    ///   - entity: Existing SwiftData entity
+    ///   - domain: Domain workout exercise with updated data
+    private func updateExerciseEntity(_ entity: WorkoutExerciseEntity, from domain: WorkoutExercise)
+    {
+        entity.order = domain.orderIndex
+
+        // Note: We don't update exerciseId, as the exercise reference is immutable
+        // The entity's exercise relationship is managed separately by the repository
+
+        // Update sets - for workout templates, sets represent target values
+        // Clear and rebuild sets as they define the template structure
+        entity.sets.removeAll()
+        for _ in 0..<domain.targetSets {
+            let setEntity = ExerciseSetEntity(
+                id: UUID(),
+                reps: domain.targetReps,
+                weight: domain.targetWeight ?? 0.0,
+                restTime: domain.restTime ?? 90,
+                completed: false
+            )
+            setEntity.owner = entity
+            entity.sets.append(setEntity)
+        }
     }
 
     // MARK: - WorkoutExercise Mapping
