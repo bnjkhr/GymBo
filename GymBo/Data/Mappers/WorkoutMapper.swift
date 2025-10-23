@@ -149,6 +149,7 @@ struct WorkoutMapper {
     private func toEntity(_ domain: WorkoutExercise, orderIndex: Int) -> WorkoutExerciseEntity {
         let entity = WorkoutExerciseEntity(
             id: domain.id,
+            exerciseId: domain.exerciseId,  // Store exerciseId directly for reliable lookups
             exercise: nil,  // Will be set by repository when loading exercise catalog
             sets: [],
             workout: nil,
@@ -181,7 +182,7 @@ struct WorkoutMapper {
 
         return WorkoutExercise(
             id: entity.id,
-            exerciseId: entity.exercise?.id ?? UUID(),
+            exerciseId: entity.exerciseId,  // Use direct exerciseId field (reliable even if relationship not loaded)
             targetSets: entity.sets.count,
             targetReps: firstSet?.reps ?? 8,
             targetWeight: firstSet?.weight,

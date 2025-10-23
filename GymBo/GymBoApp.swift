@@ -40,26 +40,17 @@ struct GymBoApp: App {
     // MARK: - Initialization
 
     init() {
-        // ✅ Production-Ready: ModelContainer with standard entities
-        // NOTE: SchemaV1 & GymBoMigrationPlan are frozen baselines for future migrations
-        // We currently use the original entities to avoid type namespace issues
+        // ✅ Production-Ready: ModelContainer with V2 schema and migration plan
+        // Migrates from V1 (no exerciseId) → V2 (with exerciseId in WorkoutExerciseEntity)
         do {
-            let schema = Schema([
-                WorkoutSessionEntity.self,
-                SessionExerciseEntity.self,
-                SessionSetEntity.self,
-                ExerciseEntity.self,
-                ExerciseSetEntity.self,
-                WorkoutExerciseEntity.self,
-                WorkoutEntity.self,
-                UserProfileEntity.self,
-                ExerciseRecordEntity.self,
-                WorkoutFolderEntity.self,
-            ])
+            let schema = Schema(versionedSchema: SchemaV2.self)
 
-            container = try ModelContainer(for: schema)
+            container = try ModelContainer(
+                for: schema,
+                migrationPlan: GymBoMigrationPlan.self
+            )
 
-            AppLogger.app.info("✅ SwiftData container created successfully")
+            AppLogger.app.info("✅ SwiftData container created successfully with V2 schema")
         } catch {
             // Fallback to in-memory if persistent fails
             AppLogger.app.error(
@@ -67,19 +58,12 @@ struct GymBoApp: App {
             AppLogger.app.warning("⚠️ Using in-memory container (data will be lost on restart)")
 
             let config = ModelConfiguration(isStoredInMemoryOnly: true)
-            let schema = Schema([
-                WorkoutSessionEntity.self,
-                SessionExerciseEntity.self,
-                SessionSetEntity.self,
-                ExerciseEntity.self,
-                ExerciseSetEntity.self,
-                WorkoutExerciseEntity.self,
-                WorkoutEntity.self,
-                UserProfileEntity.self,
-                ExerciseRecordEntity.self,
-                WorkoutFolderEntity.self,
-            ])
-            container = try! ModelContainer(for: schema, configurations: [config])
+            let schema = Schema(versionedSchema: SchemaV2.self)
+            container = try! ModelContainer(
+                for: schema,
+                migrationPlan: GymBoMigrationPlan.self,
+                configurations: [config]
+            )
         }
 
         // Initialize dependency injection
