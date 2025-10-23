@@ -31,7 +31,7 @@ struct CompactSetRow: View {
             } label: {
                 HStack(spacing: 4) {
                     Text(formatNumber(set.weight))
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.system(size: 28, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(set.completed ? .gray : .primary)
 
@@ -53,7 +53,7 @@ struct CompactSetRow: View {
             } label: {
                 HStack(spacing: 4) {
                     Text("\(set.reps)")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.system(size: 28, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(set.completed ? .gray : .primary)
 
@@ -141,7 +141,7 @@ struct EditSetSheet: View {
                     HStack {
                         TextField("100", text: $weight)
                             .keyboardType(.decimalPad)
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .font(.system(size: 32, weight: .bold))
                             .focused($focusedField, equals: .weight)
 
                         Text("kg")
@@ -162,7 +162,7 @@ struct EditSetSheet: View {
                     HStack {
                         TextField("8", text: $reps)
                             .keyboardType(.numberPad)
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .font(.system(size: 32, weight: .bold))
                             .focused($focusedField, equals: .reps)
 
                         Text("reps")

@@ -120,13 +120,33 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
         print("   - Lat Pulldown: \(exercise2Id)")
         print("   - Kniebeugen: \(exercise3Id)")
 
+        // Load last used values for each exercise
+        let exercise1 = try? await exerciseRepository.fetch(id: exercise1Id)
+        let exercise2 = try? await exerciseRepository.fetch(id: exercise2Id)
+        let exercise3 = try? await exerciseRepository.fetch(id: exercise3Id)
+
+        // Use last used values or fall back to defaults
+        let ex1Weight = exercise1?.lastUsedWeight ?? 100
+        let ex1Reps = exercise1?.lastUsedReps ?? 8
+
+        let ex2Weight = exercise2?.lastUsedWeight ?? 80
+        let ex2Reps = exercise2?.lastUsedReps ?? 10
+
+        let ex3Weight = exercise3?.lastUsedWeight ?? 60
+        let ex3Reps = exercise3?.lastUsedReps ?? 12
+
+        print("📊 Using values:")
+        print("   - Bankdrücken: \(ex1Weight)kg x \(ex1Reps) reps (lastUsed: \(exercise1?.lastUsedDate?.formatted() ?? "never"))")
+        print("   - Lat Pulldown: \(ex2Weight)kg x \(ex2Reps) reps (lastUsed: \(exercise2?.lastUsedDate?.formatted() ?? "never"))")
+        print("   - Kniebeugen: \(ex3Weight)kg x \(ex3Reps) reps (lastUsed: \(exercise3?.lastUsedDate?.formatted() ?? "never"))")
+
         return [
             DomainSessionExercise(
                 exerciseId: exercise1Id,
                 sets: [
-                    DomainSessionSet(weight: 100, reps: 8, orderIndex: 0),
-                    DomainSessionSet(weight: 100, reps: 8, orderIndex: 1),
-                    DomainSessionSet(weight: 100, reps: 8, orderIndex: 2),
+                    DomainSessionSet(weight: ex1Weight, reps: ex1Reps, orderIndex: 0),
+                    DomainSessionSet(weight: ex1Weight, reps: ex1Reps, orderIndex: 1),
+                    DomainSessionSet(weight: ex1Weight, reps: ex1Reps, orderIndex: 2),
                 ],
                 notes: nil,
                 restTimeToNext: 90,  // 1.5 minutes rest
@@ -135,9 +155,9 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
             DomainSessionExercise(
                 exerciseId: exercise2Id,
                 sets: [
-                    DomainSessionSet(weight: 80, reps: 10, orderIndex: 0),
-                    DomainSessionSet(weight: 80, reps: 10, orderIndex: 1),
-                    DomainSessionSet(weight: 80, reps: 10, orderIndex: 2),
+                    DomainSessionSet(weight: ex2Weight, reps: ex2Reps, orderIndex: 0),
+                    DomainSessionSet(weight: ex2Weight, reps: ex2Reps, orderIndex: 1),
+                    DomainSessionSet(weight: ex2Weight, reps: ex2Reps, orderIndex: 2),
                 ],
                 notes: "Focus on form",
                 restTimeToNext: 90,
@@ -146,9 +166,9 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
             DomainSessionExercise(
                 exerciseId: exercise3Id,
                 sets: [
-                    DomainSessionSet(weight: 60, reps: 12, orderIndex: 0),
-                    DomainSessionSet(weight: 60, reps: 12, orderIndex: 1),
-                    DomainSessionSet(weight: 60, reps: 12, orderIndex: 2),
+                    DomainSessionSet(weight: ex3Weight, reps: ex3Reps, orderIndex: 0),
+                    DomainSessionSet(weight: ex3Weight, reps: ex3Reps, orderIndex: 1),
+                    DomainSessionSet(weight: ex3Weight, reps: ex3Reps, orderIndex: 2),
                 ],
                 notes: nil,
                 restTimeToNext: 60,  // 1 minute rest

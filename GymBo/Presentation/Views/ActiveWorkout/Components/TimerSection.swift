@@ -85,7 +85,7 @@ struct TimerSection: View {
         VStack(spacing: 8) {
             // Main timer (rest countdown)
             Text(formatRestTime(restState: restState))
-                .font(.system(size: Layout.timerFontSize, weight: .heavy, design: .rounded))
+                .font(.system(size: Layout.timerFontSize, weight: .heavy))
                 .monospacedDigit()
 
             Text("PAUSE")
@@ -95,9 +95,7 @@ struct TimerSection: View {
             // Workout duration below
             if let startDate = workoutStartDate {
                 Text(formatWorkoutDuration(from: startDate))
-                    .font(
-                        .system(size: Layout.secondaryFontSize, weight: .medium, design: .rounded)
-                    )
+                    .font(.system(size: Layout.secondaryFontSize, weight: .medium))
                     .foregroundStyle(.gray)
                     .monospacedDigit()
                     .padding(.top, 8)
@@ -110,7 +108,7 @@ struct TimerSection: View {
         VStack(spacing: 8) {
             if let startDate = workoutStartDate {
                 Text(formatWorkoutDuration(from: startDate))
-                    .font(.system(size: Layout.timerFontSize, weight: .heavy, design: .rounded))
+                    .font(.system(size: Layout.timerFontSize, weight: .heavy))
                     .monospacedDigit()
 
                 Text("Workout")
@@ -118,7 +116,7 @@ struct TimerSection: View {
                     .foregroundStyle(.gray)
             } else {
                 Text("00:00")
-                    .font(.system(size: Layout.timerFontSize, weight: .heavy, design: .rounded))
+                    .font(.system(size: Layout.timerFontSize, weight: .heavy))
                     .monospacedDigit()
                     .foregroundStyle(.gray)
             }

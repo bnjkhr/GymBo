@@ -19,6 +19,12 @@ import Foundation
 /// SwiftDataExerciseRepository (in Data Layer)
 protocol ExerciseRepositoryProtocol {
 
+    /// Fetch exercise by ID
+    /// - Parameter id: Exercise ID
+    /// - Returns: Exercise entity or nil if not found
+    /// - Throws: Repository errors
+    func fetch(id: UUID) async throws -> ExerciseEntity?
+
     /// Update last used values for an exercise
     /// - Parameters:
     ///   - exerciseId: ID of the exercise
@@ -43,6 +49,16 @@ protocol ExerciseRepositoryProtocol {
 
 #if DEBUG
     final class MockExerciseRepository: ExerciseRepositoryProtocol {
+        func fetch(id: UUID) async throws -> ExerciseEntity? {
+            // Mock - return basic exercise
+            return ExerciseEntity(
+                id: id,
+                name: "Mock Exercise",
+                muscleGroupsRaw: ["chest"],
+                equipmentTypeRaw: "barbell"
+            )
+        }
+
         func updateLastUsed(
             exerciseId: UUID,
             weight: Double,

@@ -1,10 +1,17 @@
 # GymBo V2 - Aktueller Stand (2025-10-23)
 
-**Status:** ✅ MVP FUNKTIONSFÄHIG  
-**Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable  
+**Status:** ✅ MVP FUNKTIONSFÄHIG + Progressive Overload komplett
+**Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
 **Design:** ScrollView-basiertes Active Workout + Sheet-basiertes Editing
 
-**Letzte Session (2025-10-23):** 
+**Letzte Session (2025-10-23 - Session 2):**
+- ✅ Exercise Names in UI (aus Datenbank geladen)
+- ✅ Last Used Values beim Session Start (Progressive Overload!)
+- ✅ Sofortiges UI Update nach Save (Forced Observable Update)
+- ✅ Rounded Fonts entfernt (Standard System Font)
+- ✅ Kompletter Progressive Overload Cycle funktioniert!
+
+**Session 1 (2025-10-23):**
 - ✅ Editable Weight/Reps mit Sheet-Based UI
 - ✅ Exercise History Persistence (lastUsedWeight/Reps)
 - ✅ Exercise Seeding (3 Test-Übungen)
@@ -14,7 +21,27 @@
 
 ## 📊 Implementierungsstatus
 
-### ✅ NEU IMPLEMENTIERT (Session 2025-10-23)
+### ✅ NEU IMPLEMENTIERT (Session 2 - 2025-10-23)
+
+**1. Progressive Overload - Kompletter Cycle**
+- ✅ Exercise Names in UI angezeigt (aus Datenbank geladen)
+- ✅ ExerciseRepository.fetch(id:) implementiert
+- ✅ SessionStore lädt Exercise Namen asynchron
+- ✅ ActiveWorkoutSheetView zeigt echte Namen statt "Übung 1, 2, 3"
+- ✅ Last Used Values beim Session Start
+  - StartSessionUseCase lädt lastUsedWeight/Reps aus Exercise-DB
+  - Sets starten mit letzten Werten statt Hardcoded Defaults
+  - Automatischer Progressive Overload!
+
+**2. UI/UX Verbesserungen**
+- ✅ Sofortiges UI Update nach Save (nicht erst beim Abhaken)
+  - Forced Observable Update (`currentSession = nil` → `currentSession = session`)
+  - `.id()` modifier für CompactExerciseCard basierend auf Set-Werten
+- ✅ Rounded Fonts entfernt
+  - Alle `.design: .rounded` zu Standard System Font geändert
+  - CompactSetRow, TimerSection, EditSetSheet
+
+### ✅ NEU IMPLEMENTIERT (Session 1 - 2025-10-23)
 
 **1. Editable Weight/Reps**
 - ✅ Sheet-basierte Editing UI (statt inline TextFields)
@@ -44,8 +71,9 @@
 
 **4. Repository Erweiterungen**
 - ✅ ExerciseRepository.findByName() für Exercise-Lookup
+- ✅ ExerciseRepository.fetch(id:) für Exercise-Details
 - ✅ ExerciseRepository.updateLastUsed() für History
-- ✅ StartSessionUseCase nutzt findByName() für Test-Data
+- ✅ StartSessionUseCase nutzt findByName() + fetch() für Test-Data
 
 ### ✅ VORHER IMPLEMENTIERT (Funktioniert)
 
@@ -363,21 +391,13 @@ final class ExerciseEntity {
 
 ## ⏳ Was FEHLT noch (TODO)
 
-### 1. Exercise Names in UI
-**Status:** 🟡 TEILWEISE  
-**Aktuell:** "Übung 1", "Übung 2" (Platzhalter in CompactExerciseCard)  
-**Gelöst:** Exercise Database existiert mit Namen  
-**TODO:** 
-- ExerciseEntity in Domain Layer abbilden (oder Namen über exerciseId laden)
-- CompactExerciseCard zeigt `exercise.name` statt "Übung X"
+### 1. ~~Exercise Names in UI~~ ✅ ERLEDIGT
+**Status:** ✅ KOMPLETT
+**Implementiert:** ActiveWorkoutSheetView lädt Namen via SessionStore.getExerciseName()
 
-### 2. Load Last Used Values on Session Start
-**Status:** 🟡 INFRASTRUKTUR FERTIG  
-**Aktuell:** Sets starten mit hardcodierten Werten (100kg, 80kg, 60kg)  
-**TODO:**
-- StartSessionUseCase lädt ExerciseEntity via exerciseRepository
-- Nutzt `lastUsedWeight` und `lastUsedReps` als Defaults
-- Code-Beispiel bereits in UpdateSetUseCase vorhanden
+### 2. ~~Load Last Used Values on Session Start~~ ✅ ERLEDIGT
+**Status:** ✅ KOMPLETT
+**Implementiert:** StartSessionUseCase nutzt lastUsedWeight/Reps aus Exercise-DB
 
 ### 3. Workout Repository
 **Status:** 🔴 FEHLT  
@@ -403,23 +423,17 @@ final class ExerciseEntity {
 
 ## 📋 Nächste Schritte (Empfehlung)
 
-### Quick Wins (1-2 Stunden)
+### Quick Wins (30-60 Min)
 
-1. **Exercise Names in UI anzeigen (30 Min)**
-   ```swift
-   // In CompactExerciseCard: Statt "Übung \(index + 1)"
-   // → Exercise Name aus Database laden
-   ```
+1. **"Mark All Complete" Button implementieren (30 Min)**
+   - Button ist vorhanden, funktioniert noch nicht
+   - Alle Sets einer Übung auf einmal abhaken
+   - Praktisch für schnellen Workout-Abschluss
 
-2. **Last Used Values beim Session Start laden (1 Stunde)**
-   ```swift
-   // In StartSessionUseCase.createTestExercises():
-   if let exercise = try? await exerciseRepository.fetch(id: exercise1Id) {
-       let defaultWeight = exercise.lastUsedWeight ?? 100.0
-       let defaultReps = exercise.lastUsedReps ?? 8
-       // Create sets with these values
-   }
-   ```
+2. **Equipment in UI anzeigen (15 Min)**
+   - Wie Exercise Name, aber Equipment-Type
+   - "Barbell", "Cable", "Bodyweight" etc.
+   - Zusätzliche Info in CompactExerciseCard
 
 ### Mittelfristig (4-8 Stunden)
 
@@ -491,6 +505,6 @@ final class ExerciseEntity {
 
 ---
 
-**Letzte Aktualisierung:** 2025-10-23 (Session Ende)  
-**Status:** ✅ Sheet-based Editing + Exercise History funktionieren  
-**Nächste Session:** Exercise Names + Load Last Used Values
+**Letzte Aktualisierung:** 2025-10-23 (Session 2 Ende)
+**Status:** ✅ Progressive Overload komplett funktionsfähig!
+**Nächste Session:** Mark All Complete + Equipment Display

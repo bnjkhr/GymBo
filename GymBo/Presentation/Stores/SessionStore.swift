@@ -65,6 +65,7 @@ final class SessionStore {
     private let resumeSessionUseCase: ResumeSessionUseCase
     private let updateSetUseCase: UpdateSetUseCase
     private let sessionRepository: SessionRepositoryProtocol
+    private let exerciseRepository: ExerciseRepositoryProtocol
 
     // MARK: - Private State
 
@@ -79,7 +80,8 @@ final class SessionStore {
         pauseSessionUseCase: PauseSessionUseCase,
         resumeSessionUseCase: ResumeSessionUseCase,
         updateSetUseCase: UpdateSetUseCase,
-        sessionRepository: SessionRepositoryProtocol
+        sessionRepository: SessionRepositoryProtocol,
+        exerciseRepository: ExerciseRepositoryProtocol
     ) {
         self.startSessionUseCase = startSessionUseCase
         self.completeSetUseCase = completeSetUseCase
@@ -88,6 +90,7 @@ final class SessionStore {
         self.resumeSessionUseCase = resumeSessionUseCase
         self.updateSetUseCase = updateSetUseCase
         self.sessionRepository = sessionRepository
+        self.exerciseRepository = exerciseRepository
     }
 
     // MARK: - Public Actions
@@ -279,6 +282,22 @@ final class SessionStore {
         }
     }
 
+    /// Get exercise name for a given exercise ID
+    /// - Parameter exerciseId: ID of the exercise
+    /// - Returns: Exercise name or "Übung" as fallback
+    func getExerciseName(for exerciseId: UUID) async -> String {
+        do {
+            guard let exercise = try await exerciseRepository.fetch(id: exerciseId) else {
+                print("⚠️ Exercise not found: \(exerciseId)")
+                return "Übung"
+            }
+            return exercise.name
+        } catch {
+            print("❌ Failed to fetch exercise name: \(error)")
+            return "Übung"
+        }
+    }
+
     // MARK: - Private Helpers
 
     /// Optimistic update of set completion in local state
@@ -354,17 +373,20 @@ final class SessionStore {
         // Update weight if provided
         if let newWeight = weight {
             session.exercises[exerciseIndex].sets[setIndex].weight = newWeight
-            print("✏️ Updated local weight to \(newWeight)")
+            print("✏️ Updated local weight: \(session.exercises[exerciseIndex].sets[setIndex].weight)")
         }
 
         // Update reps if provided
         if let newReps = reps {
             session.exercises[exerciseIndex].sets[setIndex].reps = newReps
-            print("✏️ Updated local reps to \(newReps)")
+            print("✏️ Updated local reps: \(session.exercises[exerciseIndex].sets[setIndex].reps)")
         }
 
-        // Update published state
+        // Force UI update by creating a new session instance
+        // This ensures @Observable triggers properly for nested struct changes
+        currentSession = nil
         currentSession = session
+        print("✅ updateLocalSetValues: Forced UI update with new session instance")
     }
 
     /// Show success message with auto-dismiss
@@ -438,7 +460,8 @@ extension SessionStore {
                     repository: repository,
                     exerciseRepository: exerciseRepository
                 ),
-                sessionRepository: repository
+                sessionRepository: repository,
+                exerciseRepository: exerciseRepository
             )
         }
 

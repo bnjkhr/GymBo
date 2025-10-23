@@ -22,6 +22,16 @@ final class SwiftDataExerciseRepository: ExerciseRepositoryProtocol {
         self.modelContext = modelContext
     }
 
+    func fetch(id: UUID) async throws -> ExerciseEntity? {
+        let descriptor = FetchDescriptor<ExerciseEntity>(
+            predicate: #Predicate<ExerciseEntity> { entity in
+                entity.id == id
+            }
+        )
+
+        return try modelContext.fetch(descriptor).first
+    }
+
     func updateLastUsed(
         exerciseId: UUID,
         weight: Double,

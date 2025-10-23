@@ -45,7 +45,8 @@ final class DependencyContainer {
             pauseSessionUseCase: makePauseSessionUseCase(),
             resumeSessionUseCase: makeResumeSessionUseCase(),
             updateSetUseCase: makeUpdateSetUseCase(),
-            sessionRepository: makeSessionRepository()
+            sessionRepository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository()
         )
     }()
 

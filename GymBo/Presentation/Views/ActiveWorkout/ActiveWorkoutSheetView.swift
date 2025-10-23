@@ -34,6 +34,7 @@ struct ActiveWorkoutSheetView: View {
     @State private var showAllExercises = false
     @State private var showEndConfirmation = false
     @State private var showSummary = false
+    @State private var exerciseNames: [UUID: String] = [:]
 
     // MARK: - Body
 
@@ -108,6 +109,9 @@ struct ActiveWorkoutSheetView: View {
                     }
                 }
             }
+            .task(id: sessionStore.currentSession?.id) {
+                await loadExerciseNames()
+            }
         }
     }
 
@@ -128,7 +132,7 @@ struct ActiveWorkoutSheetView: View {
                                 exercise: exercise,
                                 exerciseIndex: index,
                                 totalExercises: session.exercises.count,
-                                exerciseName: "Übung \(index + 1)",  // TODO: Load from exercise repository
+                                exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
                                 equipment: nil,  // TODO: Load from exercise repository
                                 onToggleCompletion: { setId in
                                     Task {
@@ -185,6 +189,7 @@ struct ActiveWorkoutSheetView: View {
                                     print("Mark all complete for exercise \(index)")
                                 }
                             )
+                            .id("\(exercise.id)-\(exercise.sets.map { "\($0.weight)-\($0.reps)-\($0.completed)" }.joined())")
                             .transition(
                                 .asymmetric(
                                     insertion: .opacity.combined(with: .move(edge: .bottom)),
@@ -263,6 +268,18 @@ struct ActiveWorkoutSheetView: View {
             Text("Beenden")
                 .font(.subheadline)
                 .fontWeight(.semibold)
+        }
+    }
+
+    // MARK: - Helpers
+
+    /// Load exercise names for all exercises in the session
+    private func loadExerciseNames() async {
+        guard let session = sessionStore.currentSession else { return }
+
+        for exercise in session.exercises {
+            let name = await sessionStore.getExerciseName(for: exercise.exerciseId)
+            exerciseNames[exercise.exerciseId] = name
         }
     }
 }
