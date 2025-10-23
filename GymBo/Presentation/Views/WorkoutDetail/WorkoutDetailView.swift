@@ -57,6 +57,9 @@ struct WorkoutDetailView: View {
                         // Stats Section
                         statsSection(for: workout)
 
+                        // Start Button (directly below stats)
+                        startButton
+
                         // Exercises Section
                         if isLoadingExercises {
                             ProgressView("Lade Übungen...")
@@ -64,11 +67,6 @@ struct WorkoutDetailView: View {
                         } else {
                             exercisesSection(for: workout)
                         }
-
-                        // Start Button
-                        startButton
-                            .padding(.top, 16)
-                            .padding(.bottom, 32)
                     }
                     .padding()
                 }
@@ -315,12 +313,17 @@ private struct StatCard: View {
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
 
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity)
+        .frame(height: 100)  // Fixed height for all cards
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
