@@ -127,7 +127,7 @@ struct WorkoutDetailView: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.accentColor)
+                .background(Color.orange)
                 .foregroundColor(.white)
                 .cornerRadius(12)
         }
@@ -186,7 +186,7 @@ private struct StatCard: View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(.orange)
 
             Text(value)
                 .font(.title3)

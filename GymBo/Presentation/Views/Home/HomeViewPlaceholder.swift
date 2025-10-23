@@ -168,7 +168,7 @@ private struct WorkoutRowContent: View {
             // Icon
             Image(systemName: workout.isFavorite ? "star.fill" : "dumbbell.fill")
                 .font(.title2)
-                .foregroundColor(workout.isFavorite ? .yellow : .accentColor)
+                .foregroundColor(workout.isFavorite ? .yellow : .orange)
                 .frame(width: 40)
 
             // Content
