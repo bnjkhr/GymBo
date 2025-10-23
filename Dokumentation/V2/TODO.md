@@ -27,6 +27,50 @@
 
 ---
 
+## 📝 Session 6 Complete (2025-10-23) - PRODUCTION-READY REORDERING
+
+### ✅ Implementierte Features:
+
+**1. Exercise Reordering Feature**
+- Drag & drop reordering in active sessions
+- **Permanent save toggle** (updates workout template)
+- ReorderExercisesSheet (dedicated UI, verhindert Button-Auto-Trigger Bug)
+- Production-ready mit explizitem orderIndex handling
+
+**2. Auto-Finish Exercise**
+- Exercises auto-finish when all sets completed
+- Auto un-finish when set uncompleted
+- Integrated in CompleteSetUseCase
+
+**3. Production-Ready Fixes (Critical!)**
+- **StartSessionUseCase**: Uses explicit orderIndex from templates (not array position)
+- **WorkoutMapper**: In-place updates (preserves SwiftData relationships)
+- **SessionMapper**: Correctly updates orderIndex during reordering
+- **All mappers**: Avoid entity recreation (performance + stability)
+
+### 🧪 Testing Status:
+- ✅ Session-only reorder works
+- ✅ Permanent template reorder works
+- ✅ Auto-finish works on last set completion
+- ✅ UI updates immediately
+- ✅ No exercise deletion or corruption
+
+### 📦 Files Changed (12):
+- `SessionMapper.swift` - orderIndex update fix
+- `WorkoutMapper.swift` - in-place updates
+- `StartSessionUseCase.swift` - explicit orderIndex
+- `CompleteSetUseCase.swift` - auto-finish logic
+- `SwiftDataWorkoutRepository.swift` - updateExerciseOrder()
+- `WorkoutRepositoryProtocol.swift` - new method
+- `SessionStore.swift` - reorder with permanent save
+- `ActiveWorkoutSheetView.swift` - ReorderExercisesSheet
+- `DependencyContainer.swift` - workoutRepository injection
+- `WorkoutSeedData.swift` - TEST Multi Exercise workout
+
+**Commit:** `30b3e6f` - "feat: Production-ready exercise reordering with auto-finish"
+
+---
+
 ## 📝 Session Notes (2025-10-22)
 
 ### Erledigte Fixes heute:
@@ -240,22 +284,29 @@ Training Tab → Segment "Verlauf"
 
 ## 📊 Langfristig (Nächste 2-4 Wochen)
 
-### 7. Reordering: Sets & Übungen (2-3 Stunden) 🔴 WICHTIG
-**Ziel:** Nutzer kann Reihenfolge von Sets und Übungen ändern
+### 7. ~~Reordering: Sets & Übungen~~ ✅ EXERCISE REORDERING COMPLETE (Session 6)
 
-**Wichtig:**
-- ⚠️ **NIEMALS Index verwenden** für Identifikation (siehe Set-Completion Bug!)
+**Status:** ✅ Exercise reordering implemented & production-ready  
+**Remaining:** Set reordering (future feature)
+
+**Was implementiert wurde:**
+- ✅ Exercise drag & drop reordering in active sessions
+- ✅ Permanent save toggle (saves to workout template)
+- ✅ ReorderExercisesSheet with dedicated UI
+- ✅ Production-ready with explicit orderIndex
+- ✅ In-place updates in WorkoutMapper & SessionMapper
+- ✅ Auto-finish exercise when all sets completed
+
+**Was noch aussteht:**
+- [ ] Set reordering within exercises
+- [ ] Undo/redo for reordering
+- [ ] Haptic feedback during drag
+
+**Original Requirements (ERFÜLLT):**
+- ✅ **NIEMALS Index verwenden** für Identifikation
 - ✅ **IMMER UUID verwenden** für eindeutige Identifikation
-- Neue Reihenfolge muss im Workout persistiert werden
-
-**Schritte:**
-1. **Add orderIndex to Entities**
-   ```swift
-   // Domain/Entities/SessionExercise.swift
-   struct DomainSessionExercise {
-       let id: UUID
-       var orderIndex: Int  // ← NEU: Explizite Reihenfolge
-       // ...
+- ✅ Neue Reihenfolge wird im Workout persistiert
+- ✅ orderIndex to Entities added
    }
    
    // Domain/Entities/SessionSet.swift

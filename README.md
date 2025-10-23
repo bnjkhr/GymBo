@@ -7,7 +7,7 @@
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0+-purple.svg)](https://developer.apple.com/xcode/swiftui/)
 [![License](https://img.shields.io/badge/License-Private-red.svg)]()
 
-> **Status:** ✅ MVP COMPLETE - Workout Repository + Reordering + Finish Exercise
+> **Status:** ✅ MVP PRODUCTION-READY - Exercise Reordering + Auto-Finish + Production Fixes
 
 GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnelle Bedienung während des Trainings. Die App verwendet Clean Architecture mit iOS 17+ Features wie `@Observable` und SwiftData.
 
@@ -31,8 +31,12 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
   - Compact Exercise Cards mit Set-Completion
   - One-tap Set-Completion mit Haptic Feedback
   - Show/Hide finished exercises (Eye Toggle)
-  - Exercise Reordering (Drag & Drop mit Edit Button)
-  - Finish Exercise Button (beendet Übung ohne alle Sets zu completen)
+  - **Exercise Reordering** (Drag & Drop mit permanentem Speichern)
+    - Dedicated Reorder Sheet (verhindert UI-Bugs)
+    - Toggle: Session-only ODER Workout Template Update
+    - Production-ready mit explizitem orderIndex handling
+  - **Auto-Finish Exercise** (automatisch nach letztem Satz)
+  - Manual Finish Button (FinishExerciseUseCase)
 
 - **Set Management**
   - Complete/Uncomplete Sets
@@ -62,6 +66,29 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
 - Progression Tracking & Charts
 - Custom Workout Creation
 - Notes & PR Tracking
+
+---
+
+## 🎉 Recent Updates (Session 6 - 2025-10-23)
+
+### Exercise Reordering Feature ✅
+- Drag & drop reordering in active sessions
+- **Permanent save toggle** (updates workout template)
+- Dedicated ReorderExercisesSheet (verhindert Button-Auto-Trigger Bug)
+- Production-ready mit explizitem orderIndex handling
+
+### Auto-Finish Exercise ✅
+- Exercises auto-finish when all sets completed
+- Automatically un-finish when set uncompleted
+- Integrated in CompleteSetUseCase
+
+### Production-Ready Fixes ✅
+- **StartSessionUseCase**: Uses explicit orderIndex from templates (nicht Array-Position)
+- **WorkoutMapper**: In-place updates (preserves SwiftData relationships)
+- **SessionMapper**: Correctly updates orderIndex during reordering
+- **All mappers**: Avoid entity recreation (performance + stability)
+
+**Commit:** `30b3e6f` - "feat: Production-ready exercise reordering with auto-finish"
 
 ---
 
