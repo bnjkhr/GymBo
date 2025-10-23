@@ -55,7 +55,7 @@ final class SessionExerciseEntity {
         notes: String? = nil,
         restTimeToNext: TimeInterval? = nil,
         orderIndex: Int = 0,
-        isFinished: Bool = false,
+        isFinished: Bool? = nil,
         sets: [SessionSetEntity] = []
     ) {
         self.id = id
@@ -63,7 +63,7 @@ final class SessionExerciseEntity {
         self.notes = notes
         self.restTimeToNext = restTimeToNext
         self.orderIndex = orderIndex
-        self.isFinished = isFinished
+        self.isFinished = isFinished ?? false  // Default to false if nil
         self.sets = sets
     }
 }
