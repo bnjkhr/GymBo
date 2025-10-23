@@ -163,6 +163,15 @@ struct WorkoutDetailView: View {
                     exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
                     orderNumber: index + 1
                 )
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        Task {
+                            await removeExercise(exercise)
+                        }
+                    } label: {
+                        Label("Löschen", systemImage: "trash")
+                    }
+                }
             }
         }
     }
@@ -264,6 +273,18 @@ struct WorkoutDetailView: View {
 
         // Reload exercise names for new exercise
         await loadExerciseNames()
+    }
+
+    /// Remove exercise from workout
+    private func removeExercise(_ exercise: WorkoutExercise) async {
+        guard let store = workoutStore else { return }
+
+        await store.removeExercise(exerciseId: exercise.id, from: workoutId)
+
+        // Update local workout from store
+        if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+            workout = updatedWorkout
+        }
     }
 }
 

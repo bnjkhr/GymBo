@@ -67,6 +67,7 @@ final class WorkoutStore {
     private let getWorkoutByIdUseCase: GetWorkoutByIdUseCase
     private let toggleFavoriteUseCase: ToggleFavoriteUseCase
     private let addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase
+    private let removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
 
     // MARK: - Private State
 
@@ -78,12 +79,14 @@ final class WorkoutStore {
         getAllWorkoutsUseCase: GetAllWorkoutsUseCase,
         getWorkoutByIdUseCase: GetWorkoutByIdUseCase,
         toggleFavoriteUseCase: ToggleFavoriteUseCase,
-        addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase
+        addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase,
+        removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
     ) {
         self.getAllWorkoutsUseCase = getAllWorkoutsUseCase
         self.getWorkoutByIdUseCase = getWorkoutByIdUseCase
         self.toggleFavoriteUseCase = toggleFavoriteUseCase
         self.addExerciseToWorkoutUseCase = addExerciseToWorkoutUseCase
+        self.removeExerciseFromWorkoutUseCase = removeExerciseFromWorkoutUseCase
     }
 
     // MARK: - Public Methods
@@ -178,6 +181,35 @@ final class WorkoutStore {
         }
     }
 
+    /// Remove exercise from a workout
+    /// - Parameters:
+    ///   - exerciseId: ID of WorkoutExercise to remove
+    ///   - workoutId: ID of workout to remove from
+    func removeExercise(exerciseId: UUID, from workoutId: UUID) async {
+        do {
+            let updatedWorkout = try await removeExerciseFromWorkoutUseCase.execute(
+                exerciseId: exerciseId,
+                from: workoutId
+            )
+
+            // Update in local array
+            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                workouts[index] = updatedWorkout
+            }
+
+            // Update selected workout if it's the same
+            if selectedWorkout?.id == workoutId {
+                selectedWorkout = updatedWorkout
+            }
+
+            showSuccess("Übung entfernt")
+            print("✅ Removed exercise from workout: \(updatedWorkout.name)")
+        } catch {
+            self.error = error
+            print("❌ Failed to remove exercise: \(error.localizedDescription)")
+        }
+    }
+
     /// Clear current error
     func clearError() {
         error = nil
@@ -230,7 +262,8 @@ final class WorkoutStore {
                 getAllWorkoutsUseCase: MockGetAllWorkoutsUseCase(),
                 getWorkoutByIdUseCase: MockGetWorkoutByIdUseCase(),
                 toggleFavoriteUseCase: MockToggleFavoriteUseCase(),
-                addExerciseToWorkoutUseCase: MockAddExerciseToWorkoutUseCase()
+                addExerciseToWorkoutUseCase: MockAddExerciseToWorkoutUseCase(),
+                removeExerciseFromWorkoutUseCase: MockRemoveExerciseFromWorkoutUseCase()
             )
 
             // Populate with sample data
@@ -280,6 +313,14 @@ final class WorkoutStore {
                     orderIndex: 0
                 )
             )
+            return workout
+        }
+    }
+
+    private final class MockRemoveExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase {
+        func execute(exerciseId: UUID, from workoutId: UUID) async throws -> Workout {
+            var workout = Workout(name: "Mock Workout")
+            // Mock: return workout with exercise removed
             return workout
         }
     }
