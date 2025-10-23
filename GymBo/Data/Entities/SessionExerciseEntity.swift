@@ -37,7 +37,8 @@ final class SessionExerciseEntity {
     var orderIndex: Int
 
     /// Whether the user has finished this exercise (moved to next exercise)
-    var isFinished: Bool
+    /// Optional to allow migration from older database versions (defaults to false)
+    var isFinished: Bool?
 
     /// Sets for this exercise
     @Relationship(deleteRule: .cascade, inverse: \SessionSetEntity.exercise)
