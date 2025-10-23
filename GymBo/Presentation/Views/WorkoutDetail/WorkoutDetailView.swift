@@ -181,7 +181,7 @@ struct WorkoutDetailView: View {
                     }
                 }
                 .onMove { indexSet, destination in
-                    moveExercises(from: indexSet, to: destination, in: currentWorkout)
+                    moveExercises(from: indexSet, to: destination, in: workout)
                 }
             }
             .listStyle(.plain)
