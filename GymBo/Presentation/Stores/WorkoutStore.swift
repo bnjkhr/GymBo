@@ -325,7 +325,8 @@ final class WorkoutStore {
                 toggleFavoriteUseCase: MockToggleFavoriteUseCase(),
                 addExerciseToWorkoutUseCase: MockAddExerciseToWorkoutUseCase(),
                 removeExerciseFromWorkoutUseCase: MockRemoveExerciseFromWorkoutUseCase(),
-                reorderWorkoutExercisesUseCase: MockReorderWorkoutExercisesUseCase()
+                reorderWorkoutExercisesUseCase: MockReorderWorkoutExercisesUseCase(),
+                updateWorkoutExerciseUseCase: MockUpdateWorkoutExerciseUseCase()
             )
 
             // Populate with sample data
@@ -391,6 +392,22 @@ final class WorkoutStore {
         func execute(workoutId: UUID, exerciseIds: [UUID]) async throws -> Workout {
             var workout = Workout(name: "Mock Workout")
             // Mock: return workout with reordered exercises
+            return workout
+        }
+    }
+
+    private final class MockUpdateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase {
+        func execute(
+            workoutId: UUID,
+            exerciseId: UUID,
+            targetSets: Int,
+            targetReps: Int,
+            targetWeight: Double?,
+            restTime: TimeInterval?,
+            notes: String?
+        ) async throws -> Workout {
+            var workout = Workout(name: "Mock Workout")
+            // Mock: return workout with updated exercise
             return workout
         }
     }
