@@ -43,47 +43,32 @@ struct GymBoApp: App {
         // ✅ Production-Ready: ModelContainer with V2 schema and migration plan
         // Migrates from V1 (no exerciseId) → V2 (with exerciseId in WorkoutExerciseEntity)
 
-        // DEVELOPMENT: Delete existing database if migration fails
-        let fileManager = FileManager.default
-        if let storeURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+        // 🔧 DEVELOPMENT MODE: Force delete database on every start
+        // TODO: Remove this before production - this is only for testing schema changes
+        #if DEBUG
+            let fileManager = FileManager.default
+            if let storeURL = fileManager.urls(
+                for: .applicationSupportDirectory, in: .userDomainMask
+            )
             .first?
-            .appendingPathComponent("default.store")
-        {
-
-            let schema = Schema(versionedSchema: SchemaV2.self)
-
-            do {
-                container = try ModelContainer(
-                    for: schema,
-                    migrationPlan: GymBoMigrationPlan.self
-                )
-                AppLogger.app.info("✅ SwiftData container created successfully with V2 schema")
-            } catch {
-                // Migration failed - delete database and start fresh (DEVELOPMENT ONLY)
-                AppLogger.app.warning("⚠️ Migration failed: \(error.localizedDescription)")
-                AppLogger.app.warning("🗑️ Deleting old database and starting fresh...")
-
+            .appendingPathComponent("default.store") {
+                AppLogger.app.warning("🔧 DEBUG: Deleting existing database for fresh start...")
                 try? fileManager.removeItem(at: storeURL)
                 try? fileManager.removeItem(
                     at: storeURL.deletingPathExtension().appendingPathExtension("store-shm"))
                 try? fileManager.removeItem(
                     at: storeURL.deletingPathExtension().appendingPathExtension("store-wal"))
-
-                // Create new container with fresh database
-                container = try! ModelContainer(
-                    for: schema,
-                    migrationPlan: GymBoMigrationPlan.self
-                )
-                AppLogger.app.info("✅ Fresh database created successfully")
             }
-        } else {
-            // Fallback
-            let schema = Schema(versionedSchema: SchemaV2.self)
-            container = try! ModelContainer(
-                for: schema,
-                migrationPlan: GymBoMigrationPlan.self
-            )
-        }
+        #endif
+
+        // Create container with V2 schema
+        let schema = Schema(versionedSchema: SchemaV2.self)
+        container = try! ModelContainer(
+            for: schema,
+            migrationPlan: GymBoMigrationPlan.self
+        )
+
+        AppLogger.app.info("✅ SwiftData container created with V2 schema")
 
         // Initialize dependency injection
         dependencyContainer = DependencyContainer(
