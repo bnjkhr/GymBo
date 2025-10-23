@@ -229,6 +229,15 @@ struct WorkoutDetailView: View {
             workoutStore = container.makeWorkoutStore()
         }
 
+        // Reload workout from store to get latest changes
+        if let store = workoutStore {
+            await store.loadWorkouts()
+            if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+                workout = updatedWorkout
+                isFavorite = updatedWorkout.isFavorite
+            }
+        }
+
         // Load exercise names
         await loadExerciseNames()
     }
