@@ -180,9 +180,12 @@ struct WorkoutMapper {
         // Extract target values from first set (template pattern)
         let firstSet = entity.sets.first
 
+        // Get exerciseId: prefer direct field, fallback to relationship, then generate placeholder
+        let exerciseId = entity.exerciseId ?? entity.exercise?.id ?? UUID()
+
         return WorkoutExercise(
             id: entity.id,
-            exerciseId: entity.exerciseId,  // Use direct exerciseId field (reliable even if relationship not loaded)
+            exerciseId: exerciseId,
             targetSets: entity.sets.count,
             targetReps: firstSet?.reps ?? 8,
             targetWeight: firstSet?.weight,

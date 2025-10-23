@@ -129,7 +129,7 @@ enum SchemaV2: VersionedSchema {
     @Model
     final class WorkoutExerciseEntity {
         @Attribute(.unique) var id: UUID
-        var exerciseId: UUID  // ✨ NEW: Direct reference for reliable lookups
+        var exerciseId: UUID?  // ✨ NEW: Direct reference for reliable lookups (optional for migration)
         @Relationship(deleteRule: .nullify) var exercise: ExerciseEntity?
         @Relationship(deleteRule: .cascade, inverse: \ExerciseSetEntity.owner)
         var sets: [ExerciseSetEntity]
@@ -139,7 +139,7 @@ enum SchemaV2: VersionedSchema {
 
         init(
             id: UUID = UUID(),
-            exerciseId: UUID,
+            exerciseId: UUID? = nil,
             exercise: ExerciseEntity? = nil,
             sets: [ExerciseSetEntity] = [],
             workout: WorkoutEntity? = nil,
@@ -147,7 +147,7 @@ enum SchemaV2: VersionedSchema {
             order: Int = 0
         ) {
             self.id = id
-            self.exerciseId = exerciseId
+            self.exerciseId = exerciseId ?? exercise?.id
             self.exercise = exercise
             self.sets = sets
             self.workout = workout

@@ -268,6 +268,8 @@ struct WorkoutDetailView: View {
             do {
                 if let exerciseEntity = try await repository.fetch(id: exercise.exerciseId) {
                     exerciseNames[exercise.exerciseId] = exerciseEntity.name
+                } else {
+                    print("⚠️ Exercise not found: \(exercise.exerciseId)")
                 }
             } catch {
                 print("❌ Failed to load exercise name: \(error)")

@@ -71,44 +71,12 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     /// - WorkoutExerciseEntity: Add exerciseId field populated from exercise.id
     ///
     /// **Why:** Fixes issue where exercise names weren't loading due to lazy relationship loading
-    static let migrateV1toV2 = MigrationStage.custom(
+    ///
+    /// **Note:** Lightweight migration cannot automatically populate non-optional fields.
+    /// Solution: Delete app and reinstall to get fresh database with seed data.
+    static let migrateV1toV2 = MigrationStage.lightweight(
         fromVersion: SchemaV1.self,
-        toVersion: SchemaV2.self,
-        willMigrate: { context in
-            print("🔄 Starting migration V1 → V2: Adding exerciseId field...")
-
-            // Fetch all WorkoutExerciseEntity instances
-            let descriptor = FetchDescriptor<SchemaV2.WorkoutExerciseEntity>()
-            guard let workoutExercises = try? context.fetch(descriptor) else {
-                print("❌ Failed to fetch workout exercises for migration")
-                return
-            }
-
-            print("📊 Found \(workoutExercises.count) workout exercises to migrate")
-
-            var migratedCount = 0
-            var missingExerciseCount = 0
-
-            for workoutExercise in workoutExercises {
-                // If exercise relationship exists, copy its ID to exerciseId
-                if let exercise = workoutExercise.exercise {
-                    workoutExercise.exerciseId = exercise.id
-                    migratedCount += 1
-                } else {
-                    // Exercise relationship is nil - use placeholder
-                    print(
-                        "⚠️ WorkoutExercise \(workoutExercise.id) has no exercise - using placeholder"
-                    )
-                    workoutExercise.exerciseId = UUID()  // Placeholder, will be cleaned
-                    missingExerciseCount += 1
-                }
-            }
-
-            print("✅ Migration V1 → V2 complete:")
-            print("   - Migrated: \(migratedCount) exercises")
-            print("   - Missing exercise: \(missingExerciseCount) (will be cleaned up)")
-        },
-        didMigrate: nil
+        toVersion: SchemaV2.self
     )
 
     // MARK: - Future Migration Stages (Examples)

@@ -84,7 +84,8 @@ final class ExerciseSetEntity {
 final class WorkoutExerciseEntity {
     @Attribute(.unique) var id: UUID
     // Direct reference to exercise ID (for reliable lookups even when relationship is not loaded)
-    var exerciseId: UUID
+    // Optional for migration compatibility - will be populated from exercise.id during migration
+    var exerciseId: UUID?
     // Relationship to the master Exercise catalog. Do NOT cascade from usage to catalog; nullify reference when usage is deleted
     @Relationship(deleteRule: .nullify) var exercise: ExerciseEntity?
     // Ordered sets for this exercise within the workout
@@ -96,7 +97,7 @@ final class WorkoutExerciseEntity {
 
     init(
         id: UUID = UUID(),
-        exerciseId: UUID,
+        exerciseId: UUID? = nil,
         exercise: ExerciseEntity? = nil,
         sets: [ExerciseSetEntity] = [],
         workout: WorkoutEntity? = nil,
@@ -104,7 +105,7 @@ final class WorkoutExerciseEntity {
         order: Int = 0
     ) {
         self.id = id
-        self.exerciseId = exerciseId
+        self.exerciseId = exerciseId ?? exercise?.id
         self.exercise = exercise
         self.sets = sets
         self.workout = workout
