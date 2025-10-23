@@ -178,6 +178,9 @@ enum UseCaseError: Error, LocalizedError {
     /// Exercise not found in session
     case exerciseNotFound(UUID)
 
+    /// Invalid exercise order (IDs don't match)
+    case invalidExerciseOrder
+
     /// Failed to save to repository
     case saveFailed(Error)
 
@@ -206,6 +209,8 @@ enum UseCaseError: Error, LocalizedError {
             return "Set with ID \(id.uuidString) not found in session"
         case .exerciseNotFound(let id):
             return "Exercise with ID \(id.uuidString) not found in session"
+        case .invalidExerciseOrder:
+            return "Invalid exercise order: exercise IDs don't match workout"
         case .saveFailed(let error):
             return "Failed to save: \(error.localizedDescription)"
         case .updateFailed(let error):
