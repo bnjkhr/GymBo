@@ -224,16 +224,31 @@ struct WorkoutDetailView: View {
 
     /// Load initial data
     private func loadData() async {
-        // Initialize workout store
-        if workoutStore == nil, let container = dependencyContainer {
-            workoutStore = container.makeWorkoutStore()
+        // ALWAYS fetch fresh workout data from repository
+        // Don't use cached store - create fresh store each time to avoid stale data
+        guard let container = dependencyContainer else { return }
 
-            // Only load workouts if store was just created (first time)
-            await workoutStore?.loadWorkouts()
-            if let updatedWorkout = workoutStore?.workouts.first(where: { $0.id == workoutId }) {
-                workout = updatedWorkout
-                isFavorite = updatedWorkout.isFavorite
+        // Create a fresh use case to fetch the workout
+        let repository = container.makeWorkoutRepository()
+        let getWorkoutUseCase = DefaultGetWorkoutByIdUseCase(repository: repository)
+
+        do {
+            if let freshWorkout = try await getWorkoutUseCase.execute(id: workoutId) {
+                print("🔵 Loaded FRESH workout from repository:")
+                for (idx, ex) in freshWorkout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }
+                ).enumerated() {
+                    print("🔵   - Order \(idx): \(ex.id)")
+                }
+                workout = freshWorkout
+                isFavorite = freshWorkout.isFavorite
             }
+        } catch {
+            print("❌ Failed to load fresh workout: \(error)")
+        }
+
+        // Initialize workout store for mutations (add/remove/reorder)
+        if workoutStore == nil {
+            workoutStore = container.makeWorkoutStore()
         }
 
         // Load exercise names
