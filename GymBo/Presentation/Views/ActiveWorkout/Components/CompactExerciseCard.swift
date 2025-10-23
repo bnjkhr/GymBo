@@ -43,7 +43,6 @@ struct CompactExerciseCard: View {
     // MARK: - State
 
     @State private var quickAddText: String = ""
-    @State private var showMenu = false
 
     // MARK: - Layout Constants
 
@@ -145,14 +144,6 @@ struct CompactExerciseCard: View {
             }
 
             Spacer()
-
-            // Menu button
-            Button {
-                showMenu = true
-            } label: {
-                Image(systemName: "ellipsis")
-                    .foregroundStyle(.secondary)
-            }
         }
     }
 
@@ -179,7 +170,7 @@ struct CompactExerciseCard: View {
             Button(action: handleMarkAllComplete) {
                 Image(systemName: "checkmark.circle")
                     .font(.title3)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(.primary)
             }
 
             Spacer()
@@ -188,7 +179,7 @@ struct CompactExerciseCard: View {
             Button(action: handleAddSet) {
                 Image(systemName: "plus.circle")
                     .font(.title3)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(.primary)
             }
         }
     }

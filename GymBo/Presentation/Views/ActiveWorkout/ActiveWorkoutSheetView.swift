@@ -59,16 +59,6 @@ struct ActiveWorkoutSheetView: View {
                         } else {
                             emptyExercisesView
                         }
-
-                        // Bottom Action Bar
-                        BottomActionBar(
-                            onRepeat: {
-                                // TODO: Repeat last set
-                            },
-                            onAddExercise: {
-                                // TODO: Add exercise
-                            }
-                        )
                     }
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -76,6 +66,7 @@ struct ActiveWorkoutSheetView: View {
                             HStack(spacing: 16) {
                                 eyeToggleButton
                                 reorderButton
+                                addExerciseButton
                             }
                         }
 
@@ -308,6 +299,18 @@ struct ActiveWorkoutSheetView: View {
             Image(systemName: "arrow.up.arrow.down")
                 .font(.title3)
                 .foregroundStyle(.primary)
+        }
+    }
+
+    /// Add exercise button
+    private var addExerciseButton: some View {
+        Button {
+            // TODO: Add exercise functionality
+            UISelectionFeedbackGenerator().selectionChanged()
+        } label: {
+            Image(systemName: "plus.circle")
+                .font(.title3)
+                .foregroundStyle(.orange)
         }
     }
 

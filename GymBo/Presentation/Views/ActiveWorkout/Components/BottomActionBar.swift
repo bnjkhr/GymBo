@@ -29,9 +29,9 @@ struct BottomActionBar: View {
     // MARK: - Layout Constants
 
     private enum Layout {
-        static let height: CGFloat = 80
-        static let centerButtonSize: CGFloat = 44
-        static let sideButtonSize: CGFloat = 24
+        static let height: CGFloat = 40
+        static let centerButtonSize: CGFloat = 28
+        static let sideButtonSize: CGFloat = 20
     }
 
     // MARK: - Body
