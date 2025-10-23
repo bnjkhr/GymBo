@@ -42,27 +42,46 @@ struct GymBoApp: App {
     init() {
         // ✅ Production-Ready: ModelContainer with V2 schema and migration plan
         // Migrates from V1 (no exerciseId) → V2 (with exerciseId in WorkoutExerciseEntity)
-        do {
+
+        // DEVELOPMENT: Delete existing database if migration fails
+        let fileManager = FileManager.default
+        if let storeURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first?
+            .appendingPathComponent("default.store")
+        {
+
             let schema = Schema(versionedSchema: SchemaV2.self)
 
-            container = try ModelContainer(
-                for: schema,
-                migrationPlan: GymBoMigrationPlan.self
-            )
+            do {
+                container = try ModelContainer(
+                    for: schema,
+                    migrationPlan: GymBoMigrationPlan.self
+                )
+                AppLogger.app.info("✅ SwiftData container created successfully with V2 schema")
+            } catch {
+                // Migration failed - delete database and start fresh (DEVELOPMENT ONLY)
+                AppLogger.app.warning("⚠️ Migration failed: \(error.localizedDescription)")
+                AppLogger.app.warning("🗑️ Deleting old database and starting fresh...")
 
-            AppLogger.app.info("✅ SwiftData container created successfully with V2 schema")
-        } catch {
-            // Fallback to in-memory if persistent fails
-            AppLogger.app.error(
-                "❌ Failed to create persistent container: \(error.localizedDescription)")
-            AppLogger.app.warning("⚠️ Using in-memory container (data will be lost on restart)")
+                try? fileManager.removeItem(at: storeURL)
+                try? fileManager.removeItem(
+                    at: storeURL.deletingPathExtension().appendingPathExtension("store-shm"))
+                try? fileManager.removeItem(
+                    at: storeURL.deletingPathExtension().appendingPathExtension("store-wal"))
 
-            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+                // Create new container with fresh database
+                container = try! ModelContainer(
+                    for: schema,
+                    migrationPlan: GymBoMigrationPlan.self
+                )
+                AppLogger.app.info("✅ Fresh database created successfully")
+            }
+        } else {
+            // Fallback
             let schema = Schema(versionedSchema: SchemaV2.self)
             container = try! ModelContainer(
                 for: schema,
-                migrationPlan: GymBoMigrationPlan.self,
-                configurations: [config]
+                migrationPlan: GymBoMigrationPlan.self
             )
         }
 
