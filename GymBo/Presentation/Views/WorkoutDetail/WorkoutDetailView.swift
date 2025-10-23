@@ -319,17 +319,23 @@ struct WorkoutDetailView: View {
         var sortedExercises = workout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex })
         sortedExercises.move(fromOffsets: source, toOffset: destination)
 
+        // Update orderIndex for all exercises
+        for (index, var exercise) in sortedExercises.enumerated() {
+            exercise.orderIndex = index
+            sortedExercises[index] = exercise
+        }
+
+        // Optimistic UI update - update local workout immediately
+        var updatedWorkout = workout
+        updatedWorkout.exercises = sortedExercises
+        self.workout = updatedWorkout
+
         // Extract IDs in new order
         let newOrder = sortedExercises.map { $0.id }
 
         // Update in backend
         Task {
             await store.reorderExercises(in: workoutId, exerciseIds: newOrder)
-
-            // Update local workout from store
-            if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
-                self.workout = updatedWorkout
-            }
         }
     }
 }
