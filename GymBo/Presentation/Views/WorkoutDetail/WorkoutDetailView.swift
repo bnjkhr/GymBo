@@ -37,6 +37,8 @@ struct WorkoutDetailView: View {
     @State private var workoutStore: WorkoutStore?
     @State private var isFavorite: Bool = false
     @State private var showExercisePicker = false
+    @State private var exerciseToEdit: WorkoutExercise?
+    @State private var showEditSheet = false
 
     // MARK: - Initialization
 
@@ -107,6 +109,29 @@ struct WorkoutDetailView: View {
             }
             .environment(\.dependencyContainer, dependencyContainer)
         }
+        .sheet(isPresented: $showEditSheet) {
+            if let exercise = exerciseToEdit,
+                let workout = workout
+            {
+                EditExerciseDetailsView(
+                    workoutId: workout.id,
+                    exercise: exercise,
+                    exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung",
+                    onSave: { sets, reps, weight, rest, notes in
+                        Task {
+                            await updateExercise(
+                                exercise,
+                                targetSets: sets,
+                                targetReps: reps,
+                                targetWeight: weight,
+                                restTime: rest,
+                                notes: notes
+                            )
+                        }
+                    }
+                )
+            }
+        }
         .successPill(
             isPresented: Binding(
                 get: { workoutStore?.showSuccessPill ?? false },
@@ -167,6 +192,10 @@ struct WorkoutDetailView: View {
                     .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
+                    .onTapGesture {
+                        exerciseToEdit = exercise
+                        showEditSheet = true
+                    }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
                             Task {
@@ -315,6 +344,33 @@ struct WorkoutDetailView: View {
         guard let store = workoutStore else { return }
 
         await store.removeExercise(exerciseId: exercise.id, from: workoutId)
+
+        // Update local workout from store
+        if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+            workout = updatedWorkout
+        }
+    }
+
+    /// Update exercise details in workout
+    private func updateExercise(
+        _ exercise: WorkoutExercise,
+        targetSets: Int,
+        targetReps: Int,
+        targetWeight: Double?,
+        restTime: TimeInterval?,
+        notes: String?
+    ) async {
+        guard let store = workoutStore else { return }
+
+        await store.updateExercise(
+            in: workoutId,
+            exerciseId: exercise.id,
+            targetSets: targetSets,
+            targetReps: targetReps,
+            targetWeight: targetWeight,
+            restTime: restTime,
+            notes: notes
+        )
 
         // Update local workout from store
         if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {

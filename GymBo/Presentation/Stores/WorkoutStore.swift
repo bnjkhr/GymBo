@@ -69,6 +69,7 @@ final class WorkoutStore {
     private let addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase
     private let removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
     private let reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase
+    private let updateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase
 
     // MARK: - Private State
 
@@ -82,7 +83,8 @@ final class WorkoutStore {
         toggleFavoriteUseCase: ToggleFavoriteUseCase,
         addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase,
         removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase,
-        reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase
+        reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase,
+        updateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase
     ) {
         self.getAllWorkoutsUseCase = getAllWorkoutsUseCase
         self.getWorkoutByIdUseCase = getWorkoutByIdUseCase
@@ -90,6 +92,7 @@ final class WorkoutStore {
         self.addExerciseToWorkoutUseCase = addExerciseToWorkoutUseCase
         self.removeExerciseFromWorkoutUseCase = removeExerciseFromWorkoutUseCase
         self.reorderWorkoutExercisesUseCase = reorderWorkoutExercisesUseCase
+        self.updateWorkoutExerciseUseCase = updateWorkoutExerciseUseCase
     }
 
     // MARK: - Public Methods
@@ -231,6 +234,40 @@ final class WorkoutStore {
         } catch {
             self.error = error
             print("❌ Failed to reorder exercises: \(error.localizedDescription)")
+        }
+    }
+
+    /// Update exercise details in a workout
+    func updateExercise(
+        in workoutId: UUID,
+        exerciseId: UUID,
+        targetSets: Int,
+        targetReps: Int,
+        targetWeight: Double?,
+        restTime: TimeInterval?,
+        notes: String?
+    ) async {
+        do {
+            let updatedWorkout = try await updateWorkoutExerciseUseCase.execute(
+                workoutId: workoutId,
+                exerciseId: exerciseId,
+                targetSets: targetSets,
+                targetReps: targetReps,
+                targetWeight: targetWeight,
+                restTime: restTime,
+                notes: notes
+            )
+
+            // Update local workout list
+            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                workouts[index] = updatedWorkout
+            }
+
+            showSuccess("Übung aktualisiert")
+            print("✅ Updated exercise in workout: \(updatedWorkout.name)")
+        } catch {
+            self.error = error
+            print("❌ Failed to update exercise: \(error.localizedDescription)")
         }
     }
 
