@@ -7,7 +7,7 @@
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0+-purple.svg)](https://developer.apple.com/xcode/swiftui/)
 [![License](https://img.shields.io/badge/License-Private-red.svg)]()
 
-> **Status:** ✅ MVP Functional - Active Workout Session Management Working
+> **Status:** ✅ MVP COMPLETE - Workout Repository + Reordering + Finish Exercise
 
 GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnelle Bedienung während des Trainings. Die App verwendet Clean Architecture mit iOS 17+ Features wie `@Observable` und SwiftData.
 
@@ -15,7 +15,14 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
 
 ## Features
 
-### Implemented (MVP)
+### ✅ Implemented (MVP Complete)
+
+- **Workout Management**
+  - Workout Repository mit CRUD Operations
+  - Workout Picker UI mit Favoriten-Support
+  - Workout Templates (Push/Pull/Legs Seed Data)
+  - Progressive Overload (lastUsedWeight/Reps)
+  - Workout Name Display im Timer
 
 - **Active Workout Tracking**
   - ScrollView-basiertes Workout Interface
@@ -23,14 +30,23 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
   - Workout Duration Timer
   - Compact Exercise Cards mit Set-Completion
   - One-tap Set-Completion mit Haptic Feedback
-  - Show/Hide completed exercises
-  - Session Persistence (automatische Wiederherstellung nach App-Restart)
+  - Show/Hide finished exercises (Eye Toggle)
+  - Exercise Reordering (Drag & Drop mit Edit Button)
+  - Finish Exercise Button (beendet Übung ohne alle Sets zu completen)
+
+- **Set Management**
+  - Complete/Uncomplete Sets
+  - Edit Weight/Reps (Sheet-based UI)
+  - Add Set (Quick-Add Field oder Plus Button)
+  - Delete Set (Long-Press Context Menu)
+  - Update All Sets (Bulk Update für incomplete Sets)
+  - Progressive Overload mit lastUsed Values
 
 - **Session Management**
-  - Start Session (mit Test-Workouts)
-  - Complete Sets (mit orderIndex-basierter Reihenfolge)
+  - Start Session (mit echten Workout Templates)
   - End Session (mit Workout Summary)
-  - Session Restoration (aktive Sessions werden beim App-Start geladen)
+  - Session Persistence (automatische Wiederherstellung)
+  - isFinished Property (flexible Exercise Completion)
 
 - **Clean Architecture**
   - 4-Layer Architecture (Domain, Data, Presentation, Infrastructure)
@@ -39,13 +55,13 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
   - Dependency Injection Container
   - iOS 17+ `@Observable` State Management
 
-### In Development
+### 🔮 Planned Features
 
-- Exercise Repository (aktuell hardcoded Test-Daten)
-- Workout Repository (Templates)
-- Weight/Reps Editing während Session
-- Reordering von Exercises & Sets
 - Session History & Statistics
+- Exercise Templates Verwaltung
+- Progression Tracking & Charts
+- Custom Workout Creation
+- Notes & PR Tracking
 
 ---
 

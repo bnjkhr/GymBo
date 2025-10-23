@@ -28,6 +28,7 @@ import SwiftData
 /// try await repository.save(session)
 /// let session = try await repository.fetch(id: sessionId)
 /// ```
+@MainActor
 final class SwiftDataSessionRepository: SessionRepositoryProtocol {
 
     // MARK: - Properties

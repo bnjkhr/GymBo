@@ -200,15 +200,6 @@ struct CompactExerciseCard: View {
                     .font(.title3)
                     .foregroundStyle(.orange)
             }
-
-            // Reorder (placeholder)
-            Button {
-                // TODO: Reorder functionality
-            } label: {
-                Image(systemName: "line.3.horizontal")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-            }
         }
     }
 

@@ -108,6 +108,7 @@ struct SessionMapper {
         entity.exerciseId = domain.exerciseId
         entity.notes = domain.notes
         entity.restTimeToNext = domain.restTimeToNext
+        entity.isFinished = domain.isFinished
 
         // Update sets IN-PLACE
         for domainSet in domain.sets {
@@ -133,6 +134,7 @@ struct SessionMapper {
         entity.reps = domain.reps
         entity.completed = domain.completed
         entity.completedAt = domain.completedAt
+        entity.orderIndex = domain.orderIndex
     }
 
     // MARK: - DomainSessionExercise Mapping
@@ -145,6 +147,7 @@ struct SessionMapper {
             notes: domain.notes,
             restTimeToNext: domain.restTimeToNext,
             orderIndex: domain.orderIndex,
+            isFinished: domain.isFinished,
             sets: []  // Will be set below
         )
 
@@ -166,7 +169,8 @@ struct SessionMapper {
             sets: entity.sets.sorted(by: { $0.orderIndex < $1.orderIndex }).map { toDomain($0) },
             notes: entity.notes,
             restTimeToNext: entity.restTimeToNext,
-            orderIndex: entity.orderIndex
+            orderIndex: entity.orderIndex,
+            isFinished: entity.isFinished
         )
     }
 

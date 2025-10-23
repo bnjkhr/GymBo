@@ -14,6 +14,7 @@ import SwiftData
 /// **Responsibility:**
 /// - Update lastUsed values in ExerciseEntity
 /// - Fetch exercises from SwiftData
+@MainActor
 final class SwiftDataExerciseRepository: ExerciseRepositoryProtocol {
 
     private let modelContext: ModelContext

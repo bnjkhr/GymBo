@@ -11,10 +11,9 @@ import SwiftUI
 /// Fixed bottom action bar for active workout view
 ///
 /// **Features:**
-/// - Three action buttons
+/// - Two action buttons
 /// - Left: Repeat/History
 /// - Center: Add Exercise (prominent)
-/// - Right: Reorder
 ///
 /// **Design:**
 /// - Always visible at bottom
@@ -26,7 +25,6 @@ struct BottomActionBar: View {
 
     let onRepeat: (() -> Void)?
     let onAddExercise: (() -> Void)?
-    let onReorder: (() -> Void)?
 
     // MARK: - Layout Constants
 
@@ -59,16 +57,6 @@ struct BottomActionBar: View {
                     .foregroundStyle(.orange)
             }
             .frame(maxWidth: .infinity)
-
-            // Right: Reorder
-            Button {
-                onReorder?()
-            } label: {
-                Image(systemName: "arrow.up.arrow.down")
-                    .font(.system(size: Layout.sideButtonSize))
-                    .foregroundStyle(.primary)
-            }
-            .frame(maxWidth: .infinity)
         }
         .frame(height: Layout.height)
         .background(Color(.systemBackground))
@@ -83,8 +71,7 @@ struct BottomActionBar: View {
         Spacer()
         BottomActionBar(
             onRepeat: { print("Repeat") },
-            onAddExercise: { print("Add Exercise") },
-            onReorder: { print("Reorder") }
+            onAddExercise: { print("Add Exercise") }
         )
     }
 }

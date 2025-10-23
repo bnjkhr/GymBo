@@ -36,6 +36,9 @@ final class SessionExerciseEntity {
     /// Order index for maintaining exercise sequence (CRITICAL for correct display order)
     var orderIndex: Int
 
+    /// Whether the user has finished this exercise (moved to next exercise)
+    var isFinished: Bool
+
     /// Sets for this exercise
     @Relationship(deleteRule: .cascade, inverse: \SessionSetEntity.exercise)
     var sets: [SessionSetEntity]
@@ -51,6 +54,7 @@ final class SessionExerciseEntity {
         notes: String? = nil,
         restTimeToNext: TimeInterval? = nil,
         orderIndex: Int = 0,
+        isFinished: Bool = false,
         sets: [SessionSetEntity] = []
     ) {
         self.id = id
@@ -58,6 +62,7 @@ final class SessionExerciseEntity {
         self.notes = notes
         self.restTimeToNext = restTimeToNext
         self.orderIndex = orderIndex
+        self.isFinished = isFinished
         self.sets = sets
     }
 }

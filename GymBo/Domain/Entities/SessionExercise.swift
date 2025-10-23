@@ -52,6 +52,10 @@ struct DomainSessionExercise: Identifiable, Equatable {
     /// SwiftData relationships have NO guaranteed order, so we MUST use explicit orderIndex
     var orderIndex: Int
 
+    /// Whether the user has finished this exercise (moved to next exercise)
+    /// This is different from isCompleted - exercise can be finished with incomplete sets
+    var isFinished: Bool
+
     // MARK: - Computed Properties
 
     /// Total number of sets
@@ -110,7 +114,8 @@ struct DomainSessionExercise: Identifiable, Equatable {
         sets: [DomainSessionSet] = [],
         notes: String? = nil,
         restTimeToNext: TimeInterval? = nil,
-        orderIndex: Int = 0
+        orderIndex: Int = 0,
+        isFinished: Bool = false
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -118,6 +123,7 @@ struct DomainSessionExercise: Identifiable, Equatable {
         self.notes = notes
         self.restTimeToNext = restTimeToNext
         self.orderIndex = orderIndex
+        self.isFinished = isFinished
     }
 
     // MARK: - Mutating Methods

@@ -48,7 +48,8 @@ struct ActiveWorkoutSheetView: View {
                         // Timer Section (ALWAYS visible)
                         TimerSection(
                             restTimerManager: restTimerManager,
-                            workoutStartDate: session.startDate
+                            workoutStartDate: session.startDate,
+                            workoutName: session.workoutName
                         )
 
                         // Exercise List (ScrollView)
@@ -65,16 +66,16 @@ struct ActiveWorkoutSheetView: View {
                             },
                             onAddExercise: {
                                 // TODO: Add exercise
-                            },
-                            onReorder: {
-                                // TODO: Reorder exercises
                             }
                         )
                     }
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .topBarLeading) {
-                            eyeToggleButton
+                            HStack(spacing: 16) {
+                                eyeToggleButton
+                                EditButton()
+                            }
                         }
 
                         ToolbarItem(placement: .principal) {
@@ -109,7 +110,9 @@ struct ActiveWorkoutSheetView: View {
                     }
                 }
                 .onAppear {
-                    print("🔍 Sheet: showSummary is true, completedSession: \(completedSession?.id.uuidString ?? "nil")")
+                    print(
+                        "🔍 Sheet: showSummary is true, completedSession: \(completedSession?.id.uuidString ?? "nil")"
+                    )
                 }
             }
             .interactiveDismissDisabled(showSummary)  // Prevent swipe-to-dismiss while summary shown
@@ -121,34 +124,53 @@ struct ActiveWorkoutSheetView: View {
 
     // MARK: - Subviews
 
-    /// ScrollView with all exercises
+    /// ScrollView with all exercises (using List for drag & drop support)
     private func exerciseListView() -> some View {
-        ScrollView {
-            LazyVStack(spacing: 8) {
-                if let session = sessionStore.currentSession {
-                    ForEach(Array(session.exercises.enumerated()), id: \.element.id) {
+        ZStack {
+            if let session = sessionStore.currentSession {
+                let sortedExercises = session.exercises.sorted { $0.orderIndex < $1.orderIndex }
+
+                List {
+                    ForEach(Array(sortedExercises.enumerated()), id: \.element.id) {
                         index, exercise in
-                        let allSetsCompleted = exercise.sets.allSatisfy { $0.completed }
-                        let shouldHide = allSetsCompleted && !showAllExercises
+                        // Hide exercise if it's finished (unless eye toggle is on)
+                        let shouldHide = exercise.isFinished && !showAllExercises
 
                         if !shouldHide {
+                            // Create unique ID based on exercise + all set states
+                            let setsSignature = exercise.sets.map { "\($0.id)-\($0.completed)" }
+                                .joined(separator: ",")
+
                             exerciseCardView(for: exercise, at: index, in: session)
+                                .id("\(exercise.id)-\(setsSignature)")
+                                .listRowInsets(
+                                    EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12)
+                                )
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                        }
+                    }
+                    .onMove { source, destination in
+                        Task {
+                            await sessionStore.reorderExercises(from: source, to: destination)
                         }
                     }
 
                     // Workout Complete Message (when all exercises completed)
                     if allExercisesCompleted(session: session) {
                         workoutCompleteMessage
-                            .padding(.top, 16)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                     }
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(Color.gray.opacity(0.1))
+                .animation(
+                    .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .animation(
-                .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
         }
-        .background(Color.gray.opacity(0.1))
     }
 
     /// Exercise card view with all callbacks
@@ -159,102 +181,104 @@ struct ActiveWorkoutSheetView: View {
         in session: DomainWorkoutSession
     ) -> some View {
         CompactExerciseCard(
-                                exercise: exercise,
-                                exerciseIndex: index,
-                                totalExercises: session.exercises.count,
-                                exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
-                                equipment: exerciseEquipment[exercise.exerciseId],
-                                onToggleCompletion: { setId in
-                                    Task {
-                                        print(
-                                            "🔵 Set completion tapped: exercise \(index), setId \(setId)"
-                                        )
+            exercise: exercise,
+            exerciseIndex: index,
+            totalExercises: session.exercises.count,
+            exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
+            equipment: exerciseEquipment[exercise.exerciseId],
+            onToggleCompletion: { setId in
+                Task {
+                    print(
+                        "🔵 Set completion tapped: exercise \(index), setId \(setId)"
+                    )
 
-                                        await sessionStore.completeSet(
-                                            exerciseId: exercise.id,
-                                            setId: setId
-                                        )
+                    await sessionStore.completeSet(
+                        exerciseId: exercise.id,
+                        setId: setId
+                    )
 
-                                        print("✅ Set marked complete")
+                    print("✅ Set marked complete")
 
-                                        // Start rest timer after EVERY set completion
-                                        // Use restTimeToNext from current exercise
-                                        if let restTime = exercise.restTimeToNext {
-                                            print("🔵 Starting rest timer: \(restTime) seconds")
-                                            restTimerManager.startRest(duration: restTime)
-                                            print("✅ Rest timer started successfully")
-                                        } else {
-                                            print("⚠️ No rest time configured for this exercise")
-                                        }
-                                    }
-                                },
-                                onUpdateWeight: { setId, newWeight in
-                                    Task {
-                                        print(
-                                            "✏️ Update weight: setId \(setId), newWeight \(newWeight)"
-                                        )
-                                        await sessionStore.updateSet(
-                                            exerciseId: exercise.id,
-                                            setId: setId,
-                                            weight: newWeight
-                                        )
-                                    }
-                                },
-                                onUpdateReps: { setId, newReps in
-                                    Task {
-                                        print("✏️ Update reps: setId \(setId), newReps \(newReps)")
-                                        await sessionStore.updateSet(
-                                            exerciseId: exercise.id,
-                                            setId: setId,
-                                            reps: newReps
-                                        )
-                                    }
-                                },
-                                onUpdateAllSets: { weight, reps in
-                                    Task {
-                                        print("✏️ Update all sets: weight=\(weight)kg, reps=\(reps)")
-                                        await sessionStore.updateAllSets(
-                                            exerciseId: exercise.id,
-                                            weight: weight,
-                                            reps: reps
-                                        )
-                                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-                                    }
-                                },
-                                onAddSet: { weight, reps in
-                                    Task {
-                                        print("➕ Add set: \(weight)kg x \(reps) reps")
-                                        await sessionStore.addSet(
-                                            exerciseId: exercise.id,
-                                            weight: weight,
-                                            reps: reps
-                                        )
-                                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-                                    }
-                                },
-                                onRemoveSet: { setId in
-                                    Task {
-                                        print("🗑️ Remove set: \(setId)")
-                                        await sessionStore.removeSet(
-                                            exerciseId: exercise.id,
-                                            setId: setId
-                                        )
-                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                    }
-                                },
-                                onMarkAllComplete: {
-                                    Task {
-                                        await sessionStore.markAllSetsComplete(exerciseId: exercise.id)
-                                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-                                    }
-                                }
-                            )
-                            .id("\(exercise.id)-\(exercise.sets.map { "\($0.weight)-\($0.reps)-\($0.completed)" }.joined())")
-                            .transition(
-                                .asymmetric(
-                                    insertion: .opacity.combined(with: .move(edge: .bottom)),
-                                    removal: .opacity.combined(with: .move(edge: .top))
-                                ))
+                    // Start rest timer after EVERY set completion
+                    // Use restTimeToNext from current exercise
+                    if let restTime = exercise.restTimeToNext {
+                        print("🔵 Starting rest timer: \(restTime) seconds")
+                        restTimerManager.startRest(duration: restTime)
+                        print("✅ Rest timer started successfully")
+                    } else {
+                        print("⚠️ No rest time configured for this exercise")
+                    }
+                }
+            },
+            onUpdateWeight: { setId, newWeight in
+                Task {
+                    print(
+                        "✏️ Update weight: setId \(setId), newWeight \(newWeight)"
+                    )
+                    await sessionStore.updateSet(
+                        exerciseId: exercise.id,
+                        setId: setId,
+                        weight: newWeight
+                    )
+                }
+            },
+            onUpdateReps: { setId, newReps in
+                Task {
+                    print("✏️ Update reps: setId \(setId), newReps \(newReps)")
+                    await sessionStore.updateSet(
+                        exerciseId: exercise.id,
+                        setId: setId,
+                        reps: newReps
+                    )
+                }
+            },
+            onUpdateAllSets: { weight, reps in
+                Task {
+                    print("✏️ Update all sets: weight=\(weight)kg, reps=\(reps)")
+                    await sessionStore.updateAllSets(
+                        exerciseId: exercise.id,
+                        weight: weight,
+                        reps: reps
+                    )
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            },
+            onAddSet: { weight, reps in
+                Task {
+                    print("➕ Add set: \(weight)kg x \(reps) reps")
+                    await sessionStore.addSet(
+                        exerciseId: exercise.id,
+                        weight: weight,
+                        reps: reps
+                    )
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            },
+            onRemoveSet: { setId in
+                Task {
+                    print("🗑️ Remove set: \(setId)")
+                    await sessionStore.removeSet(
+                        exerciseId: exercise.id,
+                        setId: setId
+                    )
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                }
+            },
+            onMarkAllComplete: {
+                Task {
+                    await sessionStore.finishExercise(exerciseId: exercise.id)
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            }
+        )
+        .id(
+            "\(exercise.id)-\(exercise.sets.map { "\($0.weight)-\($0.reps)-\($0.completed)" }.joined())"
+        )
+        .transition(
+            .asymmetric(
+                insertion: .opacity.combined(with: .move(edge: .bottom)),
+                removal: .opacity.combined(with: .move(edge: .top))
+            ))
     }
 
     /// Eye toggle button for show/hide completed exercises
@@ -373,11 +397,15 @@ struct ActiveWorkoutSheetView: View {
                 Task {
                     // Save session before ending (for summary display)
                     completedSession = sessionStore.currentSession
-                    print("🔍 Button: completedSession saved: \(completedSession?.id.uuidString ?? "nil")")
+                    print(
+                        "🔍 Button: completedSession saved: \(completedSession?.id.uuidString ?? "nil")"
+                    )
 
                     await sessionStore.endSession()
                     print("🔍 Button: endSession completed")
-                    print("🔍 Button: currentSession is now: \(sessionStore.currentSession?.id.uuidString ?? "nil")")
+                    print(
+                        "🔍 Button: currentSession is now: \(sessionStore.currentSession?.id.uuidString ?? "nil")"
+                    )
 
                     showSummary = true
                     print("🔍 Button: showSummary set to true")

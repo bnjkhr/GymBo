@@ -28,22 +28,23 @@ import SwiftData
 /// try await repository.save(workout)
 /// let workouts = try await repository.fetchAll()
 /// ```
+@MainActor
 final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
-    
+
     // MARK: - Properties
-    
+
     private let modelContext: ModelContext
     private let mapper: WorkoutMapper
-    
+
     // MARK: - Initialization
-    
+
     init(modelContext: ModelContext, mapper: WorkoutMapper = WorkoutMapper()) {
         self.modelContext = modelContext
         self.mapper = mapper
     }
-    
+
     // MARK: - Create & Update
-    
+
     func save(_ workout: Workout) async throws {
         do {
             let entity = mapper.toEntity(workout)
@@ -53,17 +54,17 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
             throw WorkoutRepositoryError.saveFailed(error)
         }
     }
-    
+
     func update(_ workout: Workout) async throws {
         do {
             // Fetch existing entity
             guard let entity = try await fetchEntity(id: workout.id) else {
                 throw WorkoutRepositoryError.workoutNotFound(workout.id)
             }
-            
+
             // Update entity with new data
             mapper.updateEntity(entity, from: workout)
-            
+
             // Save changes
             try modelContext.save()
         } catch let error as WorkoutRepositoryError {
@@ -72,9 +73,9 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
             throw WorkoutRepositoryError.updateFailed(error)
         }
     }
-    
+
     // MARK: - Read
-    
+
     func fetch(id: UUID) async throws -> Workout? {
         do {
             guard let entity = try await fetchEntity(id: id) else {
@@ -85,34 +86,34 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
             throw WorkoutRepositoryError.fetchFailed(error)
         }
     }
-    
+
     func fetchAll() async throws -> [Workout] {
         do {
             let descriptor = FetchDescriptor<WorkoutEntity>(
                 sortBy: [SortDescriptor(\.date, order: .reverse)]
             )
-            
+
             let entities = try modelContext.fetch(descriptor)
             return mapper.toDomain(entities)
         } catch {
             throw WorkoutRepositoryError.fetchFailed(error)
         }
     }
-    
+
     func fetchFavorites() async throws -> [Workout] {
         do {
             let descriptor = FetchDescriptor<WorkoutEntity>(
                 predicate: #Predicate { $0.isFavorite == true },
                 sortBy: [SortDescriptor(\.name, order: .forward)]
             )
-            
+
             let entities = try modelContext.fetch(descriptor)
             return mapper.toDomain(entities)
         } catch {
             throw WorkoutRepositoryError.fetchFailed(error)
         }
     }
-    
+
     func search(query: String) async throws -> [Workout] {
         do {
             let descriptor = FetchDescriptor<WorkoutEntity>(
@@ -121,22 +122,22 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
                 },
                 sortBy: [SortDescriptor(\.name, order: .forward)]
             )
-            
+
             let entities = try modelContext.fetch(descriptor)
             return mapper.toDomain(entities)
         } catch {
             throw WorkoutRepositoryError.fetchFailed(error)
         }
     }
-    
+
     // MARK: - Delete
-    
+
     func delete(id: UUID) async throws {
         do {
             guard let entity = try await fetchEntity(id: id) else {
                 throw WorkoutRepositoryError.workoutNotFound(id)
             }
-            
+
             modelContext.delete(entity)
             try modelContext.save()
         } catch let error as WorkoutRepositoryError {
@@ -145,24 +146,24 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
             throw WorkoutRepositoryError.deleteFailed(error)
         }
     }
-    
+
     func deleteAll() async throws {
         do {
             let descriptor = FetchDescriptor<WorkoutEntity>()
             let entities = try modelContext.fetch(descriptor)
-            
+
             for entity in entities {
                 modelContext.delete(entity)
             }
-            
+
             try modelContext.save()
         } catch {
             throw WorkoutRepositoryError.deleteFailed(error)
         }
     }
-    
+
     // MARK: - Private Helpers
-    
+
     private func fetchEntity(id: UUID) async throws -> WorkoutEntity? {
         let descriptor = FetchDescriptor<WorkoutEntity>(
             predicate: #Predicate { $0.id == id }

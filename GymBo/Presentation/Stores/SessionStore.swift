@@ -67,6 +67,8 @@ final class SessionStore {
     private let updateAllSetsUseCase: UpdateAllSetsUseCase
     private let addSetUseCase: AddSetUseCase
     private let removeSetUseCase: RemoveSetUseCase
+    private let reorderExercisesUseCase: ReorderExercisesUseCase
+    private let finishExerciseUseCase: FinishExerciseUseCase
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
 
@@ -86,6 +88,8 @@ final class SessionStore {
         updateAllSetsUseCase: UpdateAllSetsUseCase,
         addSetUseCase: AddSetUseCase,
         removeSetUseCase: RemoveSetUseCase,
+        reorderExercisesUseCase: ReorderExercisesUseCase,
+        finishExerciseUseCase: FinishExerciseUseCase,
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol
     ) {
@@ -98,6 +102,8 @@ final class SessionStore {
         self.updateAllSetsUseCase = updateAllSetsUseCase
         self.addSetUseCase = addSetUseCase
         self.removeSetUseCase = removeSetUseCase
+        self.reorderExercisesUseCase = reorderExercisesUseCase
+        self.finishExerciseUseCase = finishExerciseUseCase
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
     }
@@ -432,7 +438,9 @@ final class SessionStore {
 
     /// Mark all sets of an exercise as complete
     /// - Parameter exerciseId: ID of the exercise
-    func markAllSetsComplete(exerciseId: UUID) async {
+    /// Finish an exercise (mark as done, move to next)
+    /// Sets remain in their current state (may be incomplete)
+    func finishExercise(exerciseId: UUID) async {
         guard let sessionId = currentSession?.id else {
             error = NSError(
                 domain: "SessionStore", code: -1,
@@ -441,36 +449,95 @@ final class SessionStore {
             return
         }
 
-        // Find all incomplete sets for this exercise
-        guard let exercise = currentSession?.exercises.first(where: { $0.id == exerciseId }) else {
-            print("❌ Exercise not found: \(exerciseId)")
-            return
-        }
-
-        let incompleteSets = exercise.sets.filter { !$0.completed }
-
-        guard !incompleteSets.isEmpty else {
-            print("ℹ️ All sets already completed for exercise")
-            return
-        }
-
-        print("🔵 Marking \(incompleteSets.count) sets as complete")
-
-        // Complete each set
-        for set in incompleteSets {
-            await completeSet(exerciseId: exerciseId, setId: set.id)
-        }
-
-        // Force UI update by fetching fresh session from DB
         do {
-            let freshSession = try await sessionRepository.fetch(id: sessionId)
-            currentSession = nil
-            currentSession = freshSession
+            try await finishExerciseUseCase.execute(
+                sessionId: sessionId,
+                exerciseId: exerciseId
+            )
+
+            // Refresh to update UI
+            await refreshCurrentSession()
+
+            print("✅ Exercise finished")
         } catch {
-            print("❌ Failed to refresh session after marking complete: \(error)")
+            self.error = error
+            print("❌ Failed to finish exercise: \(error)")
+        }
+    }
+
+    /// Reorder exercises in the current session
+    /// - Parameters:
+    ///   - source: Source indices of exercises to move
+    ///   - destination: Destination index
+    func reorderExercises(from source: IndexSet, to destination: Int) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
         }
 
-        print("✅ All sets marked complete")
+        // OPTIMISTIC UPDATE: Update UI immediately
+        guard var session = currentSession else { return }
+        var exercises = session.exercises.sorted { $0.orderIndex < $1.orderIndex }
+
+        // Perform the move manually
+        // Convert IndexSet to Array for sorting
+        let sourceIndices = Array(source).sorted()
+
+        // Collect items to move
+        let itemsToMove: [DomainSessionExercise] = sourceIndices.compactMap { index in
+            guard exercises.indices.contains(index) else { return nil }
+            return exercises[index]
+        }
+
+        // Remove items from source positions (in reverse order to maintain indices)
+        for index in sourceIndices.reversed() {
+            if exercises.indices.contains(index) {
+                exercises.remove(at: index)
+            }
+        }
+
+        // Adjust destination index if needed
+        let adjustedDestination: Int
+        if let firstSourceIndex = source.min(), firstSourceIndex < destination {
+            adjustedDestination = destination - source.count
+        } else {
+            adjustedDestination = destination
+        }
+
+        // Insert items at destination
+        exercises.insert(contentsOf: itemsToMove, at: adjustedDestination)
+
+        // Update orderIndex
+        for (index, var exercise) in exercises.enumerated() {
+            exercise.orderIndex = index
+            exercises[index] = exercise
+        }
+
+        session.exercises = exercises
+        currentSession = session
+
+        // Persist changes
+        do {
+            try await reorderExercisesUseCase.execute(
+                sessionId: sessionId,
+                from: source,
+                to: destination
+            )
+
+            // Refresh to ensure consistency
+            await refreshCurrentSession()
+
+            print("✅ Exercises reordered: \(source) → \(destination)")
+        } catch {
+            self.error = error
+            print("❌ Failed to reorder exercises: \(error)")
+
+            // Revert optimistic update on error
+            await refreshCurrentSession()
+        }
     }
 
     // MARK: - Private Helpers
@@ -648,6 +715,12 @@ extension SessionStore {
                 ),
                 removeSetUseCase: DefaultRemoveSetUseCase(
                     repository: repository
+                ),
+                reorderExercisesUseCase: DefaultReorderExercisesUseCase(
+                    sessionRepository: repository
+                ),
+                finishExerciseUseCase: DefaultFinishExerciseUseCase(
+                    sessionRepository: repository
                 ),
                 sessionRepository: repository,
                 exerciseRepository: exerciseRepository

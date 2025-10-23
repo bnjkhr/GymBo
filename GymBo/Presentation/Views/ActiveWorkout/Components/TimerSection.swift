@@ -30,6 +30,9 @@ struct TimerSection: View {
     /// Workout start date for duration calculation
     let workoutStartDate: Date?
 
+    /// Workout name to display
+    let workoutName: String?
+
     // MARK: - State
 
     @State private var currentTime = Date()
@@ -111,7 +114,7 @@ struct TimerSection: View {
                     .font(.system(size: Layout.timerFontSize, weight: .heavy))
                     .monospacedDigit()
 
-                Text("Workout")
+                Text(workoutName ?? "Workout")
                     .font(.caption)
                     .foregroundStyle(.gray)
             } else {
@@ -224,20 +227,23 @@ extension Notification.Name {
 
     return TimerSection(
         restTimerManager: manager,
-        workoutStartDate: Date().addingTimeInterval(-300)  // 5 minutes ago
+        workoutStartDate: Date().addingTimeInterval(-300),  // 5 minutes ago
+        workoutName: "Push Day"
     )
 }
 
 #Preview("No Rest Timer") {
     TimerSection(
         restTimerManager: nil,
-        workoutStartDate: Date().addingTimeInterval(-180)  // 3 minutes ago
+        workoutStartDate: Date().addingTimeInterval(-180),  // 3 minutes ago
+        workoutName: "Pull Day"
     )
 }
 
 #Preview("No Workout Started") {
     TimerSection(
         restTimerManager: nil,
-        workoutStartDate: nil
+        workoutStartDate: nil,
+        workoutName: nil
     )
 }

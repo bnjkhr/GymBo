@@ -96,11 +96,14 @@ final class DefaultAddSetUseCase: AddSetUseCase {
             throw AddSetError.invalidReps(finalReps)
         }
 
-        // 6. Create new set
+        // 6. Create new set with correct orderIndex
+        let currentSetCount = session.exercises[exerciseIndex].sets.count
+
         let newSet = DomainSessionSet(
             weight: finalWeight,
             reps: finalReps,
-            completed: false
+            completed: false,
+            orderIndex: currentSetCount
         )
 
         // 7. Add set to exercise

@@ -1,10 +1,19 @@
 # GymBo V2 - Aktueller Stand (2025-10-23)
 
-**Status:** ✅ WORKOUT REPOSITORY KOMPLETT! + Progressive Overload + Complete Set Management
+**Status:** ✅ MVP COMPLETE! Workout Repository + Reordering + Finish Exercise + Bug Fixes
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
-**Design:** Workout Picker + ScrollView Active Workout + Sheet-basiertes Editing
+**Design:** Workout Picker + ScrollView Active Workout + Drag & Drop Reordering
 
-**Letzte Session (2025-10-23 - Session 5 - WORKOUT REPOSITORY):**
+**Letzte Session (2025-10-23 - Session 6 - REORDERING + FINISH EXERCISE):**
+- ✅ Exercise Reordering Feature (Drag & Drop mit Edit Button)
+- ✅ Finish Exercise Feature (beendet Übung ohne alle Sets zu completen)
+- ✅ isFinished Property für flexible Exercise-Completion
+- ✅ Workout Name Display Fix (Timer Section)
+- ✅ SwiftUI View Caching Bug Fix
+- ✅ ReorderExercisesUseCase + FinishExerciseUseCase
+- ✅ UI Cleanup (Reorder Button entfernt aus Cards)
+
+**Session 5 (2025-10-23 - WORKOUT REPOSITORY):**
 - ✅ Workout Repository mit vollständiger Clean Architecture
 - ✅ Workout Picker UI mit Favoriten-Support
 - ✅ StartSessionUseCase lädt echte Workouts
@@ -46,7 +55,53 @@
 
 ## 📊 Implementierungsstatus
 
-### ✅ NEU IMPLEMENTIERT (Session 5 - 2025-10-23 - WORKOUT REPOSITORY)
+### ✅ NEU IMPLEMENTIERT (Session 6 - 2025-10-23 - REORDERING + FINISH EXERCISE)
+
+**1. Exercise Reordering Feature**
+- ✅ ReorderExercisesUseCase - Drag & Drop für Exercises
+  - Manuelle Array-Reordering Logik (kein .move() verfügbar)
+  - orderIndex wird automatisch aktualisiert
+  - Persistierung in SwiftData
+- ✅ SessionStore.reorderExercises() - UI Integration
+  - Optimistic Updates für sofortiges UI Feedback
+  - Error Handling mit Revert
+- ✅ ActiveWorkoutSheetView - List mit .onMove()
+  - EditButton in Toolbar
+  - Drag-Handles automatisch im Edit-Mode
+  - Sorted nach orderIndex
+
+**2. Finish Exercise Feature**
+- ✅ isFinished Property - Neue Dimension für Exercise Status
+  - DomainSessionExercise.isFinished: Bool
+  - SessionExerciseEntity.isFinished: Bool
+  - Unterscheidet "finished" (User fertig) vs "completed" (alle Sets done)
+- ✅ FinishExerciseUseCase - Markiert Exercise als finished
+  - Sets bleiben in aktuellem Status (incomplete ok!)
+  - Wichtig für Statistik (zeigt reale Performance)
+- ✅ SessionStore.finishExercise() - Ersetzt markAllSetsComplete
+  - Setzt nur isFinished = true
+  - Ändert keine Sets mehr
+- ✅ UI Updates
+  - Finished Exercises werden ausgeblendet (wie completed)
+  - Eye-Toggle zeigt finished Exercises
+  - Button-Behavior geändert: "Finish Exercise" statt "Mark All Complete"
+
+**3. Bug Fixes**
+- ✅ Workout Name Display - TimerSection zeigt jetzt workout.name
+- ✅ SwiftUI View Caching - Exercise Cards mit eindeutiger ID (Sets-Signature)
+- ✅ orderIndex in SessionMapper - updateSetEntity jetzt vollständig
+- ✅ Reorder Button entfernt - Aus CompactExerciseCard (nur Edit-Button in Toolbar)
+- ✅ @MainActor auf alle SwiftData Repositories - Sendable Conformance Fix
+- ✅ Generic Inference Fix - Array(source).sorted() statt source.sorted()
+
+**4. Technical Improvements**
+- ✅ SessionMapper vollständig - isFinished in allen Mappings
+- ✅ DependencyContainer - FinishExerciseUseCase Factory
+- ✅ Alle Repository Tests kompatibel - Mock Implementations updated
+
+---
+
+### ✅ IMPLEMENTIERT (Session 5 - 2025-10-23 - WORKOUT REPOSITORY)
 
 **1. Domain Layer - Workout Entities**
 - ✅ Workout.swift - Workout Template Entity
