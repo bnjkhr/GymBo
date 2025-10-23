@@ -35,6 +35,7 @@ struct ActiveWorkoutSheetView: View {
     @State private var showEndConfirmation = false
     @State private var showSummary = false
     @State private var exerciseNames: [UUID: String] = [:]
+    @State private var exerciseEquipment: [UUID: String] = [:]
 
     // MARK: - Body
 
@@ -133,7 +134,7 @@ struct ActiveWorkoutSheetView: View {
                                 exerciseIndex: index,
                                 totalExercises: session.exercises.count,
                                 exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
-                                equipment: nil,  // TODO: Load from exercise repository
+                                equipment: exerciseEquipment[exercise.exerciseId],
                                 onToggleCompletion: { setId in
                                     Task {
                                         print(
@@ -180,13 +181,26 @@ struct ActiveWorkoutSheetView: View {
                                         )
                                     }
                                 },
+                                onUpdateAllSets: { weight, reps in
+                                    Task {
+                                        print("✏️ Update all sets: weight=\(weight)kg, reps=\(reps)")
+                                        await sessionStore.updateAllSets(
+                                            exerciseId: exercise.id,
+                                            weight: weight,
+                                            reps: reps
+                                        )
+                                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                                    }
+                                },
                                 onAddSet: {
                                     // TODO: Add set to exercise
                                     print("Add set to exercise \(index)")
                                 },
                                 onMarkAllComplete: {
-                                    // TODO: Mark all sets as complete
-                                    print("Mark all complete for exercise \(index)")
+                                    Task {
+                                        await sessionStore.markAllSetsComplete(exerciseId: exercise.id)
+                                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                                    }
                                 }
                             )
                             .id("\(exercise.id)-\(exercise.sets.map { "\($0.weight)-\($0.reps)-\($0.completed)" }.joined())")
@@ -273,13 +287,17 @@ struct ActiveWorkoutSheetView: View {
 
     // MARK: - Helpers
 
-    /// Load exercise names for all exercises in the session
+    /// Load exercise names and equipment for all exercises in the session
     private func loadExerciseNames() async {
         guard let session = sessionStore.currentSession else { return }
 
         for exercise in session.exercises {
             let name = await sessionStore.getExerciseName(for: exercise.exerciseId)
             exerciseNames[exercise.exerciseId] = name
+
+            if let equipment = await sessionStore.getExerciseEquipment(for: exercise.exerciseId) {
+                exerciseEquipment[exercise.exerciseId] = equipment
+            }
         }
     }
 }

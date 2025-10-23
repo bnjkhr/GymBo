@@ -45,6 +45,7 @@ final class DependencyContainer {
             pauseSessionUseCase: makePauseSessionUseCase(),
             resumeSessionUseCase: makeResumeSessionUseCase(),
             updateSetUseCase: makeUpdateSetUseCase(),
+            updateAllSetsUseCase: makeUpdateAllSetsUseCase(),
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository()
         )
@@ -128,6 +129,15 @@ final class DependencyContainer {
     /// - Returns: Use case for updating weight/reps of a set
     func makeUpdateSetUseCase() -> UpdateSetUseCase {
         return DefaultUpdateSetUseCase(
+            repository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository()
+        )
+    }
+
+    /// Creates UpdateAllSetsUseCase
+    /// - Returns: Use case for updating weight/reps of all sets in an exercise
+    func makeUpdateAllSetsUseCase() -> UpdateAllSetsUseCase {
+        return DefaultUpdateAllSetsUseCase(
             repository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository()
         )

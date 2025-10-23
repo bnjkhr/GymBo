@@ -35,6 +35,7 @@ struct CompactExerciseCard: View {
     let onToggleCompletion: ((UUID) -> Void)?  // Set ID (not index!)
     let onUpdateWeight: ((UUID, Double) -> Void)?  // (setId, newWeight)
     let onUpdateReps: ((UUID, Int) -> Void)?  // (setId, newReps)
+    let onUpdateAllSets: ((Double, Int) -> Void)?  // (weight, reps) - updates all incomplete sets
     let onAddSet: (() -> Void)?
     let onMarkAllComplete: (() -> Void)?
 
@@ -84,6 +85,9 @@ struct CompactExerciseCard: View {
                         },
                         onUpdateReps: { newReps in
                             onUpdateReps?(set.id, newReps)
+                        },
+                        onUpdateAllSets: { weight, reps in
+                            onUpdateAllSets?(weight, reps)
                         }
                     )
                     .padding(.horizontal, Layout.setPadding)
@@ -246,6 +250,7 @@ struct CompactExerciseCard: View {
         onToggleCompletion: { _ in },
         onUpdateWeight: { _, _ in },
         onUpdateReps: { _, _ in },
+        onUpdateAllSets: { _, _ in },
         onAddSet: {},
         onMarkAllComplete: {}
     )
@@ -262,6 +267,7 @@ struct CompactExerciseCard: View {
         onToggleCompletion: { _ in },
         onUpdateWeight: { _, _ in },
         onUpdateReps: { _, _ in },
+        onUpdateAllSets: { _, _ in },
         onAddSet: {},
         onMarkAllComplete: {}
     )

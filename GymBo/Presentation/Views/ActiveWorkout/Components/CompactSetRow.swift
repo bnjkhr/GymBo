@@ -14,6 +14,7 @@ struct CompactSetRow: View {
     let onToggle: () -> Void
     let onUpdateWeight: ((Double) -> Void)?
     let onUpdateReps: ((Int) -> Void)?
+    let onUpdateAllSets: ((Double, Int) -> Void)?
 
     @State private var showEditSheet = false
     @State private var editingWeight: String = ""
@@ -84,11 +85,11 @@ struct CompactSetRow: View {
             EditSetSheet(
                 weight: $editingWeight,
                 reps: $editingReps,
-                onSave: {
-                    saveChanges()
+                onSave: { updateAll in
+                    saveChanges(updateAll: updateAll)
                 }
             )
-            .presentationDetents([.height(280)])
+            .presentationDetents([.height(360)])
             .presentationDragIndicator(.visible)
         }
     }
@@ -103,14 +104,19 @@ struct CompactSetRow: View {
         }
     }
 
-    private func saveChanges() {
-        // Parse and validate weight
-        if let weight = Double(editingWeight), weight > 0 {
-            onUpdateWeight?(weight)
+    private func saveChanges(updateAll: Bool) {
+        // Parse and validate values
+        guard let weight = Double(editingWeight), weight > 0,
+              let reps = Int(editingReps), reps > 0 else {
+            return
         }
 
-        // Parse and validate reps
-        if let reps = Int(editingReps), reps > 0 {
+        if updateAll {
+            // Update all sets in exercise
+            onUpdateAllSets?(weight, reps)
+        } else {
+            // Update only this set
+            onUpdateWeight?(weight)
             onUpdateReps?(reps)
         }
     }
@@ -120,10 +126,11 @@ struct CompactSetRow: View {
 struct EditSetSheet: View {
     @Binding var weight: String
     @Binding var reps: String
-    let onSave: () -> Void
+    let onSave: (Bool) -> Void  // Bool = updateAll
 
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedField: Field?
+    @State private var updateAllSets: Bool = false
 
     enum Field {
         case weight, reps
@@ -174,6 +181,20 @@ struct EditSetSheet: View {
                     .cornerRadius(12)
                 }
 
+                // Update All Sets Toggle
+                Toggle(isOn: $updateAllSets) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Alle Sätze aktualisieren")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Werte für alle verbleibenden Sätze übernehmen")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .tint(.orange)
+                .padding(.top, 8)
+
                 Spacer()
             }
             .padding()
@@ -188,7 +209,7 @@ struct EditSetSheet: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Fertig") {
-                        onSave()
+                        onSave(updateAllSets)
                         dismiss()
                     }
                     .fontWeight(.semibold)

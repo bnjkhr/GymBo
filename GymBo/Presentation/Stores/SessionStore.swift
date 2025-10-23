@@ -64,6 +64,7 @@ final class SessionStore {
     private let pauseSessionUseCase: PauseSessionUseCase
     private let resumeSessionUseCase: ResumeSessionUseCase
     private let updateSetUseCase: UpdateSetUseCase
+    private let updateAllSetsUseCase: UpdateAllSetsUseCase
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
 
@@ -80,6 +81,7 @@ final class SessionStore {
         pauseSessionUseCase: PauseSessionUseCase,
         resumeSessionUseCase: ResumeSessionUseCase,
         updateSetUseCase: UpdateSetUseCase,
+        updateAllSetsUseCase: UpdateAllSetsUseCase,
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol
     ) {
@@ -89,6 +91,7 @@ final class SessionStore {
         self.pauseSessionUseCase = pauseSessionUseCase
         self.resumeSessionUseCase = resumeSessionUseCase
         self.updateSetUseCase = updateSetUseCase
+        self.updateAllSetsUseCase = updateAllSetsUseCase
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
     }
@@ -269,6 +272,44 @@ final class SessionStore {
         }
     }
 
+    /// Update weight and/or reps for ALL incomplete sets in an exercise
+    /// - Parameters:
+    ///   - exerciseId: ID of the exercise
+    ///   - weight: New weight value (optional)
+    ///   - reps: New reps value (optional)
+    func updateAllSets(
+        exerciseId: UUID,
+        weight: Double? = nil,
+        reps: Int? = nil
+    ) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        do {
+            let updatedSession = try await updateAllSetsUseCase.execute(
+                sessionId: sessionId,
+                exerciseId: exerciseId,
+                weight: weight,
+                reps: reps
+            )
+
+            // Force UI update
+            currentSession = nil
+            currentSession = updatedSession
+
+            print("✅ All sets updated successfully")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to update all sets: \(error)")
+        }
+    }
+
     /// Refresh current session from repository
     /// Useful after background operations or app returning from background
     func refreshCurrentSession() async {
@@ -296,6 +337,56 @@ final class SessionStore {
             print("❌ Failed to fetch exercise name: \(error)")
             return "Übung"
         }
+    }
+
+    /// Get exercise equipment for a given exercise ID
+    /// - Parameter exerciseId: ID of the exercise
+    /// - Returns: Equipment type or nil if not found
+    func getExerciseEquipment(for exerciseId: UUID) async -> String? {
+        do {
+            guard let exercise = try await exerciseRepository.fetch(id: exerciseId) else {
+                return nil
+            }
+            return exercise.equipmentTypeRaw
+        } catch {
+            print("❌ Failed to fetch exercise equipment: \(error)")
+            return nil
+        }
+    }
+
+    /// Mark all sets of an exercise as complete
+    /// - Parameter exerciseId: ID of the exercise
+    func markAllSetsComplete(exerciseId: UUID) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        // Find all incomplete sets for this exercise
+        guard let exercise = currentSession?.exercises.first(where: { $0.id == exerciseId }) else {
+            print("❌ Exercise not found: \(exerciseId)")
+            return
+        }
+
+        print("🔍 DEBUG markAllSetsComplete:")
+        print("   - Exercise ID: \(exerciseId)")
+        print("   - Exercise found with \(exercise.sets.count) total sets")
+        for (index, set) in exercise.sets.enumerated() {
+            print("   - Set \(index): weight=\(set.weight)kg, reps=\(set.reps), completed=\(set.completed)")
+        }
+
+        let incompleteSets = exercise.sets.filter { !$0.completed }
+        print("🔵 Marking \(incompleteSets.count) sets as complete for exercise \(exerciseId)")
+
+        // Complete each set
+        for set in incompleteSets {
+            await completeSet(exerciseId: exerciseId, setId: set.id)
+        }
+
+        print("✅ All sets marked complete for exercise")
     }
 
     // MARK: - Private Helpers
@@ -457,6 +548,10 @@ extension SessionStore {
                 pauseSessionUseCase: DefaultPauseSessionUseCase(sessionRepository: repository),
                 resumeSessionUseCase: DefaultResumeSessionUseCase(sessionRepository: repository),
                 updateSetUseCase: DefaultUpdateSetUseCase(
+                    repository: repository,
+                    exerciseRepository: exerciseRepository
+                ),
+                updateAllSetsUseCase: DefaultUpdateAllSetsUseCase(
                     repository: repository,
                     exerciseRepository: exerciseRepository
                 ),
