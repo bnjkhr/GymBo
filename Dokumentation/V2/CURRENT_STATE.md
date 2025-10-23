@@ -1,13 +1,22 @@
 # GymBo V2 - Aktueller Stand (2025-10-23)
 
-**Status:** ✅ MVP FUNKTIONSFÄHIG + Progressive Overload + Update All Sets
+**Status:** ✅ MVP FUNKTIONSFÄHIG + Progressive Overload + Complete Set Management
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
 **Design:** ScrollView-basiertes Active Workout + Sheet-basiertes Editing
 
-**Letzte Session (2025-10-23 - Session 3):**
+**Letzte Session (2025-10-23 - Session 4):**
+- ✅ Add Set Feature (Quick-Add Field + Plus Button)
+- ✅ Delete Set Feature (Long-Press Context Menu)
+- ✅ AddSetUseCase + RemoveSetUseCase mit Clean Architecture
+- ✅ Regex Parser für Quick-Add Field ("100 x 8" Format)
+- ✅ Business Rules (Cannot delete last set)
+- ✅ Haptic Feedback (Success + Impact)
+
+**Session 3 (2025-10-23):**
 - ✅ "Update All Sets" Feature (Toggle in EditSetSheet)
 - ✅ Alle incomplete Sets auf einmal aktualisieren
-- ✅ Debug Logging für Mark All Complete Bug
+- ✅ Mark All Complete Bug Fix (UI Refresh)
+- ✅ Workout Summary Persistence Fix
 - ✅ Equipment Display in UI
 - ✅ UpdateAllSetsUseCase mit Clean Architecture
 
@@ -27,6 +36,43 @@
 ---
 
 ## 📊 Implementierungsstatus
+
+### ✅ NEU IMPLEMENTIERT (Session 4 - 2025-10-23)
+
+**1. Add Set Feature**
+- ✅ Quick-Add TextField mit Regex Parser
+  - Regex: `#"(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+)"#`
+  - Beispiel: "100 x 8" → 100.0kg, 8 reps
+  - Leert sich automatisch nach Add
+- ✅ Plus Button für schnelles Hinzufügen
+  - Nutzt letzte Set-Werte als Default
+  - Deaktiviert wenn kein letztes Set vorhanden
+- ✅ AddSetUseCase implementiert (Clean Architecture)
+  - Domain Layer: Use Case mit Business Logic
+  - Fallback auf letzte Set-Werte wenn keine angegeben
+  - Aktualisiert Exercise History (Progressive Overload)
+  - Persistence via SessionRepository
+- ✅ Haptic Success Feedback beim Hinzufügen
+
+**2. Delete Set Feature**
+- ✅ Long-Press Context Menu auf jedem Set
+  - Zeigt "Satz löschen" mit Trash Icon
+  - Destructive Role (rot eingefärbt)
+- ✅ RemoveSetUseCase implementiert (Clean Architecture)
+  - Business Rule: Minimum 1 Set pro Exercise
+  - Validierung: Cannot remove last set
+  - Proper Error Handling
+- ✅ Haptic Impact Feedback beim Löschen
+- ✅ UI disabled für letzten Satz
+
+**3. Set Management Integration**
+- ✅ SessionStore.addSet(exerciseId, weight, reps)
+- ✅ SessionStore.removeSet(exerciseId, setId)
+- ✅ DependencyContainer Factory Methods
+  - makeAddSetUseCase()
+  - makeRemoveSetUseCase()
+- ✅ Forced Observable Updates für sofortiges UI Feedback
+- ✅ Compiler Timeout Fix (exerciseCardView() extraction)
 
 ### ✅ NEU IMPLEMENTIERT (Session 3 - 2025-10-23)
 
@@ -270,10 +316,13 @@ GymBo/
 │   │   ├── StartSessionUseCase.swift
 │   │   ├── CompleteSetUseCase.swift
 │   │   ├── EndSessionUseCase.swift
-│   │   └── UpdateSetUseCase.swift          # ← NEU
+│   │   ├── UpdateSetUseCase.swift
+│   │   ├── UpdateAllSetsUseCase.swift
+│   │   ├── AddSetUseCase.swift             # ← NEU (Session 4)
+│   │   └── RemoveSetUseCase.swift          # ← NEU (Session 4)
 │   └── RepositoryProtocols/
 │       ├── SessionRepositoryProtocol.swift
-│       └── ExerciseRepositoryProtocol.swift # ← NEU
+│       └── ExerciseRepositoryProtocol.swift
 │
 ├── Data/
 │   ├── Repositories/
@@ -285,10 +334,11 @@ GymBo/
 │
 ├── Presentation/
 │   ├── Stores/
-│   │   └── SessionStore.swift               # updateSet() hinzugefügt
+│   │   └── SessionStore.swift               # addSet(), removeSet() added
 │   └── Views/ActiveWorkout/Components/
 │       ├── CompactSetRow.swift              # ← Sheet-based editing
-│       └── EditSetSheet.swift               # ← NEU (in CompactSetRow.swift)
+│       ├── CompactExerciseCard.swift        # ← Quick-Add + Context Menu
+│       └── EditSetSheet.swift               # ← in CompactSetRow.swift
 │
 ├── Infrastructure/
 │   ├── DI/
@@ -303,7 +353,144 @@ GymBo/
 
 ## 🔧 Technische Details (Updated)
 
-### 1. UpdateSetUseCase
+### 1. AddSetUseCase (Session 4)
+
+```swift
+final class DefaultAddSetUseCase: AddSetUseCase {
+    private let repository: SessionRepositoryProtocol
+    private let exerciseRepository: ExerciseRepositoryProtocol
+
+    func execute(
+        sessionId: UUID,
+        exerciseId: UUID,
+        weight: Double?,
+        reps: Int?
+    ) async throws -> DomainWorkoutSession {
+        // 1. Fetch active session
+        guard var session = try await repository.fetchActiveSession() else {
+            throw AddSetError.sessionNotFound(sessionId)
+        }
+
+        // 2. Find exercise index
+        guard let exerciseIndex = session.exercises.firstIndex(
+            where: { $0.id == exerciseId }
+        ) else {
+            throw AddSetError.exerciseNotFound(exerciseId)
+        }
+
+        // 3. Determine weight and reps (fallback to last set's values)
+        let lastSet = session.exercises[exerciseIndex].sets.last
+        let finalWeight = weight ?? lastSet?.weight ?? 0.0
+        let finalReps = reps ?? lastSet?.reps ?? 0
+
+        // 4. Create new set
+        let newSet = DomainSessionSet(
+            weight: finalWeight,
+            reps: finalReps,
+            completed: false
+        )
+
+        // 5. Add set to exercise
+        session.exercises[exerciseIndex].sets.append(newSet)
+
+        // 6. Persist changes
+        try await repository.update(session)
+
+        // 7. Update exercise history
+        try? await exerciseRepository.updateLastUsed(
+            exerciseId: session.exercises[exerciseIndex].catalogExerciseId,
+            weight: finalWeight,
+            reps: finalReps,
+            date: Date()
+        )
+
+        return session
+    }
+}
+```
+
+### 2. RemoveSetUseCase (Session 4)
+
+```swift
+final class DefaultRemoveSetUseCase: RemoveSetUseCase {
+    private let repository: SessionRepositoryProtocol
+
+    func execute(
+        sessionId: UUID,
+        exerciseId: UUID,
+        setId: UUID
+    ) async throws -> DomainWorkoutSession {
+        // 1. Fetch active session
+        guard var session = try await repository.fetchActiveSession() else {
+            throw RemoveSetError.sessionNotFound(sessionId)
+        }
+
+        // 2. Find exercise and set indices
+        guard let exerciseIndex = session.exercises.firstIndex(
+            where: { $0.id == exerciseId }
+        ) else {
+            throw RemoveSetError.exerciseNotFound(exerciseId)
+        }
+
+        guard let setIndex = session.exercises[exerciseIndex].sets.firstIndex(
+            where: { $0.id == setId }
+        ) else {
+            throw RemoveSetError.setNotFound(setId)
+        }
+
+        // 3. Business rule: Cannot remove last set
+        guard session.exercises[exerciseIndex].sets.count > 1 else {
+            throw RemoveSetError.cannotRemoveLastSet
+        }
+
+        // 4. Remove set
+        session.exercises[exerciseIndex].sets.remove(at: setIndex)
+
+        // 5. Persist changes
+        try await repository.update(session)
+
+        return session
+    }
+}
+```
+
+### 3. Quick-Add Field Regex Parser
+
+```swift
+// In CompactExerciseCard.swift
+private func parseSetInput(_ input: String) -> (weight: Double, reps: Int)? {
+    // Regex: "100 x 8" or "100.5 × 12" or "80X10"
+    let pattern = #"(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+)"#
+
+    guard let regex = try? NSRegularExpression(pattern: pattern),
+          let match = regex.firstMatch(
+              in: input,
+              range: NSRange(input.startIndex..., in: input)
+          ),
+          match.numberOfRanges == 3 else {
+        return nil
+    }
+
+    // Extract weight (group 1)
+    let weightRange = Range(match.range(at: 1), in: input)!
+    let weightString = String(input[weightRange])
+
+    // Extract reps (group 2)
+    let repsRange = Range(match.range(at: 2), in: input)!
+    let repsString = String(input[repsRange])
+
+    guard let weight = Double(weightString),
+          let reps = Int(repsString),
+          weight > 0,
+          reps > 0 else {
+        return nil
+    }
+
+    return (weight, reps)
+}
+```
+
+### 4. UpdateSetUseCase
 
 ```swift
 final class DefaultUpdateSetUseCase: UpdateSetUseCase {
@@ -337,7 +524,7 @@ final class DefaultUpdateSetUseCase: UpdateSetUseCase {
 }
 ```
 
-### 2. ExerciseRepository
+### 5. ExerciseRepository
 
 ```swift
 protocol ExerciseRepositoryProtocol {
@@ -371,7 +558,7 @@ final class SwiftDataExerciseRepository: ExerciseRepositoryProtocol {
 }
 ```
 
-### 3. ExerciseEntity Schema
+### 6. ExerciseEntity Schema
 
 ```swift
 @Model
@@ -439,20 +626,23 @@ final class ExerciseEntity {
 **Status:** ✅ KOMPLETT
 **Implementiert:** SessionStore.getExerciseEquipment() + UI Integration
 
-### 5. Mark All Complete Bug
-**Status:** 🟡 DEBUG IN PROGRESS
-**Problem:** Findet 0 incomplete Sets
-**Added:** Debug Logging (Exercise ID, Set Details)
-**Next:** Testen auf Device mit Console Output
+### 5. ~~Mark All Complete Bug~~ ✅ ERLEDIGT
+**Status:** ✅ GEFIXT (Session 3)
+**Problem:** UI zeigte keine grünen Haken nach Mark All Complete
+**Fix:** Forced Observable Update mit fresh session fetch
+
+### 6. ~~Add/Remove Sets während Session~~ ✅ ERLEDIGT
+**Status:** ✅ KOMPLETT (Session 4)
+**Implementiert:**
+- AddSetUseCase + RemoveSetUseCase
+- Quick-Add Field mit Regex Parser
+- Plus Button mit Last-Set Fallback
+- Long-Press Context Menu für Delete
+- Business Rules (Cannot delete last set)
 
 ### 7. Workout Repository
 **Status:** 🔴 FEHLT
 **Benötigt:** Richtige Workout Templates statt Test-Data
-
-### 8. Add/Remove Sets während Session
-**Status:** 🔴 FEHLT
-**UI:** Quick-Add Feld vorhanden
-**Benötigt:** `AddSetUseCase`, `RemoveSetUseCase`
 
 ### 9. Reorder Exercises/Sets
 **Status:** 🔴 FEHLT
@@ -471,23 +661,23 @@ final class ExerciseEntity {
 
 ### Quick Wins (30-60 Min)
 
-1. **~~"Mark All Complete" Button implementieren~~ ✅ TEILWEISE**
-   - ✅ Button vorhanden & implementiert
-   - 🟡 Bug: Findet 0 incomplete Sets
-   - 🟡 Debug Logging hinzugefügt
-   - ⏳ Nächster Schritt: Testen & Bug fixen
+1. **~~"Mark All Complete" Button~~ ✅ ERLEDIGT (Session 3)**
+   - ✅ Bug gefixt (UI Refresh mit forced Observable update)
+   - ✅ Workout Summary Persistence gefixt
+   - ✅ Workout Complete Message implementiert
 
-2. **~~Equipment in UI anzeigen~~ ✅ ERLEDIGT**
+2. **~~Equipment in UI anzeigen~~ ✅ ERLEDIGT (Session 3)**
    - ✅ SessionStore.getExerciseEquipment()
    - ✅ CompactExerciseCard zeigt Equipment
    - ✅ Asynchrones Laden wie Exercise Names
 
-### Mittelfristig (4-8 Stunden)
+3. **~~Add/Remove Sets~~ ✅ ERLEDIGT (Session 4)**
+   - ✅ AddSetUseCase implementiert
+   - ✅ Quick-Add TextField mit Regex Parser ("100 x 8")
+   - ✅ RemoveSetUseCase + Long-Press Context Menu
+   - ✅ Business Rules (Cannot delete last set)
 
-3. **Add/Remove Sets (2-3 Stunden)**
-   - AddSetUseCase implementieren
-   - Quick-Add TextField mit Regex Parser verbinden
-   - RemoveSetUseCase + Swipe-to-Delete
+### Mittelfristig (4-8 Stunden)
 
 4. **Reordering (2-3 Stunden)**
    - `.onMove` für Exercises
@@ -529,17 +719,24 @@ final class ExerciseEntity {
 **Was jetzt funktioniert (End-to-End):**
 
 1. ✅ **App Start** → Seeds 3 Exercises (first launch only)
-2. ✅ **Start Workout** → Lädt Exercise IDs aus DB
-3. ✅ **Tap Weight/Reps** → Sheet öffnet sich
-4. ✅ **Edit Values** → Große, gut bedienbare TextFields
-5. ✅ **Save** → Speichert in Session + Exercise History
-6. ✅ **Exercise History** → lastUsedWeight/Reps/Date persistiert
-7. ✅ **Progressive Overload Ready** → Nächstes Workout kann Werte laden
+2. ✅ **Start Workout** → Lädt Exercise IDs + Last Used Values aus DB
+3. ✅ **Exercise Names** → Echte Namen statt "Übung 1, 2, 3"
+4. ✅ **Progressive Overload** → Sets starten mit letzten Werten
+5. ✅ **Tap Weight/Reps** → Sheet öffnet sich
+6. ✅ **Edit Values** → Große, gut bedienbare TextFields
+7. ✅ **Update All Sets** → Toggle für alle incomplete Sets
+8. ✅ **Add Set** → Quick-Add Field ("100 x 8") + Plus Button
+9. ✅ **Delete Set** → Long-Press Context Menu
+10. ✅ **Mark All Complete** → Alle Sets auf einmal abhaken
+11. ✅ **Workout Complete** → Summary Sheet mit Statistiken
+12. ✅ **Exercise History** → lastUsedWeight/Reps/Date persistiert
 
-**Nächster logischer Schritt:**
-- Exercise Names in UI anzeigen
-- Last Used Values beim Session Start laden
-- → Kompletter Progressive Overload Cycle funktioniert!
+**Komplettes Set Management:**
+- ✅ Edit Set (Sheet-based UI)
+- ✅ Update All Sets (Toggle)
+- ✅ Add Set (Quick-Add + Plus Button)
+- ✅ Delete Set (Context Menu)
+- ✅ Mark All Complete (Batch operation)
 
 ---
 
@@ -552,6 +749,6 @@ final class ExerciseEntity {
 
 ---
 
-**Letzte Aktualisierung:** 2025-10-23 (Session 3 Ende)
-**Status:** ✅ Progressive Overload + Update All Sets + Equipment Display!
-**Nächste Session:** Mark All Complete Bug fixen + Add/Remove Sets
+**Letzte Aktualisierung:** 2025-10-23 (Session 4 Ende)
+**Status:** ✅ MVP KOMPLETT! Progressive Overload + Complete Set Management!
+**Nächste Session:** Reordering oder Workout Repository
