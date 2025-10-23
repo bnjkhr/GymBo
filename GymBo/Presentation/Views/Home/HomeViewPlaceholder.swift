@@ -98,8 +98,12 @@ struct HomeViewPlaceholder: View {
                 if !store.favoriteWorkouts.isEmpty {
                     Section("Favoriten") {
                         ForEach(store.favoriteWorkouts) { workout in
-                            WorkoutRow(workout: workout) {
-                                startWorkout(workout)
+                            NavigationLink {
+                                WorkoutDetailView(workout: workout) {
+                                    startWorkout(workout)
+                                }
+                            } label: {
+                                WorkoutRowContent(workout: workout)
                             }
                         }
                     }
@@ -109,8 +113,12 @@ struct HomeViewPlaceholder: View {
                 if !store.regularWorkouts.isEmpty {
                     Section("Alle Workouts") {
                         ForEach(store.regularWorkouts) { workout in
-                            WorkoutRow(workout: workout) {
-                                startWorkout(workout)
+                            NavigationLink {
+                                WorkoutDetailView(workout: workout) {
+                                    startWorkout(workout)
+                                }
+                            } label: {
+                                WorkoutRowContent(workout: workout)
                             }
                         }
                     }
@@ -150,46 +158,38 @@ struct HomeViewPlaceholder: View {
     }
 }
 
-// MARK: - Workout Row
+// MARK: - Workout Row Content
 
-private struct WorkoutRow: View {
+private struct WorkoutRowContent: View {
     let workout: Workout
-    let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 16) {
-                // Icon
-                Image(systemName: workout.isFavorite ? "star.fill" : "dumbbell.fill")
-                    .font(.title2)
-                    .foregroundColor(workout.isFavorite ? .yellow : .accentColor)
-                    .frame(width: 40)
+        HStack(spacing: 16) {
+            // Icon
+            Image(systemName: workout.isFavorite ? "star.fill" : "dumbbell.fill")
+                .font(.title2)
+                .foregroundColor(workout.isFavorite ? .yellow : .accentColor)
+                .frame(width: 40)
 
-                // Content
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(workout.name)
-                        .font(.headline)
-                        .foregroundColor(.primary)
+            // Content
+            VStack(alignment: .leading, spacing: 4) {
+                Text(workout.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
 
-                    HStack(spacing: 12) {
-                        Label(
-                            "\(workout.exerciseCount)",
-                            systemImage: "figure.strengthtraining.traditional")
-                        Label("\(workout.totalSets)", systemImage: "list.bullet")
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 12) {
+                    Label(
+                        "\(workout.exerciseCount)",
+                        systemImage: "figure.strengthtraining.traditional")
+                    Label("\(workout.totalSets)", systemImage: "list.bullet")
                 }
-
-                Spacer()
-
-                // Arrow
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                .font(.caption)
+                .foregroundColor(.secondary)
             }
-            .padding(.vertical, 4)
+
+            Spacer()
         }
+        .padding(.vertical, 4)
     }
 }
 
