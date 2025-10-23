@@ -1,9 +1,29 @@
 # GymBo V2 - TODO Liste
 
 **Stand:** 2025-10-23  
-**Current Phase:** Workout Repository Implementation  
-**Next Phase:** Progression Features (see PROGRESSION_FEATURE_PLAN.md)  
-**Letzte Änderungen:** Progression features documented, ready for Workout Repository
+**Current Phase:** MVP COMPLETE - Testing & Migration Preparation  
+**Next Phase:** SwiftData Migration Support (CRITICAL!)  
+**Letzte Änderungen:** Session 6 complete, Migration Strategy dokumentiert
+
+---
+
+## 🔴 CRITICAL - Production Blockers
+
+### SwiftData Migration Support (MUST DO before Production!)
+**Priority:** 🔴 CRITICAL  
+**Status:** ❌ Not Implemented  
+**Effort:** 4-6 hours  
+**Risk:** HIGH - Schema changes führen zu Datenverlust!
+
+**Tasks:**
+- [ ] Implement SchemaV1 mit allen aktuellen Entities
+- [ ] Setup GymBoMigrationPlan mit VersionedSchema
+- [ ] Update ModelContainer mit Migration Support
+- [ ] Write Unit Tests für Migrations
+- [ ] Document Schema Change Process für Team
+- [ ] Test Migration mit verschiedenen iOS Versionen
+
+**Reference:** [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)
 
 ---
 

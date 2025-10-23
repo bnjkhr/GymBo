@@ -1,8 +1,11 @@
 # GymBo V2 - Aktueller Stand (2025-10-23)
 
-**Status:** ✅ MVP COMPLETE! Workout Repository + Reordering + Finish Exercise + Bug Fixes
-**Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
+**Status:** ✅ MVP COMPLETE! Workout Repository + Reordering + Finish Exercise + Bug Fixes  
+**Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable  
 **Design:** Workout Picker + ScrollView Active Workout + Drag & Drop Reordering
+
+⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
+🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
 **Letzte Session (2025-10-23 - Session 6 - REORDERING + FINISH EXERCISE):**
 - ✅ Exercise Reordering Feature (Drag & Drop mit Edit Button)
