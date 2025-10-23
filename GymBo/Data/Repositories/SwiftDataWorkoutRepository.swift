@@ -114,6 +114,17 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
                 print("   - Order \(ex.order): \(ex.id)")
             }
 
+            // Verify data was actually persisted by fetching again
+            let verifyDescriptor = FetchDescriptor<WorkoutEntity>(
+                predicate: #Predicate { $0.id == workoutId }
+            )
+            if let verifiedEntity = try modelContext.fetch(verifyDescriptor).first {
+                print("🔄 VERIFICATION Fetch from DB:")
+                for ex in verifiedEntity.exercises.sorted(by: { $0.order < $1.order }) {
+                    print("   - Order \(ex.order): \(ex.id)")
+                }
+            }
+
             print("✅ Exercise order saved to SwiftData")
         } catch let error as WorkoutRepositoryError {
             throw error
