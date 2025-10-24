@@ -156,11 +156,13 @@ struct CompactExerciseCard: View {
     }
 
     /// Bottom action buttons
+    @ViewBuilder
     private var bottomButtons: some View {
-        print("🟢 bottomButtons computed - exercise: \(exercise.id)")
-        return HStack(spacing: 16) {
+        HStack(spacing: 16) {
             // Mark all complete (✓)
-            Button(action: handleMarkAllComplete) {
+            Button {
+                handleMarkAllComplete()
+            } label: {
                 Image(systemName: "checkmark.circle")
                     .font(.title3)
                     .foregroundStyle(Color.gray)
@@ -170,7 +172,9 @@ struct CompactExerciseCard: View {
             Spacer()
 
             // Add set (+)
-            Button(action: handleAddSet) {
+            Button {
+                handleAddSet()
+            } label: {
                 Image(systemName: "plus.circle")
                     .font(.title3)
                     .foregroundStyle(Color.gray)
@@ -180,7 +184,9 @@ struct CompactExerciseCard: View {
             Spacer()
 
             // Reorder (↕)
-            Button(action: handleReorder) {
+            Button {
+                handleReorder()
+            } label: {
                 Image(systemName: "arrow.up.arrow.down")
                     .font(.title3)
                     .foregroundStyle(Color.gray)
