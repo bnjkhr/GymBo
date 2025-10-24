@@ -57,6 +57,7 @@ struct EditWorkoutView: View {
                 }
                 .padding()
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Workout bearbeiten")
             .navigationBarTitleDisplayMode(.inline)

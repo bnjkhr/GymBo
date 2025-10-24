@@ -60,6 +60,7 @@ struct CreateWorkoutView: View {
                 }
                 .padding()
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Neues Workout")
             .navigationBarTitleDisplayMode(.inline)

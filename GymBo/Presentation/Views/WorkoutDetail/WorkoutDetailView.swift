@@ -271,6 +271,9 @@ struct WorkoutDetailView: View {
                         exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
                         orderNumber: index + 1
                     )
+                    .id(
+                        "\(exercise.id)-\(exercise.targetSets)-\(exercise.targetReps ?? 0)-\(exercise.targetWeight ?? 0)"
+                    )
                     .onTapGesture {
                         exerciseToEdit = exercise
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()

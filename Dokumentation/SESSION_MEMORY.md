@@ -36,6 +36,56 @@
 
 ---
 
+## ✅ Session 2025-10-24 (Session 11) - TextField Performance & UI Update Fixes
+
+### Critical Performance Fixes
+**Status:** ✅ Implementiert
+
+**Problem 1: TextField Performance Issues**
+- Console Errors: "Gesture: System gesture gate timed out"
+- "Invalid frame dimension (negative or non-finite)"
+- Massive lag beim Tippen in allen TextFields
+- Betroffene Views: CreateWorkout, EditWorkout, CreateExercise, EditExerciseDetails
+
+**Lösung:**
+- Added `.scrollDismissesKeyboard(.interactively)` zu allen ScrollViews
+- Reduziert View-Updates während Eingabe
+- Keyboard wird beim Scrollen automatisch dismissed
+
+**Problem 2: Keyboard verdeckt TextField**
+- Gewicht-TextField in EditExerciseDetailsView war nicht sichtbar
+- ScrollView scrollte nicht automatisch nach oben
+
+**Lösung:**
+- Added `.padding(.bottom, 100)` für Extra-Platz unter Content
+- Toolbar "Fertig" Button zum manuellen Keyboard-Dismiss
+- `.scrollDismissesKeyboard(.interactively)` für bessere Keyboard-Behandlung
+
+**Problem 3: UI aktualisiert nicht sofort nach Speichern**
+- Gewichts-Änderung in WorkoutDetailView wurde erst nach App-Neustart angezeigt
+- ExerciseCard zeigte alte Daten
+
+**Lösung:**
+- Added `.id()` Modifier auf ExerciseCard basierend auf aktuellen Werten
+```swift
+.id("\(exercise.id)-\(exercise.targetSets)-\(exercise.targetReps ?? 0)-\(exercise.targetWeight ?? 0)")
+```
+- Erzwingt SwiftUI Re-Render bei Daten-Änderung
+
+**Modified Files:**
+- `Presentation/Views/WorkoutDetail/EditExerciseDetailsView.swift` - Keyboard fixes
+- `Presentation/Views/WorkoutDetail/CreateWorkoutView.swift` - Performance fix
+- `Presentation/Views/WorkoutDetail/EditWorkoutView.swift` - Performance fix
+- `Presentation/Views/Exercises/CreateExerciseView.swift` - Performance fix
+- `Presentation/Views/WorkoutDetail/WorkoutDetailView.swift` - Immediate UI update fix
+
+**Result:** 
+- ✅ Butterweiche TextField-Performance
+- ✅ Keyboard verdeckt Felder nicht mehr
+- ✅ UI aktualisiert sofort nach Speichern
+
+---
+
 ## ✅ Session 2025-10-24 (Session 10) - TabBar Auto-Hide
 
 ### TabBar Auto-Hide Feature

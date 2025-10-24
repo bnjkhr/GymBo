@@ -98,7 +98,9 @@ struct EditExerciseDetailsView: View {
                     notesSection
                 }
                 .padding()
+                .padding(.bottom, 100)  // Extra padding for keyboard
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Übung bearbeiten")
             .navigationBarTitleDisplayMode(.inline)

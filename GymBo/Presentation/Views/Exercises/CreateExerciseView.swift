@@ -47,15 +47,15 @@ struct CreateExerciseView: View {
     // MARK: - Constants
 
     private let muscleGroups = [
-        "Brust", "Rücken", "Schultern", "Beine", "Arme", "Core", "Bauch"
+        "Brust", "Rücken", "Schultern", "Beine", "Arme", "Core", "Bauch",
     ]
 
     private let equipmentTypes = [
-        "Langhantel", "Kurzhantel", "Kabelzug", "Maschine", "Bodyweight", "Gemischt"
+        "Langhantel", "Kurzhantel", "Kabelzug", "Maschine", "Bodyweight", "Gemischt",
     ]
 
     private let difficultyLevels = [
-        "Anfänger", "Fortgeschritten", "Experte"
+        "Anfänger", "Fortgeschritten", "Experte",
     ]
 
     // MARK: - Body
@@ -84,6 +84,7 @@ struct CreateExerciseView: View {
                 }
                 .padding()
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Neue Übung")
             .navigationBarTitleDisplayMode(.inline)
@@ -219,8 +220,10 @@ struct CreateExerciseView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)
                             .background(
-                                selectedDifficulty == difficulty ? Color.orange : Color(
-                                    .secondarySystemGroupedBackground)
+                                selectedDifficulty == difficulty
+                                    ? Color.orange
+                                    : Color(
+                                        .secondarySystemGroupedBackground)
                             )
                             .cornerRadius(20)
                     }
@@ -323,7 +326,8 @@ struct CreateExerciseView: View {
         let useCase = DefaultCreateExerciseUseCase(exerciseRepository: repository)
 
         // Parse instructions (split by newline)
-        let instructionsList = instructions
+        let instructionsList =
+            instructions
             .split(separator: "\n")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
