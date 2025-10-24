@@ -91,7 +91,7 @@ struct WorkoutDetailView: View {
                     Button {
                         showExercisePicker = true
                     } label: {
-                        Image(systemName: "plus.circle.fill")
+                        Image(systemName: "plus.circle")
                             .foregroundStyle(.orange)
                     }
                     .accessibilityLabel("Übung hinzufügen")
@@ -108,24 +108,23 @@ struct WorkoutDetailView: View {
                     .accessibilityLabel(
                         isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")
 
-                    // 3-Dot Menu
-                    Menu {
-                        Button {
-                            showEditWorkout = true
-                        } label: {
-                            Label("Bearbeiten", systemImage: "pencil")
-                        }
-
-                        Button(role: .destructive) {
-                            showDeleteConfirmation = true
-                        } label: {
-                            Label("Löschen", systemImage: "trash")
-                        }
+                    // Edit Button
+                    Button {
+                        showEditWorkout = true
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image(systemName: "pencil.circle")
                             .foregroundStyle(.primary)
                     }
-                    .accessibilityLabel("Workout-Optionen")
+                    .accessibilityLabel("Workout bearbeiten")
+
+                    // Delete Button
+                    Button {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Image(systemName: "trash.circle")
+                            .foregroundStyle(.red)
+                    }
+                    .accessibilityLabel("Workout löschen")
                 }
             }
         }

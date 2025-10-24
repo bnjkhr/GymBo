@@ -35,12 +35,17 @@ final class DefaultUpdateWorkoutUseCase: UpdateWorkoutUseCase {
             throw UseCaseError.workoutNotFound(workoutId)
         }
 
+        print(
+            "📝 UpdateWorkoutUseCase: Fetched workout '\(workout.name)' (rest: \(workout.defaultRestTime)s)"
+        )
+
         // Update name if provided
         if let newName = name {
             let trimmedName = newName.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmedName.isEmpty else {
                 throw UseCaseError.invalidInput("Workout name cannot be empty")
             }
+            print("📝 UpdateWorkoutUseCase: Updating name '\(workout.name)' → '\(trimmedName)'")
             workout.name = trimmedName
         }
 
@@ -49,11 +54,18 @@ final class DefaultUpdateWorkoutUseCase: UpdateWorkoutUseCase {
             guard newRestTime > 0 else {
                 throw UseCaseError.invalidInput("Rest time must be greater than 0")
             }
+            print(
+                "📝 UpdateWorkoutUseCase: Updating rest time \(workout.defaultRestTime)s → \(newRestTime)s"
+            )
             workout.defaultRestTime = newRestTime
         }
 
         // Update timestamp
         workout.updatedAt = Date()
+
+        print(
+            "📝 UpdateWorkoutUseCase: Calling repository.update() with name='\(workout.name)', rest=\(workout.defaultRestTime)s"
+        )
 
         // Save changes
         try await workoutRepository.update(workout)
