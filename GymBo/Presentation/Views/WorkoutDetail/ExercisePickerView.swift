@@ -348,7 +348,8 @@ private struct ExercisePickerRow: View {
                         // Difficulty
                         if !exercise.difficultyLevelRaw.isEmpty {
                             Text("•")
-                                .foregroundStyle(isSelected ? .white.opacity(0.6) : .tertiary)
+                                .foregroundStyle(
+                                    isSelected ? .white.opacity(0.6) : .secondary.opacity(0.5))
 
                             Text(exercise.difficultyLevelRaw)
                                 .font(.caption)

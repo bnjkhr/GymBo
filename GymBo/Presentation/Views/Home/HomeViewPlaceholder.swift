@@ -50,20 +50,25 @@ struct HomeViewPlaceholder: View {
                         .zIndex(1000)
                 }
             }
-            .navigationTitle {
-                HStack(spacing: 8) {
-                    Text("Workouts")
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 8) {
+                        Text("Workouts")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
 
-                    Button {
-                        showCreateWorkout = true
-                    } label: {
-                        Image(systemName: "plus.circle")
-                            .font(.title2)
-                            .foregroundStyle(.primary)
+                        Button {
+                            showCreateWorkout = true
+                        } label: {
+                            Image(systemName: "plus.circle")
+                                .font(.title2)
+                                .foregroundStyle(.primary)
+                        }
+                        .accessibilityLabel("Neues Workout erstellen")
                     }
-                    .accessibilityLabel("Neues Workout erstellen")
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showCreateWorkout) {
                 if let store = workoutStore {
                     CreateWorkoutView { createdWorkout in
