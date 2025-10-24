@@ -41,7 +41,7 @@ struct HomeViewPlaceholder: View {
                     } label: {
                         Image(systemName: "plus.circle")
                             .font(.title2)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(.orange)
                     }
                     .accessibilityLabel("Neues Workout erstellen")
                 }

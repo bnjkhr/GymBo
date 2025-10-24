@@ -17,23 +17,43 @@ struct ProgressViewPlaceholder: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.system(size: 80))
-                    .foregroundColor(.secondary)
+            VStack(spacing: 0) {
+                // Custom Header: Fortschritt (consistent with Home)
+                HStack(alignment: .center) {
+                    Text("Fortschritt")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
 
-                Text("Progress & Statistics")
-                    .font(.title2.bold())
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .background(Color(.systemBackground))
 
-                Text("Track your fitness journey")
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                // Content
+                VStack(spacing: 24) {
+                    Spacer()
 
-                Text("Coming in Phase 3")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: 80))
+                        .foregroundColor(.secondary)
+
+                    Text("Progress & Statistics")
+                        .font(.title2.bold())
+
+                    Text("Track your fitness journey")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+
+                    Text("Coming in Phase 3")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+                }
             }
-            .navigationTitle("Progress")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

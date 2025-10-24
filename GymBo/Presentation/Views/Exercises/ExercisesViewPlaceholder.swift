@@ -17,23 +17,43 @@ struct ExercisesViewPlaceholder: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                Image(systemName: "figure.run")
-                    .font(.system(size: 80))
-                    .foregroundColor(.secondary)
+            VStack(spacing: 0) {
+                // Custom Header: Übungen (consistent with Home)
+                HStack(alignment: .center) {
+                    Text("Übungen")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
 
-                Text("Exercise Library")
-                    .font(.title2.bold())
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .background(Color(.systemBackground))
 
-                Text("161 exercises available")
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                // Content
+                VStack(spacing: 24) {
+                    Spacer()
 
-                Text("Coming in Phase 1 - Day 4")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    Image(systemName: "figure.run")
+                        .font(.system(size: 80))
+                        .foregroundColor(.secondary)
+
+                    Text("Exercise Library")
+                        .font(.title2.bold())
+
+                    Text("161 exercises available")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+
+                    Text("Coming in Phase 1 - Day 4")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+                }
             }
-            .navigationTitle("Exercises")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
