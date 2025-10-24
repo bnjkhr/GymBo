@@ -63,6 +63,7 @@ final class DependencyContainer {
         WorkoutStore(
             getAllWorkoutsUseCase: makeGetAllWorkoutsUseCase(),
             getWorkoutByIdUseCase: makeGetWorkoutByIdUseCase(),
+            createWorkoutUseCase: makeCreateWorkoutUseCase(),
             toggleFavoriteUseCase: makeToggleFavoriteUseCase(),
             addExerciseToWorkoutUseCase: makeAddExerciseToWorkoutUseCase(),
             removeExerciseFromWorkoutUseCase: makeRemoveExerciseFromWorkoutUseCase(),
@@ -235,6 +236,14 @@ final class DependencyContainer {
     func makeGetWorkoutByIdUseCase() -> GetWorkoutByIdUseCase {
         return DefaultGetWorkoutByIdUseCase(
             repository: makeWorkoutRepository()
+        )
+    }
+
+    /// Creates CreateWorkoutUseCase
+    /// - Returns: Use case for creating a new workout template
+    func makeCreateWorkoutUseCase() -> CreateWorkoutUseCase {
+        return DefaultCreateWorkoutUseCase(
+            workoutRepository: makeWorkoutRepository()
         )
     }
 

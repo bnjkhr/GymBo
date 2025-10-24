@@ -22,6 +22,7 @@ struct HomeViewPlaceholder: View {
     @State private var workoutStore: WorkoutStore?
     @State private var showActiveWorkout = false
     @State private var showWorkoutSummary = false
+    @State private var showCreateWorkout = false
 
     var body: some View {
         NavigationStack {
@@ -38,6 +39,29 @@ struct HomeViewPlaceholder: View {
                 }
             }
             .navigationTitle("Workouts")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showCreateWorkout = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                    .accessibilityLabel("Neues Workout erstellen")
+                }
+            }
+            .sheet(isPresented: $showCreateWorkout) {
+                if let store = workoutStore {
+                    CreateWorkoutView()
+                        .environment(store)
+                        .onDisappear {
+                            // Refresh workout list after creating
+                            Task {
+                                await store.loadWorkouts()
+                            }
+                        }
+                }
+            }
             .sheet(isPresented: $showActiveWorkout) {
                 if sessionStore.hasActiveSession {
                     ActiveWorkoutSheetView()

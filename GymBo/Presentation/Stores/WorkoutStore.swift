@@ -65,6 +65,7 @@ final class WorkoutStore {
 
     private let getAllWorkoutsUseCase: GetAllWorkoutsUseCase
     private let getWorkoutByIdUseCase: GetWorkoutByIdUseCase
+    private let createWorkoutUseCase: CreateWorkoutUseCase
     private let toggleFavoriteUseCase: ToggleFavoriteUseCase
     private let addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase
     private let removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
@@ -80,6 +81,7 @@ final class WorkoutStore {
     init(
         getAllWorkoutsUseCase: GetAllWorkoutsUseCase,
         getWorkoutByIdUseCase: GetWorkoutByIdUseCase,
+        createWorkoutUseCase: CreateWorkoutUseCase,
         toggleFavoriteUseCase: ToggleFavoriteUseCase,
         addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase,
         removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase,
@@ -88,6 +90,7 @@ final class WorkoutStore {
     ) {
         self.getAllWorkoutsUseCase = getAllWorkoutsUseCase
         self.getWorkoutByIdUseCase = getWorkoutByIdUseCase
+        self.createWorkoutUseCase = createWorkoutUseCase
         self.toggleFavoriteUseCase = toggleFavoriteUseCase
         self.addExerciseToWorkoutUseCase = addExerciseToWorkoutUseCase
         self.removeExerciseFromWorkoutUseCase = removeExerciseFromWorkoutUseCase
@@ -133,6 +136,39 @@ final class WorkoutStore {
     /// Refresh workouts list
     func refresh() async {
         await loadWorkouts()
+    }
+
+    /// Create a new workout template
+    /// - Parameters:
+    ///   - name: Workout name
+    ///   - defaultRestTime: Default rest time in seconds
+    /// - Returns: The created workout
+    @discardableResult
+    func createWorkout(name: String, defaultRestTime: TimeInterval = 90) async throws -> Workout {
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let workout = try await createWorkoutUseCase.execute(
+                name: name,
+                defaultRestTime: defaultRestTime
+            )
+
+            // Add to local array
+            workouts.append(workout)
+
+            // Set as selected workout
+            selectedWorkout = workout
+
+            print("✅ Created workout: \(workout.name)")
+            return workout
+
+        } catch {
+            self.error = error
+            print("❌ Failed to create workout: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     /// Toggle favorite status of a workout
@@ -324,6 +360,7 @@ final class WorkoutStore {
             let store = WorkoutStore(
                 getAllWorkoutsUseCase: MockGetAllWorkoutsUseCase(),
                 getWorkoutByIdUseCase: MockGetWorkoutByIdUseCase(),
+                createWorkoutUseCase: MockCreateWorkoutUseCase(),
                 toggleFavoriteUseCase: MockToggleFavoriteUseCase(),
                 addExerciseToWorkoutUseCase: MockAddExerciseToWorkoutUseCase(),
                 removeExerciseFromWorkoutUseCase: MockRemoveExerciseFromWorkoutUseCase(),
@@ -356,6 +393,12 @@ final class WorkoutStore {
     private final class MockGetWorkoutByIdUseCase: GetWorkoutByIdUseCase {
         func execute(id: UUID) async throws -> Workout {
             Workout(name: "Mock Workout")
+        }
+    }
+
+    private final class MockCreateWorkoutUseCase: CreateWorkoutUseCase {
+        func execute(name: String, defaultRestTime: TimeInterval) async throws -> Workout {
+            Workout(name: name, defaultRestTime: defaultRestTime)
         }
     }
 
