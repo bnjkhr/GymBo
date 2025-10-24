@@ -109,9 +109,9 @@ struct WorkoutDetailView: View {
             }
         }
         .sheet(isPresented: $showExercisePicker) {
-            ExercisePickerView { exercise in
+            ExercisePickerView { exercises in
                 Task {
-                    await addExercise(exercise)
+                    await addExercises(exercises)
                 }
             }
             .environment(\.dependencyContainer, dependencyContainer)
@@ -337,19 +337,27 @@ struct WorkoutDetailView: View {
         }
     }
 
-    /// Add exercise to workout
-    private func addExercise(_ exercise: ExerciseEntity) async {
+    /// Add multiple exercises to workout
+    private func addExercises(_ exercises: [ExerciseEntity]) async {
         guard let store = workoutStore else { return }
 
-        await store.addExercise(exerciseId: exercise.id, to: workoutId)
+        // Add each exercise
+        for exercise in exercises {
+            await store.addExercise(exerciseId: exercise.id, to: workoutId)
+        }
 
         // Update local workout from store
         if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
         }
 
-        // Reload exercise names for new exercise
+        // Reload exercise names for new exercises
         await loadExerciseNames()
+
+        // Show success message
+        let count = exercises.count
+        let message = count == 1 ? "1 Übung hinzugefügt" : "\(count) Übungen hinzugefügt"
+        store.showSuccess(message)
     }
 
     /// Remove exercise from workout

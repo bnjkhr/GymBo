@@ -28,9 +28,10 @@ struct ExercisePickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencyContainer) private var dependencyContainer
 
-    let onExerciseSelected: (ExerciseEntity) -> Void
+    let onExercisesSelected: ([ExerciseEntity]) -> Void
 
     @State private var exercises: [ExerciseEntity] = []
+    @State private var selectedExercises: Set<UUID> = []
     @State private var isLoading = true
     @State private var searchText = ""
     @State private var selectedMuscleGroup: String?
@@ -60,13 +61,24 @@ struct ExercisePickerView: View {
                     exerciseList
                 }
             }
-            .navigationTitle("Übung hinzufügen")
+            .navigationTitle("Übungen hinzufügen")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Abbrechen") {
                         dismiss()
                     }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        addSelectedExercises()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .font(.headline)
+                    }
+                    .disabled(selectedExercises.isEmpty)
+                    .accessibilityLabel("Ausgewählte Übungen hinzufügen")
                 }
             }
             .task {
@@ -145,9 +157,11 @@ struct ExercisePickerView: View {
         ScrollView {
             LazyVStack(spacing: 8) {
                 ForEach(filteredExercises, id: \.id) { exercise in
-                    ExercisePickerRow(exercise: exercise) {
-                        onExerciseSelected(exercise)
-                        dismiss()
+                    ExercisePickerRow(
+                        exercise: exercise,
+                        isSelected: selectedExercises.contains(exercise.id)
+                    ) {
+                        toggleSelection(exercise)
                     }
                 }
             }
@@ -254,6 +268,23 @@ struct ExercisePickerView: View {
             print("❌ Failed to load exercises: \(error)")
         }
     }
+
+    private func toggleSelection(_ exercise: ExerciseEntity) {
+        if selectedExercises.contains(exercise.id) {
+            selectedExercises.remove(exercise.id)
+        } else {
+            selectedExercises.insert(exercise.id)
+        }
+
+        // Haptic feedback
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+
+    private func addSelectedExercises() {
+        let selected = exercises.filter { selectedExercises.contains($0.id) }
+        onExercisesSelected(selected)
+        dismiss()
+    }
 }
 
 // MARK: - Filter Chip
@@ -288,6 +319,7 @@ private struct FilterChip: View {
 
 private struct ExercisePickerRow: View {
     let exercise: ExerciseEntity
+    let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
@@ -296,44 +328,46 @@ private struct ExercisePickerRow: View {
                 // Exercise Icon
                 Image(systemName: equipmentIcon)
                     .font(.title3)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(isSelected ? .white : .orange)
                     .frame(width: 40)
 
                 // Exercise Info
                 VStack(alignment: .leading, spacing: 4) {
                     Text(exercise.name)
                         .font(.headline)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(isSelected ? .white : .primary)
 
                     HStack(spacing: 8) {
                         // Muscle Groups
                         if !exercise.muscleGroupsRaw.isEmpty {
                             Text(exercise.muscleGroupsRaw.prefix(2).joined(separator: ", "))
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
                         }
 
                         // Difficulty
                         if !exercise.difficultyLevelRaw.isEmpty {
                             Text("•")
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(isSelected ? .white.opacity(0.6) : .tertiary)
 
                             Text(exercise.difficultyLevelRaw)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
                         }
                     }
                 }
 
                 Spacer()
 
-                // Chevron
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                // Checkmark (instead of chevron)
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(isSelected ? Color.orange : Color(.systemBackground))
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
         }
@@ -355,7 +389,7 @@ private struct ExercisePickerRow: View {
 // MARK: - Preview
 
 #Preview {
-    ExercisePickerView { exercise in
-        print("Selected: \(exercise.name)")
+    ExercisePickerView { exercises in
+        print("Selected \(exercises.count) exercises")
     }
 }
