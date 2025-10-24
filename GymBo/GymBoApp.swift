@@ -74,17 +74,70 @@ struct GymBoApp: App {
                 ExerciseRecordEntity.self,
                 WorkoutFolderEntity.self,
             ])
-            container = try! ModelContainer(for: schema)
-            AppLogger.app.info("✅ SwiftData container created (DEBUG mode - persistence enabled)")
+
+            do {
+                container = try ModelContainer(for: schema)
+                AppLogger.app.info("✅ SwiftData container created (DEBUG mode)")
+            } catch {
+                // If container creation fails, delete old database and try again
+                AppLogger.app.error("❌ Failed to create ModelContainer: \(error)")
+                AppLogger.app.warning("🔧 Deleting old database and retrying...")
+
+                let fileManager = FileManager.default
+                if let storeURL = fileManager.urls(
+                    for: .applicationSupportDirectory, in: .userDomainMask
+                )
+                .first?
+                .appendingPathComponent("default.store") {
+                    try? fileManager.removeItem(at: storeURL)
+                    try? fileManager.removeItem(
+                        at: storeURL.deletingPathExtension().appendingPathExtension("store-shm"))
+                    try? fileManager.removeItem(
+                        at: storeURL.deletingPathExtension().appendingPathExtension("store-wal"))
+                    AppLogger.app.info("🗑️ Old database deleted")
+                }
+
+                // Retry container creation
+                container = try! ModelContainer(for: schema)
+                AppLogger.app.info("✅ SwiftData container created after cleanup")
+            }
 
         #else
             // PRODUCTION: Use versioned schema with migration plan
             let schema = Schema(versionedSchema: SchemaV2.self)
-            container = try! ModelContainer(
-                for: schema,
-                migrationPlan: GymBoMigrationPlan.self
-            )
-            AppLogger.app.info("✅ SwiftData container created with V2 schema")
+
+            do {
+                container = try ModelContainer(
+                    for: schema,
+                    migrationPlan: GymBoMigrationPlan.self
+                )
+                AppLogger.app.info("✅ SwiftData container created with V2 schema")
+            } catch {
+                // If container creation fails, delete old database and try again
+                AppLogger.app.error("❌ Failed to create ModelContainer: \(error)")
+                AppLogger.app.warning("🔧 Deleting old database and retrying...")
+
+                let fileManager = FileManager.default
+                if let storeURL = fileManager.urls(
+                    for: .applicationSupportDirectory, in: .userDomainMask
+                )
+                .first?
+                .appendingPathComponent("default.store") {
+                    try? fileManager.removeItem(at: storeURL)
+                    try? fileManager.removeItem(
+                        at: storeURL.deletingPathExtension().appendingPathExtension("store-shm"))
+                    try? fileManager.removeItem(
+                        at: storeURL.deletingPathExtension().appendingPathExtension("store-wal"))
+                    AppLogger.app.info("🗑️ Old database deleted")
+                }
+
+                // Retry container creation
+                container = try! ModelContainer(
+                    for: schema,
+                    migrationPlan: GymBoMigrationPlan.self
+                )
+                AppLogger.app.info("✅ SwiftData container created after cleanup")
+            }
         #endif
 
         // Initialize dependency injection
