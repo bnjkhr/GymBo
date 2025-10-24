@@ -68,20 +68,26 @@ struct CompactSetRow: View {
 
             Spacer()
 
-            // Checkbox (Square with black checkmark)
+            // Checkbox (Square - inverted when checked: black fill with white checkmark)
             Button {
                 onToggle()
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             } label: {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(set.completed ? Color.black : Color.gray.opacity(0.3), lineWidth: 2)
-                        .frame(width: 32, height: 32)
-
                     if set.completed {
+                        // Completed: Black filled square with white checkmark
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.black)
+                            .frame(width: 24, height: 24)
+
                         Image(systemName: "checkmark")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.black)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                    } else {
+                        // Not completed: Gray stroke
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                            .frame(width: 24, height: 24)
                     }
                 }
             }

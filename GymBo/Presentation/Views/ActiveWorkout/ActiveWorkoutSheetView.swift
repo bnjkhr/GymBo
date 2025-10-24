@@ -204,6 +204,12 @@ struct ActiveWorkoutSheetView: View {
                     .padding(.vertical, 4)
                 }
                 .background(Color.gray.opacity(0.1))
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 39,
+                        topTrailingRadius: 39
+                    )
+                )
                 .animation(
                     .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
             }
