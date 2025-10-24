@@ -66,6 +66,8 @@ final class WorkoutStore {
     private let getAllWorkoutsUseCase: GetAllWorkoutsUseCase
     private let getWorkoutByIdUseCase: GetWorkoutByIdUseCase
     private let createWorkoutUseCase: CreateWorkoutUseCase
+    private let deleteWorkoutUseCase: DeleteWorkoutUseCase
+    private let updateWorkoutUseCase: UpdateWorkoutUseCase
     private let toggleFavoriteUseCase: ToggleFavoriteUseCase
     private let addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase
     private let removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
@@ -82,6 +84,8 @@ final class WorkoutStore {
         getAllWorkoutsUseCase: GetAllWorkoutsUseCase,
         getWorkoutByIdUseCase: GetWorkoutByIdUseCase,
         createWorkoutUseCase: CreateWorkoutUseCase,
+        deleteWorkoutUseCase: DeleteWorkoutUseCase,
+        updateWorkoutUseCase: UpdateWorkoutUseCase,
         toggleFavoriteUseCase: ToggleFavoriteUseCase,
         addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase,
         removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase,
@@ -91,6 +95,8 @@ final class WorkoutStore {
         self.getAllWorkoutsUseCase = getAllWorkoutsUseCase
         self.getWorkoutByIdUseCase = getWorkoutByIdUseCase
         self.createWorkoutUseCase = createWorkoutUseCase
+        self.deleteWorkoutUseCase = deleteWorkoutUseCase
+        self.updateWorkoutUseCase = updateWorkoutUseCase
         self.toggleFavoriteUseCase = toggleFavoriteUseCase
         self.addExerciseToWorkoutUseCase = addExerciseToWorkoutUseCase
         self.removeExerciseFromWorkoutUseCase = removeExerciseFromWorkoutUseCase
@@ -168,6 +174,64 @@ final class WorkoutStore {
             self.error = error
             print("❌ Failed to create workout: \(error.localizedDescription)")
             throw error
+        }
+    }
+
+    /// Delete a workout
+    func deleteWorkout(workoutId: UUID) async {
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            try await deleteWorkoutUseCase.execute(workoutId: workoutId)
+
+            // Remove from local array
+            workouts.removeAll { $0.id == workoutId }
+
+            // Clear selection if deleted workout was selected
+            if selectedWorkout?.id == workoutId {
+                selectedWorkout = nil
+            }
+
+            print("✅ Deleted workout")
+            showSuccess("Workout gelöscht")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to delete workout: \(error.localizedDescription)")
+        }
+    }
+
+    /// Update workout name and/or rest time
+    func updateWorkout(workoutId: UUID, name: String?, defaultRestTime: TimeInterval?) async {
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let updatedWorkout = try await updateWorkoutUseCase.execute(
+                workoutId: workoutId,
+                name: name,
+                defaultRestTime: defaultRestTime
+            )
+
+            // Update in local array
+            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                workouts[index] = updatedWorkout
+            }
+
+            // Update selection if updated workout was selected
+            if selectedWorkout?.id == workoutId {
+                selectedWorkout = updatedWorkout
+            }
+
+            print("✅ Updated workout: \(updatedWorkout.name)")
+            showSuccess("Workout aktualisiert")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to update workout: \(error.localizedDescription)")
         }
     }
 
@@ -361,6 +425,8 @@ final class WorkoutStore {
                 getAllWorkoutsUseCase: MockGetAllWorkoutsUseCase(),
                 getWorkoutByIdUseCase: MockGetWorkoutByIdUseCase(),
                 createWorkoutUseCase: MockCreateWorkoutUseCase(),
+                deleteWorkoutUseCase: MockDeleteWorkoutUseCase(),
+                updateWorkoutUseCase: MockUpdateWorkoutUseCase(),
                 toggleFavoriteUseCase: MockToggleFavoriteUseCase(),
                 addExerciseToWorkoutUseCase: MockAddExerciseToWorkoutUseCase(),
                 removeExerciseFromWorkoutUseCase: MockRemoveExerciseFromWorkoutUseCase(),
@@ -399,6 +465,27 @@ final class WorkoutStore {
     private final class MockCreateWorkoutUseCase: CreateWorkoutUseCase {
         func execute(name: String, defaultRestTime: TimeInterval) async throws -> Workout {
             Workout(name: name, defaultRestTime: defaultRestTime)
+        }
+    }
+
+    private final class MockDeleteWorkoutUseCase: DeleteWorkoutUseCase {
+        func execute(workoutId: UUID) async throws {
+            // Mock: do nothing
+        }
+    }
+
+    private final class MockUpdateWorkoutUseCase: UpdateWorkoutUseCase {
+        func execute(workoutId: UUID, name: String?, defaultRestTime: TimeInterval?) async throws
+            -> Workout
+        {
+            var workout = Workout(name: "Mock Workout")
+            if let newName = name {
+                workout.name = newName
+            }
+            if let newRestTime = defaultRestTime {
+                workout.defaultRestTime = newRestTime
+            }
+            return workout
         }
     }
 

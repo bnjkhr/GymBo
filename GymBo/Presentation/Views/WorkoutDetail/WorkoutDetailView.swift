@@ -39,6 +39,8 @@ struct WorkoutDetailView: View {
     @State private var isFavorite: Bool = false
     @State private var showExercisePicker = false
     @State private var exerciseToEdit: WorkoutExercise?
+    @State private var showEditWorkout = false
+    @State private var showDeleteConfirmation = false
 
     // MARK: - Initialization
 
@@ -105,6 +107,25 @@ struct WorkoutDetailView: View {
                     }
                     .accessibilityLabel(
                         isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")
+
+                    // 3-Dot Menu
+                    Menu {
+                        Button {
+                            showEditWorkout = true
+                        } label: {
+                            Label("Bearbeiten", systemImage: "pencil")
+                        }
+
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Löschen", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(.primary)
+                    }
+                    .accessibilityLabel("Workout-Optionen")
                 }
             }
         }
@@ -137,6 +158,39 @@ struct WorkoutDetailView: View {
                     }
                 )
             }
+        }
+        .sheet(isPresented: $showEditWorkout) {
+            if let workout = workout, let store = workoutStore {
+                EditWorkoutView(
+                    workout: workout,
+                    onSave: { name, restTime in
+                        Task {
+                            await store.updateWorkout(
+                                workoutId: workout.id,
+                                name: name,
+                                defaultRestTime: restTime
+                            )
+                            // Reload workout data
+                            await loadData()
+                        }
+                    }
+                )
+                .environment(store)
+            }
+        }
+        .confirmationDialog(
+            "Workout löschen?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Löschen", role: .destructive) {
+                Task {
+                    await deleteWorkout()
+                }
+            }
+            Button("Abbrechen", role: .cancel) {}
+        } message: {
+            Text("Dieses Workout kann nicht wiederhergestellt werden.")
         }
         .successPill(
             isPresented: Binding(
@@ -399,6 +453,16 @@ struct WorkoutDetailView: View {
         if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
         }
+    }
+
+    /// Delete workout and navigate back
+    private func deleteWorkout() async {
+        guard let store = workoutStore else { return }
+
+        await store.deleteWorkout(workoutId: workoutId)
+
+        // Navigate back to home
+        dismiss()
     }
 
     /// Move exercises (drag & drop reordering)
