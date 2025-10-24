@@ -189,9 +189,12 @@ struct ActiveWorkoutSheetView: View {
                                 let setsSignature = exercise.sets.map { $0.id.uuidString }.joined(
                                     separator: ",")
 
+                                let isFirstCard = index == 0
+
                                 exerciseCardView(for: exercise, at: index, in: session)
                                     .id("\(exercise.id)-\(setsSignature)")
                                     .padding(.horizontal, 12)
+                                    .padding(.top, isFirstCard ? 12 : 0)
                             }
                         }
 
@@ -201,15 +204,9 @@ struct ActiveWorkoutSheetView: View {
                                 .padding(.horizontal, 12)
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(.bottom, 12)
                 }
                 .background(Color.black)
-                .clipShape(
-                    UnevenRoundedRectangle(
-                        topLeadingRadius: 39,
-                        topTrailingRadius: 39
-                    )
-                )
                 .animation(
                     .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
             }
