@@ -45,6 +45,7 @@ struct HomeViewPlaceholder: View {
                             .font(.title2)
                             .foregroundStyle(.primary)
                     }
+                    .buttonStyle(.plain)
                     .accessibilityLabel("Neues Workout erstellen")
                 }
                 .padding(.horizontal)
