@@ -7,7 +7,16 @@
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-24 - Session 10 - TABBAR AUTO-HIDE):**
+**Letzte Session (2025-10-24 - Session 11 - TEXTFIELD PERFORMANCE FIXES):**
+- ✅ Critical Performance Fixes
+  - TextField Performance: .scrollDismissesKeyboard(.interactively) in allen Views
+  - Keyboard Coverage Fix: .padding(.bottom, 100) + Toolbar "Fertig" Button
+  - Immediate UI Updates: .id() modifier auf ExerciseCard basierend auf Daten
+  - Behebt "Gesture gate timed out" und "Invalid frame dimension" Errors
+  - Butterweiche TextField-Performance in allen Input-Views
+  - UI aktualisiert sofort nach Speichern (keine App-Neustarts mehr nötig)
+
+**Session 10 (2025-10-24 - TABBAR AUTO-HIDE):**
 - ✅ TabBar Auto-Hide Feature
   - .tabBarMinimizeBehavior(.onScrollDown) in MainTabView
   - TabBar verschwindet automatisch beim Runterscrollen
