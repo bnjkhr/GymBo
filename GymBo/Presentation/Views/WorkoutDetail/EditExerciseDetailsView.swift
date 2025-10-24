@@ -77,93 +77,29 @@ struct EditExerciseDetailsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                // Exercise Name Section
-                Section {
-                    HStack {
-                        Image(systemName: "dumbbell.fill")
-                            .foregroundStyle(.orange)
-                        Text(exerciseName)
-                            .font(.headline)
-                    }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Exercise Name Header
+                    exerciseNameHeader
+
+                    // Sets Section
+                    setsSection
+
+                    // Reps or Time Section
+                    repsTimeSection
+
+                    // Weight Section
+                    weightSection
+
+                    // Rest Time Section
+                    restTimeSection
+
+                    // Notes Section
+                    notesSection
                 }
-
-                // Sets Section
-                Section("Sätze") {
-                    Stepper("Sätze: \(targetSets)", value: $targetSets, in: 1...10)
-                }
-
-                // Reps or Time Section
-                Section("Wiederholungen oder Zeit") {
-                    Toggle("Wiederholungen verwenden", isOn: $useReps)
-                        .onChange(of: useReps) { _, newValue in
-                            if newValue {
-                                useTime = false
-                            }
-                        }
-
-                    if useReps {
-                        Stepper("Wiederholungen: \(targetReps)", value: $targetReps, in: 1...50)
-                    }
-
-                    Toggle("Zeit verwenden", isOn: $useTime)
-                        .onChange(of: useTime) { _, newValue in
-                            if newValue {
-                                useReps = false
-                            }
-                        }
-
-                    if useTime {
-                        Picker("Zeit", selection: $targetTime) {
-                            Text("15 Sek").tag(15)
-                            Text("30 Sek").tag(30)
-                            Text("45 Sek").tag(45)
-                            Text("60 Sek").tag(60)
-                            Text("90 Sek").tag(90)
-                            Text("120 Sek").tag(120)
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                }
-
-                // Weight Section
-                Section("Gewicht") {
-                    Toggle("Gewicht verwenden", isOn: $useWeight)
-
-                    if useWeight {
-                        HStack {
-                            Text("Gewicht")
-                            Spacer()
-                            TextField("0", text: $targetWeight)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(maxWidth: 100)
-                                .focused($isWeightFieldFocused)
-                            Text("kg")
-                        }
-                    }
-                }
-
-                // Rest Time Section
-                Section("Pause zwischen Sätzen") {
-                    Picker("Pause", selection: $restTime) {
-                        Text("30 Sek").tag(30)
-                        Text("45 Sek").tag(45)
-                        Text("60 Sek").tag(60)
-                        Text("90 Sek").tag(90)
-                        Text("120 Sek").tag(120)
-                        Text("180 Sek").tag(180)
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                // Notes Section
-                Section("Notizen") {
-                    TextEditor(text: $notes)
-                        .frame(minHeight: 80)
-                        .focused($isNotesFieldFocused)
-                }
+                .padding()
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Übung bearbeiten")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -189,6 +125,308 @@ struct EditExerciseDetailsView: View {
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Subviews (Modern iOS 26 Design)
+
+    private var exerciseNameHeader: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "dumbbell.fill")
+                .font(.title2)
+                .foregroundStyle(.primary)
+
+            Text(exerciseName)
+                .font(.title3)
+                .fontWeight(.semibold)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(12)
+    }
+
+    private var setsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Sätze")
+
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Anzahl")
+                        .font(.body)
+
+                    Spacer()
+
+                    Button {
+                        if targetSets > 1 {
+                            targetSets -= 1
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }
+                    } label: {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(targetSets > 1 ? .primary : .secondary)
+                    }
+                    .disabled(targetSets <= 1)
+
+                    Text("\(targetSets)")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .monospacedDigit()
+                        .frame(minWidth: 40)
+
+                    Button {
+                        if targetSets < 10 {
+                            targetSets += 1
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(targetSets < 10 ? .primary : .secondary)
+                    }
+                    .disabled(targetSets >= 10)
+                }
+                .padding()
+            }
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(12)
+        }
+    }
+
+    private var repsTimeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Wiederholungen oder Zeit")
+
+            VStack(spacing: 8) {
+                // Reps Toggle
+                toggleCard(
+                    title: "Wiederholungen",
+                    isOn: $useReps,
+                    onChange: { newValue in
+                        if newValue { useTime = false }
+                    }
+                )
+
+                // Reps Stepper
+                if useReps {
+                    HStack {
+                        Text("Wiederholungen")
+                            .font(.body)
+
+                        Spacer()
+
+                        Button {
+                            if targetReps > 1 {
+                                targetReps -= 1
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(targetReps > 1 ? .primary : .secondary)
+                        }
+                        .disabled(targetReps <= 1)
+
+                        Text("\(targetReps)")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .monospacedDigit()
+                            .frame(minWidth: 40)
+
+                        Button {
+                            if targetReps < 50 {
+                                targetReps += 1
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(targetReps < 50 ? .primary : .secondary)
+                        }
+                        .disabled(targetReps >= 50)
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
+                }
+
+                // Time Toggle
+                toggleCard(
+                    title: "Zeit verwenden",
+                    isOn: $useTime,
+                    onChange: { newValue in
+                        if newValue { useReps = false }
+                    }
+                )
+
+                // Time Picker
+                if useTime {
+                    VStack(spacing: 8) {
+                        ForEach([15, 30, 45, 60, 90, 120], id: \.self) { seconds in
+                            timeOptionButton(seconds: seconds)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var weightSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Gewicht")
+
+            VStack(spacing: 8) {
+                toggleCard(
+                    title: "Gewicht verwenden",
+                    isOn: $useWeight,
+                    onChange: { _ in }
+                )
+
+                if useWeight {
+                    HStack {
+                        Text("Gewicht")
+                            .font(.body)
+
+                        Spacer()
+
+                        TextField("0", text: $targetWeight)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .monospacedDigit()
+                            .frame(maxWidth: 100)
+                            .focused($isWeightFieldFocused)
+
+                        Text("kg")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
+                }
+            }
+        }
+    }
+
+    private var restTimeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Pause zwischen Sätzen")
+
+            VStack(spacing: 8) {
+                ForEach([30, 45, 60, 90, 120, 180], id: \.self) { seconds in
+                    restTimeOptionButton(seconds: seconds)
+                }
+            }
+        }
+    }
+
+    private var notesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Notizen")
+
+            TextEditor(text: $notes)
+                .frame(minHeight: 100)
+                .padding(8)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+                .focused($isNotesFieldFocused)
+        }
+    }
+
+    // MARK: - Helper Views
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.subheadline)
+            .fontWeight(.semibold)
+            .foregroundColor(.secondary)
+            .textCase(.uppercase)
+    }
+
+    private func toggleCard(title: String, isOn: Binding<Bool>, onChange: @escaping (Bool) -> Void)
+        -> some View
+    {
+        Button {
+            isOn.wrappedValue.toggle()
+            onChange(isOn.wrappedValue)
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } label: {
+            HStack {
+                Text(title)
+                    .font(.body)
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                if isOn.wrappedValue {
+                    Image(systemName: "checkmark")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                }
+            }
+            .padding()
+            .background(
+                isOn.wrappedValue
+                    ? Color.primary.opacity(0.1) : Color(.secondarySystemGroupedBackground)
+            )
+            .cornerRadius(12)
+        }
+    }
+
+    private func timeOptionButton(seconds: Int) -> some View {
+        Button {
+            targetTime = seconds
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } label: {
+            HStack {
+                Text("\(seconds) Sekunden")
+                    .font(.body)
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                if targetTime == seconds {
+                    Image(systemName: "checkmark")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                }
+            }
+            .padding()
+            .background(
+                targetTime == seconds
+                    ? Color.primary.opacity(0.1) : Color(.secondarySystemGroupedBackground)
+            )
+            .cornerRadius(12)
+        }
+    }
+
+    private func restTimeOptionButton(seconds: Int) -> some View {
+        Button {
+            restTime = seconds
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } label: {
+            HStack {
+                Text("\(seconds) Sekunden")
+                    .font(.body)
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                if restTime == seconds {
+                    Image(systemName: "checkmark")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                }
+            }
+            .padding()
+            .background(
+                restTime == seconds
+                    ? Color.primary.opacity(0.1) : Color(.secondarySystemGroupedBackground)
+            )
+            .cornerRadius(12)
         }
     }
 
