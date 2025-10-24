@@ -399,7 +399,9 @@ ToolbarItemGroup(placement: .keyboard) {
 
 ## 🎯 Session 6 Summary
 
-**Main Focus:** UI Redesign - Modern Dark Theme
+**Main Focus:** UI Redesign + Performance Optimization
+
+### **Part 1: Modern Dark Theme Redesign**
 
 **Achievements:**
 1. ✅ Komplettes UI Redesign zu modernem Dark Theme
@@ -411,8 +413,8 @@ ToolbarItemGroup(placement: .keyboard) {
 7. ✅ Graue Buttons statt blau (einheitliches Design)
 8. ✅ Timer Section bis zum oberen Rand
 9. ✅ Skip-Button als Icon (forward.fill)
-10. ✅ Checkmark-Icon für Show/Hide Completed
-11. ✅ Reorder nur noch in Card-Footer
+10. ✅ Memories-Icon für Show/Hide Completed
+11. ✅ Reorder nur noch in Card-Footer (arrow.up.arrow.down.circle)
 12. ✅ 24pt Padding für bessere Lesbarkeit
 13. ✅ Subtiles Notizen-Field ohne Hintergrund
 
@@ -423,18 +425,118 @@ ToolbarItemGroup(placement: .keyboard) {
 - **Spacing**: Mehr Luft zwischen Elementen
 - **Contrast**: Schwarz/Weiß für optimale Lesbarkeit
 
-**Files Modified:**
+### **Part 2: Performance Optimization**
+
+**Problem 1: Mark All Complete Delay (1-2 Sekunden)**
+
+**Root Cause:** SwiftUI Animationen verlangsamten UI-Updates
+- Database operations waren sehr schnell (~0.013s)
+- `.animation()` und `.transition()` Modifiers verursachten Verzögerung
+
+**Solution:**
+```swift
+// REMOVED:
+.animation(.timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
+.transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .bottom)), 
+                       removal: .opacity.combined(with: .move(edge: .top))))
+```
+
+**Result:** ⚡ Instant UI updates beim Markieren von Übungen als abgeschlossen
+
+**Problem 2: View-Flash nach Workout-Abschluss**
+
+**Root Cause:** 
+- ActiveWorkoutSheetView zeigte kurz `noSessionView` zwischen Summary und HomeView
+- WorkoutSummaryView wurde als Sheet ÜBER ActiveWorkoutSheetView angezeigt
+- Beim Schließen der Summary sah man kurz die leere View dahinter
+
+**Solution - New Architecture:**
+
+1. **SessionStore**: Neue `completedSession` Property
+```swift
+var completedSession: DomainWorkoutSession?
+
+func endSession() async {
+    // Save to completedSession for summary
+    completedSession = finishedSession
+    // Clear active session immediately
+    currentSession = nil
+}
+```
+
+2. **ActiveWorkoutSheetView**: Auto-Dismiss
+```swift
+if let session = sessionStore.currentSession {
+    // Show workout UI
+} else {
+    // No session - dismiss immediately
+    Color.clear.onAppear { dismiss() }
+}
+```
+
+3. **HomeView**: Summary Sheet Management
+```swift
+.sheet(isPresented: $showWorkoutSummary) {
+    if let session = sessionStore.completedSession {
+        WorkoutSummaryView(session: session) { ... }
+    }
+}
+.onChange(of: sessionStore.completedSession) { _, newValue in
+    showWorkoutSummary = (newValue != nil)
+}
+```
+
+**Result:** 🎯 Nahtloser Übergang ohne Flash: Beenden → Dismiss → Summary → HomeView
+
+### **Bug Fixes**
+
+**Mark All Complete Button:**
+- Problem: Button funktionierte nur bei erster Übung
+- Ursache: `@ViewBuilder` nicht verwendet, Callback-Identität ging verloren
+- Fix: `@ViewBuilder` mit expliziten Closures, `.buttonStyle(.plain)`
+
+**isFinished Reset:**
+- Problem: Nach Finish → Add Set → Complete Last Set wurde Übung nicht ausgeblendet
+- Fix: `AddSetUseCase` setzt jetzt `isFinished = false`
+
+**Notification Icons:**
+- Problem: Zwei verwirrende Checkmark-Icons (Show/Hide und Mark Complete)
+- Fix: Show/Hide Icon geändert zu `memories` SF Symbol
+
+**Workout Complete Message:**
+- Problem: Leere View nach dem Abschließen aller Übungen
+- Fix: `allExercisesFinished()` Funktion, prüft `isFinished` Flag
+
+### **Files Modified:**
+- `Presentation/Stores/SessionStore.swift`
+- `Presentation/Views/Home/HomeViewPlaceholder.swift`
 - `Presentation/Views/ActiveWorkout/ActiveWorkoutSheetView.swift`
 - `Presentation/Views/ActiveWorkout/Components/CompactExerciseCard.swift`
 - `Presentation/Views/ActiveWorkout/Components/CompactSetRow.swift`
 - `Presentation/Views/ActiveWorkout/Components/TimerSection.swift`
+- `Domain/UseCases/Session/FinishExerciseUseCase.swift`
+- `Domain/UseCases/Session/AddSetUseCase.swift`
 
-**Git Branch:**
-- Branch: `feature/redesign-exercise-card`
-- Commits: 11
-- Status: Ready to merge to main
+### **Performance Metrics:**
 
-**Lines of Code Changed:** ~200+
+**Before:**
+- Mark Complete: 1-2 seconds delay ❌
+- View transitions: Flash visible ❌
+
+**After:**
+- Mark Complete: Instant (~0.013s DB + 0s animation) ✅
+- View transitions: Seamless, no flash ✅
+
+### **Git Commits (Session 6):**
+1. Feature branch created: `feature/redesign-exercise-card`
+2. UI redesign commits: ~11 commits
+3. Merged to main
+4. Performance fixes: 3 commits
+   - `f8d66a8` - Remove animations for instant completion
+   - `af8bf33` - Eliminate flash on workout completion
+   - `fc3aa82` - Remove undefined variables
+
+**Total Lines Changed:** ~300+
 
 ---
 

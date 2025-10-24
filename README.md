@@ -71,7 +71,7 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
 
 ## 🎉 Recent Updates (Session 6 - 2025-10-24)
 
-### Modern Dark UI Redesign ✅
+### Part 1: Modern Dark UI Redesign ✅
 - **Black Background Theme**: Seamless black background from timer to cards
 - **White Exercise Cards**: 39pt corner radius (iPhone Display Radius)
 - **Optimized Checkboxes**: Square, inverted (black fill with white checkmark)
@@ -80,6 +80,31 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
 - **Improved Typography**: 24pt exercise names for better readability
 - **Better Spacing**: 24pt padding for breathing room
 - **Subtle Notizen Field**: No background, minimal distraction
+- **SF Symbols Updated**: 
+  - Show/Hide: `memories` icon (eliminates confusion with mark complete)
+  - Reorder: `arrow.up.arrow.down.circle`
+  - Skip: `forward.fill`
+
+### Part 2: Performance Optimization ✅
+- **Instant Exercise Completion**: Removed SwiftUI animations causing 1-2s delay
+  - Database operations: ~0.013s (already fast!)
+  - UI updates: Now instant (0s animation overhead)
+- **Seamless View Transitions**: Eliminated flash when finishing workout
+  - New architecture: `SessionStore.completedSession` property
+  - ActiveWorkoutSheetView auto-dismisses when session ends
+  - HomeView shows WorkoutSummaryView sheet
+  - Result: Beenden → Dismiss → Summary → HomeView (no flash!)
+
+### Bug Fixes ✅
+- **Mark All Complete**: Now works on all exercises (not just first)
+  - Fix: Added `@ViewBuilder` with explicit closures
+- **isFinished Reset**: Adding sets after finish now properly resets state
+  - Fix: `AddSetUseCase` sets `isFinished = false`
+- **Workout Complete Message**: No more empty view after finishing all exercises
+  - Fix: Added `allExercisesFinished()` helper function
+- **Notification Pills**: Now appear when finishing exercises
+  - "Nächste Übung" → More exercises remaining
+  - "Workout done! 💪🏼" → All exercises finished
 
 ### Previous Updates (Session 5)
 
@@ -100,7 +125,7 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
 - **SessionMapper**: Correctly updates orderIndex during reordering
 - **All mappers**: Avoid entity recreation (performance + stability)
 
-**Branch:** `feature/redesign-exercise-card` (ready to merge)
+**Status:** Merged to main ✅
 
 ---
 
