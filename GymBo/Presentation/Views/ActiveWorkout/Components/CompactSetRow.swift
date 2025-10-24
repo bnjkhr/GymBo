@@ -69,6 +69,7 @@ struct CompactSetRow: View {
             Spacer()
 
             // Checkbox (Square - inverted when checked: black fill with white checkmark)
+            // iOS HIG: Minimum touch target 44x44pt
             Button {
                 onToggle()
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -76,20 +77,22 @@ struct CompactSetRow: View {
                 ZStack {
                     if set.completed {
                         // Completed: Black filled square with white checkmark
-                        RoundedRectangle(cornerRadius: 4)
+                        RoundedRectangle(cornerRadius: 5)
                             .fill(Color.black)
-                            .frame(width: 24, height: 24)
+                            .frame(width: 28, height: 28)
 
                         Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(.white)
                     } else {
                         // Not completed: Gray stroke
-                        RoundedRectangle(cornerRadius: 4)
+                        RoundedRectangle(cornerRadius: 5)
                             .stroke(Color.gray.opacity(0.3), lineWidth: 2)
-                            .frame(width: 24, height: 24)
+                            .frame(width: 28, height: 28)
                     }
                 }
+                .frame(width: 44, height: 44)  // iOS HIG minimum touch target
+                .contentShape(Rectangle())  // Expand touch area
             }
             .buttonStyle(.plain)
         }
