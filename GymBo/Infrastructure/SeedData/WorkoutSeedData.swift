@@ -75,7 +75,8 @@ struct WorkoutSeedData {
             notes: "Anfängerfreundliches Ganzkörpertraining an Maschinen",
             isFavorite: true,
             isSampleWorkout: true,
-            difficultyLevel: "Anfänger"
+            difficultyLevel: "Anfänger",
+            equipmentType: "Maschine"
         )
 
         var order = 0
@@ -172,7 +173,8 @@ struct WorkoutSeedData {
             notes: "Intensives Oberkörpertraining an Maschinen",
             isFavorite: false,
             isSampleWorkout: true,
-            difficultyLevel: "Fortgeschritten"
+            difficultyLevel: "Fortgeschritten",
+            equipmentType: "Maschine"
         )
 
         order = 0
@@ -282,7 +284,8 @@ struct WorkoutSeedData {
             notes: "Brust, Schultern und Trizeps mit freien Gewichten",
             isFavorite: true,
             isSampleWorkout: true,
-            difficultyLevel: "Fortgeschritten"
+            difficultyLevel: "Fortgeschritten",
+            equipmentType: "Freie Gewichte"
         )
 
         order = 0
@@ -366,7 +369,8 @@ struct WorkoutSeedData {
             notes: "Rücken und Bizeps mit freien Gewichten",
             isFavorite: false,
             isSampleWorkout: true,
-            difficultyLevel: "Fortgeschritten"
+            difficultyLevel: "Fortgeschritten",
+            equipmentType: "Freie Gewichte"
         )
 
         order = 0
@@ -463,7 +467,8 @@ struct WorkoutSeedData {
             notes: "Komplettes Beintraining für Fortgeschrittene",
             isFavorite: true,
             isSampleWorkout: true,
-            difficultyLevel: "Profi"
+            difficultyLevel: "Profi",
+            equipmentType: "Gemischt"
         )
 
         order = 0
@@ -573,7 +578,8 @@ struct WorkoutSeedData {
             notes: "Kombination aus freien Gewichten und Maschinen",
             isFavorite: false,
             isSampleWorkout: true,
-            difficultyLevel: "Fortgeschritten"
+            difficultyLevel: "Fortgeschritten",
+            equipmentType: "Gemischt"
         )
 
         order = 0

@@ -379,20 +379,23 @@ private struct WorkoutCard: View {
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 12) {
-                // Header: Icon + Title + Favorite
+                // Header: Title + Favorite
                 HStack(spacing: 12) {
-                    // Icon
-                    Image(systemName: "dumbbell.fill")
-                        .font(.title3)
-                        .foregroundColor(.primary)
-                        .frame(width: 32, height: 32)
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Title
+                        Text(workout.name)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
 
-                    // Title
-                    Text(workout.name)
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
+                        // Equipment Type
+                        if let equipmentType = workout.equipmentType {
+                            Text(equipmentType)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
 
                     Spacer()
 

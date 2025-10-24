@@ -7,7 +7,18 @@
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-24 - Session 13 - SAMPLE WORKOUTS + DIFFICULTY LEVELS):**
+**Letzte Session (2025-10-24 - Session 14 - EQUIPMENT TYPE LABELS):**
+- ✅ Equipment Type Labels in HomeView
+  - Added `equipmentType: String?` property to WorkoutEntity & Domain Workout
+  - 3 Types: "Maschine", "Freie Gewichte", "Gemischt"
+  - Displayed below workout name in gray color (`.secondary`)
+  - Removed barbell icon from workout cards for cleaner look
+  - Updated all 6 sample workouts with correct equipment types
+- ✅ WorkoutMapper updated for bidirectional equipmentType mapping
+- ✅ WorkoutSeedData updated with equipment types for all workouts
+- ✅ HomeView WorkoutCard redesigned with VStack layout (name + equipment type)
+
+**Session 13 (2025-10-24 - SAMPLE WORKOUTS + DIFFICULTY LEVELS):**
 - ✅ 6 Comprehensive Sample Workouts
   - **2x Maschinen:** "Ganzkörper Maschine" (Anfänger), "Oberkörper Maschine" (Fortgeschritten)
   - **2x Freie Gewichte:** "Push Day (Langhantel)" (Fortgeschritten), "Pull Day (Langhantel & Kurzhantel)" (Fortgeschritten)

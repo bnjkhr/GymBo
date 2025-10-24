@@ -36,6 +36,92 @@
 
 ---
 
+## ✅ Session 2025-10-24 (Session 14) - Equipment Type Labels
+
+### Equipment Type Labels in HomeView
+**Status:** ✅ Komplett implementiert, BUILD SUCCEEDED
+
+**User Request:**
+- Equipment type ("Maschine", "Freie Gewichte", "Gemischt") unter Workout-Namen anzeigen
+- Barbell Icon vor dem Namen entfernen
+- In grau anzeigen
+
+**Implementation:**
+
+**1. Schema Changes:**
+```swift
+// SwiftDataEntities.swift - WorkoutEntity
+var equipmentType: String?  // "Maschine", "Freie Gewichte", "Gemischt"
+
+// Domain/Entities/Workout.swift
+var equipmentType: String?  // "Maschine", "Freie Gewichte", "Gemischt"
+```
+
+**2. WorkoutMapper Updates:**
+- `toEntity()`: Maps equipmentType to SwiftData
+- `toDomain()`: Maps equipmentType from SwiftData
+- `updateEntity()`: Updates equipmentType on in-place updates
+- Backwards compatible: nil für alte Workouts
+
+**3. HomeView WorkoutCard Redesign:**
+
+**Before:**
+```swift
+HStack(spacing: 12) {
+    Image(systemName: "dumbbell.fill")  // ← Removed
+    Text(workout.name)
+    Spacer()
+    if workout.isFavorite { ... }
+}
+```
+
+**After:**
+```swift
+HStack(spacing: 12) {
+    VStack(alignment: .leading, spacing: 4) {
+        // Title
+        Text(workout.name)
+            .font(.title3)
+            .fontWeight(.semibold)
+            .foregroundColor(.primary)
+            .lineLimit(1)
+        
+        // Equipment Type (NEW)
+        if let equipmentType = workout.equipmentType {
+            Text(equipmentType)
+                .font(.subheadline)
+                .foregroundColor(.secondary)  // Gray color
+        }
+    }
+    Spacer()
+    if workout.isFavorite { ... }
+}
+```
+
+**4. WorkoutSeedData Updates:**
+- All 6 workouts now have `equipmentType` set:
+  - "Ganzkörper Maschine" → "Maschine"
+  - "Oberkörper Maschine" → "Maschine"
+  - "Push Day (Langhantel)" → "Freie Gewichte"
+  - "Pull Day (Langhantel & Kurzhantel)" → "Freie Gewichte"
+  - "Beine Push/Pull" → "Gemischt"
+  - "Oberkörper Hybrid" → "Gemischt"
+
+**Modified Files:**
+- `SwiftDataEntities.swift` - equipmentType property in WorkoutEntity
+- `Domain/Entities/Workout.swift` - equipmentType property
+- `Data/Mappers/WorkoutMapper.swift` - equipmentType mapping
+- `Presentation/Views/Home/HomeViewPlaceholder.swift` - WorkoutCard UI redesign
+- `Infrastructure/SeedData/WorkoutSeedData.swift` - Equipment types for all 6 workouts
+
+**Build Status:** ✅ BUILD SUCCEEDED
+**UI Improvements:** 
+- Cleaner look without icon
+- More informative (equipment type immediately visible)
+- Better vertical space usage
+
+---
+
 ## ✅ Session 2025-10-24 (Session 13) - Sample Workouts + Difficulty Levels
 
 ### 6 Comprehensive Sample Workouts
@@ -838,16 +924,16 @@ final class WorkoutStore {
 
 ---
 
-**Zuletzt bearbeitet:** 2025-10-24 (Session 13 - Sample Workouts + Difficulty Levels)
-**Session-Dauer:** ~2 Stunden
+**Zuletzt bearbeitet:** 2025-10-24 (Session 14 - Equipment Type Labels)
+**Session-Dauer:** ~30 Minuten
 **Features:** 
-- 6 Comprehensive Sample Workouts (2x Machines, 2x Free Weights, 2x Mixed)
-- Difficulty Level System (Anfänger, Fortgeschritten, Profi)
-- HomeView Difficulty Badges (colored pills mit Icons)
-**Schema Changes:** difficultyLevel property in WorkoutEntity + Domain Workout
+- Equipment Type Labels in HomeView (Maschine, Freie Gewichte, Gemischt)
+- Removed barbell icon from workout cards
+- Cleaner card design with VStack layout
+**Schema Changes:** equipmentType property in WorkoutEntity + Domain Workout
 **Modified Files:** 5 Files (SwiftDataEntities, Workout, WorkoutMapper, HomeViewPlaceholder, WorkoutSeedData)
-**Design:** Green/Orange/Red badges mit leaf/flame/bolt icons
-**Sample Workouts:** Production-ready mit realistic weights & rest times
+**Design:** Equipment type in gray below workout name (subtle, informative)
+**UI Improvement:** More informative cards, cleaner look, better vertical space usage
 **Dokumentation:** CURRENT_STATE.md, SESSION_MEMORY.md aktualisiert
 **Build Status:** ✅ BUILD SUCCEEDED
-**Testing:** ✅ All workouts seeded successfully, badges display correctly
+**Testing:** ✅ All 6 workouts display equipment types correctly

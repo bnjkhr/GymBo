@@ -46,7 +46,8 @@ struct WorkoutMapper {
             notes: domain.notes ?? "",
             isFavorite: domain.isFavorite,
             isSampleWorkout: nil,
-            difficultyLevel: domain.difficultyLevel
+            difficultyLevel: domain.difficultyLevel,
+            equipmentType: domain.equipmentType
         )
 
         // Map exercises
@@ -77,7 +78,8 @@ struct WorkoutMapper {
             createdAt: entity.date,
             updatedAt: entity.date,
             isFavorite: entity.isFavorite,
-            difficultyLevel: entity.difficultyLevel
+            difficultyLevel: entity.difficultyLevel,
+            equipmentType: entity.equipmentType
         )
     }
 
@@ -91,6 +93,7 @@ struct WorkoutMapper {
         entity.notes = domain.notes ?? ""
         entity.isFavorite = domain.isFavorite
         entity.difficultyLevel = domain.difficultyLevel
+        entity.equipmentType = domain.equipmentType
         entity.date = domain.updatedAt
 
         // Update exercises IN-PLACE to preserve SwiftData relationships

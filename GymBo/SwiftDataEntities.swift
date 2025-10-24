@@ -158,6 +158,7 @@ final class WorkoutEntity {
     var isFavorite: Bool
     var isSampleWorkout: Bool?  // Markiert Beispiel-Workouts für versioniertes Update (nil = alte Workouts)
     var difficultyLevel: String?  // "Anfänger", "Fortgeschritten", "Profi" (nil for backwards compatibility)
+    var equipmentType: String?  // "Maschine", "Freie Gewichte", "Gemischt" (nil for backwards compatibility)
 
     // Performance: Cached exercise count to avoid loading relationship
     var exerciseCount: Int = 0
@@ -177,6 +178,7 @@ final class WorkoutEntity {
         isFavorite: Bool = false,
         isSampleWorkout: Bool? = nil,
         difficultyLevel: String? = nil,
+        equipmentType: String? = nil,
         folder: WorkoutFolderEntity? = nil,
         orderInFolder: Int = 0
     ) {
@@ -190,6 +192,7 @@ final class WorkoutEntity {
         self.isFavorite = isFavorite
         self.isSampleWorkout = isSampleWorkout
         self.difficultyLevel = difficultyLevel
+        self.equipmentType = equipmentType
         self.exerciseCount = exercises.count
         self.folder = folder
         self.orderInFolder = orderInFolder
