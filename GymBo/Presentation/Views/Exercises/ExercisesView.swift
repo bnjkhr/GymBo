@@ -312,38 +312,29 @@ private struct ExerciseCard: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
-                // Exercise Info (Left)
-                VStack(alignment: .leading, spacing: 6) {
-                    // Exercise Name
+                // Exercise Info (Left) - 3 lines
+                VStack(alignment: .leading, spacing: 4) {
+                    // Line 1: Exercise Name
                     Text(exercise.name)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
                         .lineLimit(1)
 
-                    // Equipment Type + Muscle Groups
-                    HStack(spacing: 8) {
-                        // Equipment Type (gray text)
-                        if !exercise.equipmentTypeRaw.isEmpty {
-                            Text(exercise.equipmentTypeRaw)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                    // Line 2: Equipment Type
+                    if !exercise.equipmentTypeRaw.isEmpty {
+                        Text(exercise.equipmentTypeRaw)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
 
-                        // Separator
-                        if !exercise.equipmentTypeRaw.isEmpty && !exercise.muscleGroupsRaw.isEmpty {
-                            Text("•")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        // Muscle Groups
-                        if !exercise.muscleGroupsRaw.isEmpty {
-                            Text(exercise.muscleGroupsRaw.prefix(2).joined(separator: ", "))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
+                    // Line 3: Muscle Groups (comma-separated, no wrap)
+                    if !exercise.muscleGroupsRaw.isEmpty {
+                        Text(exercise.muscleGroupsRaw.joined(separator: ", "))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
                     }
                 }
 
