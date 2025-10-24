@@ -140,6 +140,26 @@ final class SwiftDataSessionRepository: SessionRepositoryProtocol {
         }
     }
 
+    func fetchCompletedSessions(from startDate: Date, to endDate: Date) async throws
+        -> [DomainWorkoutSession]
+    {
+        do {
+            let descriptor = FetchDescriptor<WorkoutSessionEntity>(
+                predicate: #Predicate { session in
+                    session.state == "completed"
+                        && session.startDate >= startDate
+                        && session.startDate <= endDate
+                },
+                sortBy: [SortDescriptor(\.startDate, order: .reverse)]
+            )
+
+            let entities = try modelContext.fetch(descriptor)
+            return mapper.toDomain(entities)
+        } catch {
+            throw RepositoryError.fetchFailed(error)
+        }
+    }
+
     // MARK: - Delete
 
     func delete(id: UUID) async throws {

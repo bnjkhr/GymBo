@@ -208,17 +208,149 @@ struct WorkoutSeedData {
         testWorkout.exerciseCount = testWorkout.exercises.count
         workouts.append(testWorkout)
 
+        // 5. Ganzkörper Maschine
+        let fullBodyMachine = WorkoutEntity(
+            name: "Ganzkörper Maschine",
+            date: Date(),
+            exercises: [],
+            defaultRestTime: 90,
+            notes: "Anfängerfreundliches Ganzkörpertraining an Maschinen",
+            isFavorite: false
+        )
+
+        var order = 0
+
+        // 1. Beinpresse: 3x8
+        if let exercise = exercises["Beinpresse"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 8, weight: 0),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // 2. Brustpresse: 3x8
+        if let exercise = exercises["Brustpresse-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 8, weight: 0),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // 3. Latzug: 3x8
+        if let exercise = exercises["Latzug"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 8, weight: 0),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // 4. Schulterpresse: 3x8
+        if let exercise = exercises["Schulterpresse-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 8, weight: 0),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // 5. Beinbeuger: 3x8
+        if let exercise = exercises["Beinbeuger"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 8, weight: 0),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // 6. Rudermaschine: 3x8
+        if let exercise = exercises["Sitzendes Kabelrudern"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 8, weight: 0),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // 7. Beinstrecker: 3x8 (falls vorhanden - ansonsten überspringen)
+        if let exercise = exercises["Beinstrecker"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 8, weight: 0),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // 8. Trizepsmaschine: 3x8
+        if let exercise = exercises["Trizepsstrecker-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 8, weight: 0),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // 9. Bauchmaschine: 3x12 (60s Rest)
+        if let exercise = exercises["Bauchmuskel-Crunch-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 0, restTime: 60),
+                workout: fullBodyMachine,
+                order: order
+            )
+            fullBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        fullBodyMachine.exerciseCount = fullBodyMachine.exercises.count
+        workouts.append(fullBodyMachine)
+
         return workouts
     }
 
-    private static func createSets(count: Int, reps: Int, weight: Double) -> [ExerciseSetEntity] {
+    private static func createSets(count: Int, reps: Int, weight: Double, restTime: TimeInterval = 90) -> [ExerciseSetEntity] {
         var sets: [ExerciseSetEntity] = []
 
         for _ in 0..<count {
             let set = ExerciseSetEntity(
                 reps: reps,
                 weight: weight,
-                restTime: 90,
+                restTime: restTime,
                 completed: false
             )
             sets.append(set)

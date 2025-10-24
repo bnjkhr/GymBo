@@ -1,8 +1,8 @@
 # GymBo V2 - Dokumentation
 
-**Stand:** 2025-10-22  
-**Version:** 2.0.0-alpha  
-**Status:** ✅ MVP funktionsfähig
+**Stand:** 2025-10-24
+**Version:** 2.1.0
+**Status:** ✅ MVP COMPLETE - Production Ready
 
 ---
 
@@ -44,23 +44,75 @@
 
 ## 📊 Projekt-Status
 
-### ✅ Fertig (Funktioniert)
-- Clean Architecture Foundation (4 Layers)
-- Session Management (Start, Complete Set, End)
-- Active Workout UI (ScrollView Design)
-- Rest Timer (conditional, 90s Countdown)
-- SwiftData Persistence
-- Session Restoration
+### ✅ KOMPLETT FERTIG (Production Ready)
 
-### 🔴 Kritisch (Nächste Steps)
-- Exercise Names (aktuell "Übung 1")
-- Workout Repository (aktuell Test-Daten)
-- Session History
+**Workout Management:**
+
+- ✅ Create/Edit/Delete Workouts
+- ✅ Toggle Favorite (Stern-Icon)
+- ✅ Workout List mit Favoriten-Sektion
+- ✅ Pull-to-refresh
+- ✅ WorkoutStore mit allen Use Cases
+
+**Exercise Library:**
+
+- ✅ 145+ Übungen aus CSV (ExerciseSeedData)
+- ✅ Search Funktion
+- ✅ Filter nach Muskelgruppe & Equipment
+- ✅ ExerciseDetailView mit Instructions
+- ✅ Modern Card Design
+
+**Workout Detail & Exercise Management:**
+
+- ✅ Add Multiple Exercises (Multi-Select Picker)
+- ✅ Edit Exercise Details (Sets, Reps, Time, Weight, Rest, Notes)
+- ✅ Remove Exercise (Context Menu)
+- ✅ Reorder Exercises (Drag & Drop mit permanent save)
+- ✅ Exercise Names werden angezeigt (aus Repository!)
+- ✅ Equipment Icons werden angezeigt
+
+**Active Workout Session:**
+
+- ✅ Start/End/Cancel Session
+- ✅ Complete/Uncomplete Sets (Toggle)
+- ✅ Add/Remove Sets dynamisch
+- ✅ Update Set Weight/Reps
+- ✅ Update All Sets in bulk
+- ✅ Exercise Notes inline editing
+- ✅ Auto-Finish Exercise
+- ✅ Reorder Exercises (session-only oder permanent)
+- ✅ Rest Timer (90s mit ±15s adjust)
+- ✅ Show/Hide completed exercises
+- ✅ Exercise Counter (2/7)
+- ✅ Session Persistence & Restoration
+
+**UI/UX:**
+
+- ✅ Modern Dark Theme (schwarz + weiße Cards)
+- ✅ 39pt Corner Radius (iPhone display radius)
+- ✅ Inverted Checkboxes
+- ✅ Haptic Feedback
+- ✅ Success Pills (auto-dismiss 3s)
+- ✅ Profile Button (HomeView rechts oben)
+- ✅ iOS 26 Modern Card Design
+
+**Architecture:**
+
+- ✅ Clean Architecture (4 Layers)
+- ✅ 17 Use Cases (Domain Layer)
+- ✅ 3 Repositories + Mappers (Data Layer)
+- ✅ 2 Stores @Observable (Presentation)
+- ✅ DI Container (Infrastructure)
+- ✅ SwiftData Migration Plan
 
 ### 🟡 Nice-to-Have (Später)
+
+- Session History View
 - Statistics & Charts
-- Workout Builder
-- Profile & Settings
+- Localization Support
+- Exercise Swap Feature (long-press → suggest alternatives)
+- Profile Page (Button ist da, View noch Placeholder)
+- HomeView Redesign (Begrüßung, Calendar-Strip, Sprintnummer)
 
 ---
 
@@ -190,5 +242,5 @@ Presentation/
 
 ---
 
-**Letzte Aktualisierung:** 2025-10-22 22:40  
+**Letzte Aktualisierung:** 2025-10-24 (Session 8+)
 **Maintainer:** Ben Kohler

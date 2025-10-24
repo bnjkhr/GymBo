@@ -316,7 +316,7 @@ struct ActiveWorkoutSheetView: View {
         } label: {
             Image(systemName: "memories")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(showAllExercises ? .orange : .secondary)  // Orange when active, gray when inactive
         }
         .accessibilityLabel(
             showAllExercises ? "Verstecke abgeschlossene Übungen" : "Zeige alle Übungen")

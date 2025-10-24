@@ -1,29 +1,85 @@
 # GymBo V2 - TODO Liste
 
-**Stand:** 2025-10-23  
-**Current Phase:** MVP COMPLETE - Testing & Migration Preparation  
-**Next Phase:** SwiftData Migration Support (CRITICAL!)  
-**Letzte Änderungen:** Session 6 complete, Migration Strategy dokumentiert
+**Stand:** 2025-10-24
+**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented
+**Next Phase:** Nice-to-Have Features & Polish
+**Letzte Änderungen:** Session 8+ complete, Dokumentation aktualisiert
 
 ---
 
-## 🔴 CRITICAL - Production Blockers
+## ✅ MVP COMPLETE - Alle Core Features Implementiert!
 
-### SwiftData Migration Support (MUST DO before Production!)
-**Priority:** 🔴 CRITICAL  
-**Status:** ❌ Not Implemented  
-**Effort:** 4-6 hours  
-**Risk:** HIGH - Schema changes führen zu Datenverlust!
+### Was ist FERTIG (Production Ready):
 
-**Tasks:**
-- [ ] Implement SchemaV1 mit allen aktuellen Entities
-- [ ] Setup GymBoMigrationPlan mit VersionedSchema
-- [ ] Update ModelContainer mit Migration Support
+**1. Workout Management** ✅
+- Create/Edit/Delete Workouts
+- Toggle Favorite
+- WorkoutStore mit allen Use Cases
+- Pull-to-refresh
+
+**2. Exercise Library** ✅
+- 145+ Übungen aus CSV
+- Search & Filter (Muskelgruppe, Equipment)
+- ExercisesView komplett implementiert
+- ExerciseDetailView mit Instructions
+
+**3. Workout Detail & Exercise Management** ✅
+- Add Multiple Exercises (Multi-Select Picker)
+- Edit Exercise Details (Sets, Reps, Time, Weight, Rest, Notes)
+- Remove Exercise
+- Reorder Exercises (Drag & Drop mit permanent save)
+- Exercise Names werden geladen & angezeigt
+
+**4. Active Workout Session** ✅
+- Start/End/Cancel Session
+- Complete/Uncomplete Sets
+- Add/Remove Sets
+- Update Set Weight/Reps
+- Update All Sets
+- Exercise Notes
+- Auto-Finish Exercise
+- Reorder Exercises (session-only oder permanent)
+- Rest Timer (90s mit ±15s)
+- Show/Hide completed
+- Exercise Counter
+- Session Persistence & Restoration
+
+**5. UI/UX** ✅
+- Modern Dark Theme
+- 39pt Corner Radius
+- Inverted Checkboxes
+- Haptic Feedback
+- Success Pills
+- Profile Button (HomeView)
+- iOS 26 Modern Card Design
+
+**6. Architecture** ✅
+- Clean Architecture (4 Layers)
+- 17 Use Cases
+- 3 Repositories + Mappers
+- 2 Stores @Observable
+- DI Container
+- SwiftData Migration Plan (SchemaV1, SchemaV2, GymBoMigrationPlan)
+
+---
+
+## 🟢 Optional - Migration Support (Für Zukunft)
+
+### SwiftData Migration Support (DONE - bereits implementiert!)
+**Status:** ✅ IMPLEMENTED (GymBoMigrationPlan.swift, SchemaV1.swift, SchemaV2.swift)
+**Location:** `/Data/Migration/`
+
+**Was bereits vorhanden:**
+- ✅ SchemaV1 mit allen V1 Entities
+- ✅ SchemaV2 mit Migration (exerciseId hinzugefügt)
+- ✅ GymBoMigrationPlan registriert
+- ✅ ModelContainer nutzt Migration Plan (Production Mode)
+- ✅ DEBUG Mode: Database deletion DISABLED (commented out)
+
+**Nächste Schritte (optional):**
 - [ ] Write Unit Tests für Migrations
-- [ ] Document Schema Change Process für Team
 - [ ] Test Migration mit verschiedenen iOS Versionen
-
-**Reference:** [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)
+- [ ] Document Schema Change Process
 
 ---
 
@@ -94,200 +150,171 @@
 
 ---
 
-## 🎯 Kurzfristig (Nächste Session)
+## 🎯 Nächste Features (Nice-to-Have)
 
-### 1. Exercise Names anzeigen (30 Min) 🔴 KRITISCH
-**Problem:** Aktuell "Übung 1", "Übung 2" (Platzhalter)  
-**Lösung (Quick Fix):**
+### ✅ ERLEDIGT: Exercise Names, Equipment, Workout Repository
+
+Die folgenden Punkte wurden bereits implementiert:
+- ✅ Exercise Names werden angezeigt (aus ExerciseRepository)
+- ✅ Equipment wird angezeigt (Icons in WorkoutDetailView)
+- ✅ Workout Repository ist fertig (SwiftDataWorkoutRepository)
+- ✅ Exercise Repository ist fertig (SwiftDataExerciseRepository)
+- ✅ ExercisesView mit Search & Filter
+
+---
+
+## 🚀 Neue Features (aus notes.md)
+
+### 1. Exercise Swap Feature (Medium Effort - 4-6 Std)
+**Ziel:** Lange auf Übung drücken → Alternative Übungen vorschlagen
+
+**User Story:**
+- User drückt lange auf Übung in Workout Detail
+- App zeigt Sheet mit gleichwertigen Alternativen (gleiche Muskelgruppe)
+- User kann auswählen oder selbst suchen
+- Toggle: "Änderung dauerhaft speichern" (in Template) oder nur für diese Session
+
+**Implementation:**
 ```swift
-// In StartSessionUseCase.swift - createTestExercises()
-let exerciseNames = ["Bankdrücken", "Lat Pulldown", "Kniebeugen"]
-
-return exerciseNames.enumerated().map { index, name in
-    DomainSessionExercise(
-        exerciseId: UUID(),
-        exerciseName: name,  // ← NEU: Name im Entity
-        sets: [...]
-    )
+// In WorkoutDetailView oder CompactExerciseCard
+.onLongPressGesture {
+    showExerciseSwapSheet = true
 }
 
-// In CompactExerciseCard.swift
-exerciseName: exercise.exerciseName ?? "Übung \(index + 1)"
+// ExerciseSwapSheet
+- Load alternatives from ExerciseRepository (same muscle groups)
+- Show list with search
+- Toggle: savePermanently
+- OnConfirm: Update workout template or session
 ```
 
 **Dateien:**
-- `/Domain/Entities/SessionExercise.swift` - Add `exerciseName: String?`
-- `/Domain/UseCases/Session/StartSessionUseCase.swift` - Add names to test data
-- `/Presentation/Views/ActiveWorkout/Components/CompactExerciseCard.swift` - Use name
+- `/Presentation/Views/WorkoutDetail/ExerciseSwapSheet.swift` - NEW
+- `/Domain/UseCases/Workout/SwapExerciseUseCase.swift` - NEW
+- Update `WorkoutDetailView.swift`
 
 ---
 
-### 2. Equipment anzeigen (20 Min) 🟡 OPTIONAL
-**Problem:** Equipment-Feld vorhanden aber nil  
-**Lösung:**
-```swift
-// In StartSessionUseCase
-exerciseName: "Bankdrücken",
-equipment: "Barbell",  // ← NEU
+### 2. Profile Page (Low Effort - 2-3 Std)
+**Ziel:** Profilseite implementieren (Button ist schon da!)
 
-// In CompactExerciseCard
-equipment: exercise.equipment
-```
+**Features:**
+- User Name & Profilbild
+- Standardprofilbild wenn nicht gesetzt
+- Settings (Theme, Rest Timer defaults)
+- About Section (Version, Credits)
 
 **Dateien:**
-- `/Domain/Entities/SessionExercise.swift` - Add `equipment: String?`
-- Update test data
+- `/Presentation/Views/Profile/ProfileView.swift` - Aktuell Placeholder, erweitern!
+- `/Domain/Entities/UserProfile.swift` - Optional: Domain Model
+- `/SwiftDataEntities.swift` - UserProfileEntity bereits vorhanden!
 
 ---
 
-### 3. Quick-Add Set Funktionalität (1 Stunde) 🟡 NICE-TO-HAVE
-**Aktuell:** TextField vorhanden, aber Regex-Parser nicht verbunden  
-**TODO:**
-- Verbinde `handleQuickAdd()` in CompactExerciseCard
-- Erstelle `AddSetUseCase`
-- Update UI nach Set-Addition
+### 3. HomeView Redesign ✅ COMPLETE (Session 2025-10-24 Abend)
+**Status:** ✅ Implementiert und gebaut
 
-**Code:**
-```swift
-// Bereits vorhanden in CompactExerciseCard.swift:
-private func parseSetInput(_ input: String) -> (weight: Double, reps: Int)? {
-    let pattern = #"(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+)"#
-    // ... Regex matching
-}
+**Implementierte Features:**
+1. ✅ Zeitbasierte Begrüßung ("Hey, guten Morgen!" / "Hey!" / "Hey, guten Abend!")
+2. ✅ Spintnummer-Widget mit Lock/Unlock States
+3. ✅ Workout Calendar Strip (14 Tage, Streak-Badge, Auto-Scroll)
+4. ✅ Repository-Erweiterung: `fetchCompletedSessions(from:to:)`
 
-// TODO: Callback hinzufügen
-CompactExerciseCard(
-    onQuickAdd: { weight, reps in
-        // Add set via use case
-    }
-)
-```
+**Neue Dateien:**
+- ✅ `/Presentation/Views/Home/Components/GreetingHeaderView.swift`
+- ✅ `/Presentation/Views/Home/Components/LockerNumberInputSheet.swift`
+- ✅ `/Presentation/Views/Home/Components/WorkoutCalendarStripView.swift`
 
----
+**Technische Details:**
+- Spintnummer: `@AppStorage("lockerNumber")` für Persistierung
+- Begrüßung: `.largeTitle` Font (konsistent mit anderen Views)
+- Calendar: Lädt Sessions aus letzten 14 Tagen, berechnet Streak
+- Design: iOS-native Components, Haptic Feedback
 
-## 🚀 Mittelfristig (Diese Woche)
-
-### 4. Workout Repository (4-5 Stunden) 🔴 WICHTIG
-**Ziel:** Echte Workouts statt Test-Daten
-
-**Schritte:**
-1. **Workout Entity** (Domain)
-   ```swift
-   struct DomainWorkout {
-       let id: UUID
-       var name: String
-       var exercises: [DomainWorkoutExercise]  // Template!
-   }
-   
-   struct DomainWorkoutExercise {
-       let exerciseId: UUID
-       var targetSets: Int
-       var targetWeight: Double?
-       var targetReps: Int?
-       var restTime: TimeInterval
-   }
-   ```
-
-2. **WorkoutRepositoryProtocol** (Domain)
-   ```swift
-   protocol WorkoutRepositoryProtocol {
-       func fetch(id: UUID) async throws -> DomainWorkout?
-       func fetchAll() async throws -> [DomainWorkout]
-       func save(_ workout: DomainWorkout) async throws
-   }
-   ```
-
-3. **SwiftDataWorkoutRepository** (Data)
-   - WorkoutEntity (@Model)
-   - WorkoutMapper
-   - Repository Implementation
-
-4. **StartSessionUseCase Update**
-   ```swift
-   // Ersetze createTestExercises() durch:
-   let workout = try await workoutRepository.fetch(id: workoutId)
-   let sessionExercises = workout.exercises.map { templateExercise in
-       DomainSessionExercise(
-           exerciseId: templateExercise.exerciseId,
-           sets: (0..<templateExercise.targetSets).map { _ in
-               DomainSessionSet(
-                   weight: templateExercise.targetWeight ?? 0,
-                   reps: templateExercise.targetReps ?? 0
-               )
-           },
-           restTimeToNext: templateExercise.restTime
-       )
-   }
-   ```
-
-5. **Workout Picker in HomeView**
-   - Liste aller Workouts
-   - "Start" Button pro Workout
-
-**Dateien:**
-- `/Domain/Entities/Workout.swift` - NEW
-- `/Domain/RepositoryProtocols/WorkoutRepositoryProtocol.swift` - NEW
-- `/Data/Repositories/SwiftDataWorkoutRepository.swift` - NEW
-- `/Data/Mappers/WorkoutMapper.swift` - NEW
-- `/Data/SwiftDataEntities.swift` - Add WorkoutEntity
-- Update `StartSessionUseCase`, `HomeView`
+**Build Status:** ✅ BUILD SUCCEEDED
 
 ---
 
-### 5. Exercise Repository (3-4 Stunden) 🔴 WICHTIG
-**Ziel:** Exercise Database (Namen, Equipment, Kategorien)
-
-**Schritte:**
-1. **Exercise Entity** (Domain)
-   ```swift
-   struct DomainExercise {
-       let id: UUID
-       var name: String
-       var equipment: EquipmentType
-       var category: ExerciseCategory
-       var muscleGroups: [MuscleGroup]
-   }
-   
-   enum EquipmentType: String {
-       case barbell, dumbbell, cable, machine, bodyweight
-   }
-   ```
-
-2. **ExerciseRepository**
-   - Seed Data (häufige Übungen)
-   - Search/Filter Funktionalität
-
-3. **Integration**
-   - Load exercise names in ActiveWorkoutSheetView
-   - Show equipment in CompactExerciseCard
-
----
-
-### 6. Session History (2 Stunden) 🟡 NICE-TO-HAVE
+### 4. Session History (2-3 Stunden)
 **Ziel:** Vergangene Workouts anzeigen
 
-**Schritte:**
-1. `fetchRecentSessions()` in SessionRepository
-2. HistoryView mit Liste
-3. Session-Detail-View (read-only)
+**Features:**
+- Liste vergangener Sessions
+- Filter nach Workout-Typ
+- Session Detail View (read-only)
+- Statistiken (Total Volume, Duration)
 
 **UI:**
-```
-Training Tab → Segment "Verlauf"
-└── List
-    ├── Workout 1 (heute, 45 Min, 12 Sets)
-    ├── Workout 2 (gestern, 1h 02 Min, 18 Sets)
-    └── ...
-```
+- Neuer Tab "Verlauf" oder in Progress Tab
+- Session Cards mit Datum, Name, Stats
+
+**Dateien:**
+- `/Presentation/Views/History/SessionHistoryView.swift` - NEW
+- `/Presentation/Views/History/SessionDetailView.swift` - NEW
+- `/Domain/UseCases/Session/GetSessionHistoryUseCase.swift` - NEW
+- Update `SessionRepository` mit `fetchRecentSessions()`
 
 ---
 
-## 📊 Langfristig (Nächste 2-4 Wochen)
+### 5. Localization Support (3-4 Stunden)
+**Ziel:** App für Übersetzung vorbereiten
 
-### 7. ~~Reordering: Sets & Übungen~~ ✅ EXERCISE REORDERING COMPLETE (Session 6)
+**Tasks:**
+- Strings.swift mit allen Texten
+- NSLocalizedString wrapper
+- Localizable.strings (de, en)
+- Export/Import Workflow
 
-**Status:** ✅ Exercise reordering implemented & production-ready  
-**Remaining:** Set reordering (future feature)
+**Dateien:**
+- `/Infrastructure/Localization/Strings.swift` - NEW
+- `/Resources/de.lproj/Localizable.strings` - NEW
+- `/Resources/en.lproj/Localizable.strings` - NEW
+
+---
+
+---
+
+## 📊 Langfristig (Phase 2)
+
+### 6. Statistics & Charts (Phase 3)
+- Workout-Frequenz (Heatmap Calendar)
+- Volumen-Trends (Line Charts)
+- Personal Records (PRs)
+- Progress per Exercise
+- SwiftUI Charts Framework
+
+### 7. Advanced Workout Builder
+- Templates & Folders
+- Superset Support
+- Drop Sets, Pyramid Sets
+- Custom Rest Timer per Exercise
+
+### 8. Cloud Sync & Social
+- iCloud Sync
+- Share Workouts
+- Social Feed (optional)
+
+### 9. AI Features (Phase 4)
+- Workout Generator (AI-basiert)
+- Form Check (Video Analysis)
+- Smart Progression Suggestions
+
+---
+
+## ✅ ABGESCHLOSSEN (Sessions 1-8+)
+
+### Session 8+ (2025-10-24) - Documentation Update
+- ✅ Reviewed entire codebase
+- ✅ Updated README.md with actual status
+- ✅ Updated TODO.md with new priorities
+- ✅ Confirmed all MVP features complete
+
+### Session 7 (2025-10-23) - Workout Management Complete
+- ✅ Create/Edit/Delete Workouts
+- ✅ Multi-select ExercisePicker
+- ✅ Exercise Detail Editor (Time/Reps toggle)
+- ✅ Standardized headers
+- ✅ Fixed HomeView refresh bug
 
 **Was implementiert wurde:**
 - ✅ Exercise drag & drop reordering in active sessions
@@ -610,4 +637,6 @@ Jetzt: "Bankdrücken (Barbell)"
 
 ---
 
-**Last Updated:** 2025-10-23 - Progression features fully documented and ready
+---
+
+**Last Updated:** 2025-10-24 (Abend) - HomeView Redesign Complete

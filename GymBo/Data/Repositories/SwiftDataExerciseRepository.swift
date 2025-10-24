@@ -80,4 +80,56 @@ final class SwiftDataExerciseRepository: ExerciseRepositoryProtocol {
 
         return try modelContext.fetch(descriptor)
     }
+
+    func create(
+        name: String,
+        muscleGroups: [String],
+        equipment: String,
+        difficulty: String,
+        description: String,
+        instructions: [String]
+    ) async throws -> ExerciseEntity {
+        // Create new exercise entity
+        let exercise = ExerciseEntity(
+            name: name,
+            muscleGroupsRaw: muscleGroups,
+            equipmentTypeRaw: equipment,
+            difficultyLevelRaw: difficulty,
+            descriptionText: description,
+            instructions: instructions,
+            createdAt: Date()
+        )
+
+        // Insert into context
+        modelContext.insert(exercise)
+
+        // Save
+        try modelContext.save()
+
+        print("✅ Created custom exercise: \(name)")
+
+        return exercise
+    }
+
+    func delete(exerciseId: UUID) async throws {
+        // Fetch exercise
+        let descriptor = FetchDescriptor<ExerciseEntity>(
+            predicate: #Predicate<ExerciseEntity> { entity in
+                entity.id == exerciseId
+            }
+        )
+
+        guard let exercise = try modelContext.fetch(descriptor).first else {
+            print("⚠️ Exercise not found: \(exerciseId)")
+            return  // Silently ignore if exercise doesn't exist
+        }
+
+        // Delete from context
+        modelContext.delete(exercise)
+
+        // Save
+        try modelContext.save()
+
+        print("✅ Deleted exercise: \(exercise.name)")
+    }
 }

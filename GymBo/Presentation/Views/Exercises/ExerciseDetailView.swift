@@ -24,8 +24,19 @@ import SwiftUI
 struct ExerciseDetailView: View {
 
     let exercise: ExerciseEntity
+    let onExerciseDeleted: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dependencyContainer) private var dependencyContainer
+
+    @State private var showDeleteConfirmation = false
+    @State private var isDeleting = false
+    @State private var errorMessage: String?
+
+    init(exercise: ExerciseEntity, onExerciseDeleted: (() -> Void)? = nil) {
+        self.exercise = exercise
+        self.onExerciseDeleted = onExerciseDeleted
+    }
 
     var body: some View {
         ScrollView {
@@ -64,6 +75,44 @@ struct ExerciseDetailView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle(exercise.name)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            // Only show delete button for custom exercises
+            if exercise.createdAt != nil {
+                ToolbarItem(placement: .destructiveAction) {
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundStyle(.red)
+                    }
+                    .disabled(isDeleting)
+                }
+            }
+        }
+        .confirmationDialog(
+            "Übung löschen?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Löschen", role: .destructive) {
+                Task {
+                    await deleteExercise()
+                }
+            }
+            Button("Abbrechen", role: .cancel) {}
+        } message: {
+            Text("Diese Aktion kann nicht rückgängig gemacht werden.")
+        }
+        .alert("Fehler", isPresented: .constant(errorMessage != nil)) {
+            Button("OK") {
+                errorMessage = nil
+            }
+        } message: {
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+            }
+        }
+        .disabled(isDeleting)
     }
 
     // MARK: - Subviews
@@ -191,6 +240,38 @@ struct ExerciseDetailView: View {
         .padding()
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
+    }
+
+    // MARK: - Actions
+
+    @MainActor
+    private func deleteExercise() async {
+        isDeleting = true
+        defer { isDeleting = false }
+
+        guard let container = dependencyContainer else {
+            errorMessage = "Dependency Container nicht verfügbar"
+            return
+        }
+
+        // Create use case
+        let repository = container.makeExerciseRepository()
+        let useCase = DefaultDeleteExerciseUseCase(exerciseRepository: repository)
+
+        do {
+            try await useCase.execute(exerciseId: exercise.id)
+            print("✅ Deleted exercise: \(exercise.name)")
+
+            // Dismiss detail view
+            dismiss()
+
+            // Call callback to refresh list
+            onExerciseDeleted?()
+
+        } catch {
+            errorMessage = error.localizedDescription
+            print("❌ Failed to delete exercise: \(error)")
+        }
     }
 
     // MARK: - Helper Properties

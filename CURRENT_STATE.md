@@ -1,7 +1,7 @@
 # GymBo V2 - Current State
 
-**Last Updated:** 2025-10-24  
-**Session:** 8
+**Last Updated:** 2025-10-24 (Abend)
+**Session:** 9
 
 ---
 
@@ -76,6 +76,42 @@ GymBo V2 ist eine iOS Fitness-Tracking-App basierend auf **Clean Architecture** 
 
 ### **Phase 6: Workout Management (Session 8)** ✅
 - **iOS 18 Upgrade**: Deployment Target auf iOS 18.0 erhöht
+- **Multi-Select ExercisePicker**:
+- **Create/Edit/Delete Workouts**: Vollständige Workout-Verwaltung
+- **HomeView Refresh Bug**: Fixed mit `.id()` modifier
+
+### **Phase 7: HomeView Redesign (Session 9 - 2025-10-24 Abend)** ✅
+- **Zeitbasierte Begrüßung**:
+  - 5:00-11:59: "Hey, guten Morgen!"
+  - 12:00-17:59: "Hey!"
+  - 18:00-4:59: "Hey, guten Abend!"
+  - `.largeTitle` Font (konsistent mit anderen View-Titeln)
+- **Spintnummer-Widget**:
+  - Locked State: Schloss-Icon 🔒 (neben Profilbild)
+  - Unlocked State: Blaue Pill mit 🔓 + Nummer
+  - Input-Sheet mit Nummernpad
+  - Confirmation Dialog: Ändern/Löschen
+  - Persistierung via `@AppStorage("lockerNumber")`
+- **Workout Calendar Strip**:
+  - Zeigt letzte 14 Tage horizontal scrollbar
+  - Grüne Kreise für Tage mit abgeschlossenen Workouts
+  - Blauer Ring markiert heute
+  - Streak-Badge mit 🔥 Icon (aufeinanderfolgende Trainingstage)
+  - Auto-Scroll zu "Heute"
+- **Repository-Erweiterung**:
+  - `SessionRepositoryProtocol.fetchCompletedSessions(from:to:)`
+  - Implementiert in SwiftData + Mock Repository
+
+**Neue Komponenten:**
+- `GreetingHeaderView.swift` - Zeitbasierte Begrüßung mit Locker & Profile
+- `LockerNumberInputSheet.swift` - Spintnummer-Eingabe
+- `WorkoutCalendarStripView.swift` - 14-Tage Kalenderstreifen mit Streak
+
+---
+
+## ✅ Completed Features
+
+### **Previously in Session 8:**
 - **Multi-Select ExercisePicker**:
   - Mehrere Übungen antippen → Checkmark + Orange Highlight
   - Nochmal antippen → Demarkiert
@@ -169,6 +205,7 @@ GymBo/
 │   │       ├── CancelSessionUseCase.swift (delete without saving)
 │   │       └── UpdateExerciseNotesUseCase.swift (persist to template)
 │   └── RepositoryProtocols/
+│       ├── SessionRepositoryProtocol.swift (fetchCompletedSessions added)
 ├── Data/
 │   ├── Entities/
 │   │   └── WorkoutSessionEntity.swift (workoutName field added)
@@ -181,6 +218,12 @@ GymBo/
 │       └── SchemaV2.swift (exerciseId field)
 ├── Presentation/
 │   ├── Views/
+│   │   ├── Home/
+│   │   │   ├── HomeViewPlaceholder.swift (with new components)
+│   │   │   └── Components/
+│   │   │       ├── GreetingHeaderView.swift (NEW - Session 9)
+│   │   │       ├── LockerNumberInputSheet.swift (NEW - Session 9)
+│   │   │       └── WorkoutCalendarStripView.swift (NEW - Session 9)
 │   │   ├── WorkoutDetail/
 │   │   │   ├── EditExerciseDetailsView.swift (Zeit/Wiederholungen Toggles)
 │   │   │   └── WorkoutDetailView.swift
@@ -1075,4 +1118,138 @@ List { ... }
 
 ---
 
-*This document reflects the current state as of Session 8 (2025-10-24)*
+## 🎯 Session 9 Summary (2025-10-24 Abend)
+
+**Main Focus:** HomeView Redesign - Begrüßung, Spintnummer, Workout Calendar
+
+### **Implementation Journey**
+
+**User Request:** "HomeView: Begrüßung nach Tageszeit, letztes Workout (Calendar-Strip), Spintnummer → schnelle Eingabe mit Schloss-Icon → Pill mit Nummer → tipp → löschen"
+
+**Phase 1: Planning**
+- Detaillierter Plan erstellt mit UI-Konzept
+- User Feedback: "Spintnummer direkt links neben Profilbild"
+- Komponenten-Architektur definiert
+
+**Phase 2: Implementation (6 neue Dateien)**
+
+1. **GreetingHeaderView.swift**:
+   - Zeitbasierte Begrüßung mit `Calendar.current.component(.hour, from: Date())`
+   - Integriertes Locker-Widget (kompakt)
+   - Bestehender Profil-Button
+   - `.largeTitle` Font für Konsistenz
+
+2. **LockerNumberInputSheet.swift**:
+   - `.presentationDetents([.medium])` für natives iOS-Feeling
+   - `.keyboardType(.numberPad)` für Nummern
+   - Auto-Focus mit `@FocusState`
+   - `@AppStorage` für Persistierung
+
+3. **WorkoutCalendarStripView.swift**:
+   - Horizontales `ScrollView` mit 14 Tagen
+   - `fetchCompletedSessions(from:to:)` für Workout-Daten
+   - Streak-Berechnung: Aufeinanderfolgende Tage von heute rückwärts
+   - `ScrollViewReader` für Auto-Scroll zu "Heute"
+   - Visual Design: Grüne Kreise (Workout), Blauer Ring (Heute)
+
+4. **Repository Extension**:
+   - `SessionRepositoryProtocol`: Neue Methode hinzugefügt
+   - `SwiftDataSessionRepository`: Implementiert mit `#Predicate`
+   - `MockSessionRepository`: Implementiert für Tests
+
+5. **HomeViewPlaceholder Integration**:
+   - Alter Header ersetzt durch `GreetingHeaderView`
+   - Calendar Strip oberhalb der Workout-Liste
+   - Sheet für `LockerNumberInputSheet`
+   - "Workouts"-Überschrift jetzt in ScrollView
+
+### **Technical Details**
+
+**Locker Widget States:**
+```swift
+enum State {
+    case locked           // 🔒 Icon
+    case unlocked(String) // 🔓 + Nummer in Pill
+}
+```
+
+**Persistence:**
+- `@AppStorage("lockerNumber")` - native UserDefaults
+- Sofortige UI-Updates via SwiftUI Property Wrapper
+
+**Calendar Strip Data Flow:**
+```
+WorkoutCalendarStripView
+    ↓
+SessionRepository.fetchCompletedSessions(from:to:)
+    ↓
+Set<Date> (normalized to start of day)
+    ↓
+Streak Calculation (consecutive days from today)
+    ↓
+UI Update
+```
+
+**Greeting Logic:**
+```swift
+let hour = Calendar.current.component(.hour, from: Date())
+switch hour {
+    case 5..<12:  "Hey, guten Morgen!"
+    case 18..<24, 0..<5: "Hey, guten Abend!"
+    default: "Hey!"
+}
+```
+
+### **Build & Test**
+
+**Build Status:** ✅ BUILD SUCCEEDED
+- Compiler: Keine Errors
+- Warnings: Nur bestehende (nicht von neuen Features)
+
+**Testing:**
+- Greeting: Ändert sich basierend auf Systemzeit
+- Locker: Lock → Enter Number → Unlock → Delete → Lock
+- Calendar: Zeigt korrekte Tage, scrollt zu heute
+
+### **Files Created (3)**
+1. `Presentation/Views/Home/Components/GreetingHeaderView.swift` (138 lines)
+2. `Presentation/Views/Home/Components/LockerNumberInputSheet.swift` (100 lines)
+3. `Presentation/Views/Home/Components/WorkoutCalendarStripView.swift` (205 lines)
+
+### **Files Modified (4)**
+1. `Domain/RepositoryProtocols/SessionRepositoryProtocol.swift` (+method, +mock impl)
+2. `Data/Repositories/SwiftDataSessionRepository.swift` (+method impl)
+3. `Presentation/Views/Home/HomeViewPlaceholder.swift` (+component integration)
+4. Documentation: SESSION_MEMORY.md, TODO.md, CURRENT_STATE.md
+
+**Total Lines Added:** ~500+
+
+### **Key Learnings**
+
+1. **@AppStorage Best Practice**: Perfekt für einfache User-Präferenzen (Spintnummer)
+2. **Component Composition**: Kleine, fokussierte Components > monolithische Views
+3. **Date Normalization**: `calendar.startOfDay(for:)` essentiell für Tagesvergleiche
+4. **ScrollViewReader**: Ermöglicht programmatisches Scrollen mit `.scrollTo()`
+5. **Streak Calculation**: Von heute rückwärts zählen für intuitives Verhalten
+6. **Consistency**: `.largeTitle` Font passt sich perfekt an andere View-Titel an
+
+### **User Feedback Integration**
+
+**Initial Plan:** Spintnummer-Widget als separates Element unterhalb Calendar
+**User Input:** "Spintnummer direkt links neben Profilbild"
+**Result:** Widget in Header integriert, kompaktes Design, bessere UX
+
+**Design Iteration:**
+- Version 1: Button mit Text "Spint"
+- Version 2: Icon-only (platzsparend)
+- Final: Icon (locked) oder Pill (unlocked) - klares visuelles Feedback
+
+### **Documentation Updated**
+
+- ✅ SESSION_MEMORY.md: Neue Session hinzugefügt
+- ✅ TODO.md: HomeView Redesign als ✅ COMPLETE markiert
+- ✅ CURRENT_STATE.md: Phase 7 hinzugefügt (dieses Dokument)
+
+---
+
+*This document reflects the current state as of Session 9 (2025-10-24 Abend)*

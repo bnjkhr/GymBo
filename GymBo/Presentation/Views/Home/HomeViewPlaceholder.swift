@@ -25,34 +25,19 @@ struct HomeViewPlaceholder: View {
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
     @State private var showProfile = false
+    @State private var showLockerInput = false
     @State private var navigateToNewWorkout: Workout?  // For newly created workouts (opens ExercisePicker)
     @State private var navigateToExistingWorkout: Workout?  // For existing workouts (no auto-open)
+    @State private var workoutsHash: Int = 0  // Performance: Cache workout list hash
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Custom Header: Workouts + Profile Button
-                HStack(alignment: .center) {
-                    Text("Workouts")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-
-                    Spacer()
-
-                    Button {
-                        showProfile = true
-                    } label: {
-                        Image(systemName: "person.circle")
-                            .font(.title2)
-                            .foregroundStyle(.primary)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Profil öffnen")
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
-                .padding(.bottom, 12)
-                .background(Color(.systemBackground))
+                // New Greeting Header with Locker & Profile
+                GreetingHeaderView(
+                    showProfile: $showProfile,
+                    showLockerInput: $showLockerInput
+                )
 
                 // Content
                 ZStack(alignment: .top) {
@@ -91,6 +76,9 @@ struct HomeViewPlaceholder: View {
             }
             .sheet(isPresented: $showProfile) {
                 ProfileView()
+            }
+            .sheet(isPresented: $showLockerInput) {
+                LockerNumberInputSheet()
             }
             // Navigation for NEWLY created workouts (opens ExercisePicker automatically)
             .navigationDestination(item: $navigateToNewWorkout) { workout in
@@ -142,6 +130,14 @@ struct HomeViewPlaceholder: View {
                 // Show summary sheet when a session is completed
                 showWorkoutSummary = (newValue != nil)
             }
+            .onChange(of: workoutStore?.workouts) { oldValue, newValue in
+                // Sync local workouts array when store changes (e.g., favorite toggle)
+                if let updatedWorkouts = newValue {
+                    print("🔄 HomeView: WorkoutStore changed, syncing local array")
+                    workouts = updatedWorkouts
+                    updateWorkoutsHash()
+                }
+            }
             .onAppear {
                 // Reload workouts every time view appears to catch updates
                 Task {
@@ -149,12 +145,9 @@ struct HomeViewPlaceholder: View {
                         print("🔄 HomeView: Reloading workouts on appear")
                         await store.refresh()
                         // Copy to local @State to force SwiftUI update
-                        let oldWorkouts = workouts
                         workouts = store.workouts
+                        updateWorkoutsHash()
                         print("🔄 HomeView: Updated local workouts array, count=\(workouts.count)")
-                        // Debug: Print all workout names
-                        print("🔄 HomeView: OLD workouts: \(oldWorkouts.map { $0.name })")
-                        print("🔄 HomeView: NEW workouts: \(workouts.map { $0.name })")
                     }
                 }
             }
@@ -164,6 +157,7 @@ struct HomeViewPlaceholder: View {
                 // Copy to local state
                 if let store = workoutStore {
                     workouts = store.workouts
+                    updateWorkoutsHash()
                 }
             }
         }
@@ -205,65 +199,86 @@ struct HomeViewPlaceholder: View {
         let regularWorkouts = workouts.filter { !$0.isFavorite }
 
         return ScrollView {
-            if store.isLoading {
-                ProgressView()
+            VStack(spacing: 16) {
+                // Workout Calendar Strip
+                WorkoutCalendarStripView()
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
+                if store.isLoading {
+                    ProgressView()
+                        .padding(.top, 40)
+                } else if workouts.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "dumbbell")
+                            .font(.system(size: 60))
+                            .foregroundColor(.secondary)
+
+                        Text("Keine Workouts")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+
+                        Text("Erstelle dein erstes Workout")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                     .padding(.top, 40)
-            } else if workouts.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "dumbbell")
-                        .font(.system(size: 60))
-                        .foregroundColor(.secondary)
+                } else {
+                    // Workouts Section
+                    VStack(spacing: 0) {
+                        // Section Header
+                        HStack {
+                            Text("Workouts")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
 
-                    Text("Keine Workouts")
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                        LazyVStack(spacing: 12) {
+                            // Create New Workout Link
+                            createWorkoutLink
 
-                    Text("Erstelle dein erstes Workout")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.top, 40)
-            } else {
-                LazyVStack(spacing: 12) {
-                    // Create New Workout Link
-                    createWorkoutLink
+                            // Favorites section
+                            if !favoriteWorkouts.isEmpty {
+                                sectionHeader(title: "Favoriten")
+                                    .padding(.top, 8)
 
-                    // Favorites section
-                    if !favoriteWorkouts.isEmpty {
-                        sectionHeader(title: "Favoriten")
-                            .padding(.top, 8)
+                                ForEach(favoriteWorkouts) { workout in
+                                    WorkoutCard(workout: workout, store: store) {
+                                        navigateToWorkout(workout, store: store)
+                                    } onStart: {
+                                        startWorkout(workout)
+                                    }
+                                }
+                            }
 
-                        ForEach(favoriteWorkouts) { workout in
-                            WorkoutCard(workout: workout, store: store) {
-                                navigateToWorkout(workout, store: store)
-                            } onStart: {
-                                startWorkout(workout)
+                            // Regular workouts
+                            if !regularWorkouts.isEmpty {
+                                sectionHeader(title: "Alle Workouts")
+                                    .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
+
+                                ForEach(regularWorkouts) { workout in
+                                    WorkoutCard(workout: workout, store: store) {
+                                        navigateToWorkout(workout, store: store)
+                                    } onStart: {
+                                        startWorkout(workout)
+                                    }
+                                }
                             }
                         }
-                    }
-
-                    // Regular workouts
-                    if !regularWorkouts.isEmpty {
-                        sectionHeader(title: "Alle Workouts")
-                            .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
-
-                        ForEach(regularWorkouts) { workout in
-                            WorkoutCard(workout: workout, store: store) {
-                                navigateToWorkout(workout, store: store)
-                            } onStart: {
-                                startWorkout(workout)
-                            }
-                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
             }
         }
-        .id(workouts.map { $0.name }.joined())  // Force view to recreate when names change
+        .id(workoutsHash)  // Force view to recreate when workouts change (using cached hash)
         .refreshable {
             await store.refresh()
             workouts = store.workouts  // Update local state on pull-to-refresh
+            updateWorkoutsHash()
         }
     }
 
@@ -336,6 +351,19 @@ struct HomeViewPlaceholder: View {
                 showActiveWorkout = true
             }
         }
+    }
+
+    // MARK: - Performance Helpers
+
+    private func updateWorkoutsHash() {
+        // Simple hash based on count and names (faster than joined string)
+        var hasher = Hasher()
+        hasher.combine(workouts.count)
+        for workout in workouts {
+            hasher.combine(workout.name)
+            hasher.combine(workout.isFavorite)
+        }
+        workoutsHash = hasher.finalize()
     }
 }
 

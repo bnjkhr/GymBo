@@ -48,6 +48,30 @@ protocol ExerciseRepositoryProtocol {
     /// - Returns: Array of all exercises
     /// - Throws: Repository errors
     nonisolated func fetchAll() async throws -> [ExerciseEntity]
+
+    /// Create a new custom exercise
+    /// - Parameters:
+    ///   - name: Exercise name
+    ///   - muscleGroups: Muscle groups targeted
+    ///   - equipment: Equipment type
+    ///   - difficulty: Difficulty level
+    ///   - description: Exercise description
+    ///   - instructions: Step-by-step instructions
+    /// - Returns: Created exercise entity
+    /// - Throws: Repository errors
+    nonisolated func create(
+        name: String,
+        muscleGroups: [String],
+        equipment: String,
+        difficulty: String,
+        description: String,
+        instructions: [String]
+    ) async throws -> ExerciseEntity
+
+    /// Delete an exercise
+    /// - Parameter exerciseId: ID of exercise to delete
+    /// - Throws: Repository errors
+    nonisolated func delete(exerciseId: UUID) async throws
 }
 
 // MARK: - Mock Implementation for Testing/Previews
@@ -89,6 +113,30 @@ protocol ExerciseRepositoryProtocol {
                 ExerciseEntity(
                     name: "Kreuzheben", muscleGroupsRaw: ["Rücken"], equipmentTypeRaw: "Langhantel"),
             ]
+        }
+
+        func create(
+            name: String,
+            muscleGroups: [String],
+            equipment: String,
+            difficulty: String,
+            description: String,
+            instructions: [String]
+        ) async throws -> ExerciseEntity {
+            // Mock - return created exercise
+            return ExerciseEntity(
+                name: name,
+                muscleGroupsRaw: muscleGroups,
+                equipmentTypeRaw: equipment,
+                difficultyLevelRaw: difficulty,
+                descriptionText: description,
+                instructions: instructions
+            )
+        }
+
+        func delete(exerciseId: UUID) async throws {
+            // Mock - do nothing
+            print("📝 Mock: Deleted exercise \(exerciseId)")
         }
     }
 #endif

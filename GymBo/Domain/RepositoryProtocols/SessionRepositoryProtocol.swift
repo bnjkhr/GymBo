@@ -64,6 +64,15 @@ protocol SessionRepositoryProtocol {
     /// - Throws: RepositoryError if fetch fails
     func fetchRecentSessions(limit: Int) async throws -> [DomainWorkoutSession]
 
+    /// Fetch completed sessions within a date range
+    /// - Parameters:
+    ///   - startDate: Start of the date range (inclusive)
+    ///   - endDate: End of the date range (inclusive)
+    /// - Returns: Array of completed sessions within the date range
+    /// - Throws: RepositoryError if fetch fails
+    func fetchCompletedSessions(from startDate: Date, to endDate: Date) async throws
+        -> [DomainWorkoutSession]
+
     // MARK: - Delete
 
     /// Delete a session by ID
@@ -180,6 +189,19 @@ enum RepositoryError: Error, LocalizedError {
                 .sorted { $0.startDate > $1.startDate }
                 .prefix(limit)
                 .map { $0 }
+        }
+
+        func fetchCompletedSessions(from startDate: Date, to endDate: Date) async throws
+            -> [DomainWorkoutSession]
+        {
+            if shouldThrowError { throw errorToThrow }
+            return sessions.values
+                .filter { session in
+                    session.state == .completed
+                        && session.startDate >= startDate
+                        && session.startDate <= endDate
+                }
+                .sorted { $0.startDate > $1.startDate }
         }
 
         func delete(id: UUID) async throws {

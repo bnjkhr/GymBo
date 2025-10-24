@@ -31,6 +31,12 @@ struct ExercisesView: View {
     @State private var selectedMuscleGroup: String?
     @State private var selectedEquipment: String?
     @State private var selectedExercise: ExerciseEntity?
+    @State private var showCreateExercise = false
+
+    // Performance: Cached filtered/sorted results
+    @State private var cachedFilteredExercises: [ExerciseEntity] = []
+    @State private var cachedMuscleGroups: [String] = []
+    @State private var cachedEquipment: [String] = []
 
     var body: some View {
         NavigationStack {
@@ -50,7 +56,7 @@ struct ExercisesView: View {
                 if isLoading {
                     ProgressView("Lade Übungen...")
                         .frame(maxHeight: .infinity)
-                } else if filteredExercises.isEmpty {
+                } else if cachedFilteredExercises.isEmpty {
                     emptyState
                 } else {
                     exerciseList
@@ -58,10 +64,37 @@ struct ExercisesView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: $selectedExercise) { exercise in
-                ExerciseDetailView(exercise: exercise)
+                ExerciseDetailView(exercise: exercise) {
+                    // Refresh exercises list after deletion
+                    Task {
+                        await loadExercises()
+                    }
+                }
+            }
+            .sheet(isPresented: $showCreateExercise) {
+                CreateExerciseView { createdExercise in
+                    // Add to list and reload
+                    Task {
+                        await loadExercises()
+                    }
+                }
+                .environment(\.dependencyContainer, dependencyContainer)
             }
             .task {
                 await loadExercises()
+            }
+            .onChange(of: searchText) { _, _ in
+                updateFilteredExercises()
+            }
+            .onChange(of: selectedMuscleGroup) { _, _ in
+                updateFilteredExercises()
+            }
+            .onChange(of: selectedEquipment) { _, _ in
+                updateFilteredExercises()
+            }
+            .onChange(of: exercises) { _, _ in
+                updateFilteredExercises()
+                updateAvailableFilters()
             }
         }
     }
@@ -76,11 +109,16 @@ struct ExercisesView: View {
 
             Spacer()
 
-            Text("\(filteredExercises.count)")
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
+            // Plus Button (analog zu Profil-Button in HomeView)
+            Button {
+                showCreateExercise = true
+            } label: {
+                Image(systemName: "plus.circle")
+                    .font(.title2)
+                    .foregroundStyle(.primary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Eigene Übung erstellen")
         }
         .padding(.horizontal)
         .padding(.top, 8)
@@ -93,7 +131,7 @@ struct ExercisesView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
 
-            TextField("Übung suchen...", text: $searchText)
+            TextField("Durchsuche \(cachedFilteredExercises.count) Übungen ...", text: $searchText)
                 .textFieldStyle(.plain)
                 .autocorrectionDisabled()
 
@@ -126,7 +164,7 @@ struct ExercisesView: View {
                     selectedEquipment = nil
                 }
 
-                ForEach(availableMuscleGroups, id: \.self) { group in
+                ForEach(cachedMuscleGroups, id: \.self) { group in
                     FilterChip(
                         title: group,
                         icon: muscleGroupIcon(for: group),
@@ -141,7 +179,7 @@ struct ExercisesView: View {
                     .frame(height: 24)
 
                 // Equipment Filters
-                ForEach(availableEquipment, id: \.self) { equipment in
+                ForEach(cachedEquipment, id: \.self) { equipment in
                     FilterChip(
                         title: equipment,
                         icon: equipmentIcon(for: equipment),
@@ -160,7 +198,7 @@ struct ExercisesView: View {
     private var exerciseList: some View {
         ScrollView {
             LazyVStack(spacing: 8) {
-                ForEach(filteredExercises) { exercise in
+                ForEach(cachedFilteredExercises) { exercise in
                     ExerciseCard(exercise: exercise) {
                         selectedExercise = exercise
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -191,10 +229,10 @@ struct ExercisesView: View {
         .padding()
     }
 
-    // MARK: - Computed Properties
+    // MARK: - Performance Optimizations
 
-    private var filteredExercises: [ExerciseEntity] {
-        exercises.filter { exercise in
+    private func updateFilteredExercises() {
+        cachedFilteredExercises = exercises.filter { exercise in
             // Search filter
             let matchesSearch =
                 searchText.isEmpty || exercise.name.localizedCaseInsensitiveContains(searchText)
@@ -212,14 +250,14 @@ struct ExercisesView: View {
         }
     }
 
-    private var availableMuscleGroups: [String] {
+    private func updateAvailableFilters() {
+        // Cache muscle groups
         let allGroups = exercises.flatMap { $0.muscleGroupsRaw }
-        return Array(Set(allGroups)).sorted()
-    }
+        cachedMuscleGroups = Array(Set(allGroups)).sorted()
 
-    private var availableEquipment: [String] {
+        // Cache equipment
         let allEquipment = exercises.map { $0.equipmentTypeRaw }.filter { !$0.isEmpty }
-        return Array(Set(allEquipment)).sorted()
+        cachedEquipment = Array(Set(allEquipment)).sorted()
     }
 
     // MARK: - Helper Functions
