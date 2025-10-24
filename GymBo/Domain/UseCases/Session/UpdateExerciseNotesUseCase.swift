@@ -82,51 +82,19 @@ final class DefaultUpdateExerciseNotesUseCase: UpdateExerciseNotesUseCase {
         session.exercises[exerciseIndex].notes = finalNotes.isEmpty ? nil : finalNotes
 
         // Persist to session
-        do {
-            try await sessionRepository.update(session)
-            print("📝 Notes updated in session for exercise \(exerciseId): \"\(finalNotes)\"")
-        } catch {
-            throw UseCaseError.updateFailed(error)
-        }
+        try await sessionRepository.update(session)
 
         // Also persist to workout template (for future sessions)
-        print("🔍 Attempting to persist notes to workout template...")
-        print("   - Workout ID: \(session.workoutId)")
-        print("   - Catalog Exercise ID: \(catalogExerciseId)")
+        guard var workout = try await workoutRepository.fetch(id: session.workoutId) else {
+            return  // Workout not found, skip template update
+        }
 
-        do {
-            guard var workout = try await workoutRepository.fetch(id: session.workoutId) else {
-                print("⚠️ Workout not found, skipping template update")
-                return
-            }
-
-            print("✅ Workout fetched: '\(workout.name)' with \(workout.exercises.count) exercises")
-
-            // Find the workout exercise by catalog exercise ID
-            if let workoutExerciseIndex = workout.exercises.firstIndex(where: {
-                $0.exerciseId == catalogExerciseId
-            }) {
-                print("✅ Found exercise at index \(workoutExerciseIndex)")
-                print(
-                    "   - Old notes: \"\(workout.exercises[workoutExerciseIndex].notes ?? "nil")\"")
-                print("   - New notes: \"\(finalNotes)\"")
-
-                workout.exercises[workoutExerciseIndex].notes =
-                    finalNotes.isEmpty ? nil : finalNotes
-
-                try await workoutRepository.update(workout)
-                print("✅ Notes persisted to workout template successfully!")
-            } else {
-                print("❌ Exercise not found in workout template")
-                print("   - Looking for exerciseId: \(catalogExerciseId)")
-                print("   - Available exercises:")
-                for (idx, ex) in workout.exercises.enumerated() {
-                    print("     [\(idx)] exerciseId: \(ex.exerciseId)")
-                }
-            }
-        } catch {
-            print("❌ Failed to update workout template (session notes still saved): \(error)")
-            // Don't throw - session notes are already saved
+        // Find the workout exercise by catalog exercise ID and update notes
+        if let workoutExerciseIndex = workout.exercises.firstIndex(where: {
+            $0.exerciseId == catalogExerciseId
+        }) {
+            workout.exercises[workoutExerciseIndex].notes = finalNotes.isEmpty ? nil : finalNotes
+            try await workoutRepository.update(workout)
         }
     }
 }

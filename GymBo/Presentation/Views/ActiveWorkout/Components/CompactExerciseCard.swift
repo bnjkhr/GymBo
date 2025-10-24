@@ -246,11 +246,9 @@ struct CompactExerciseCard: View {
 
         // Try to parse as set (e.g., "100 x 8")
         if let (weight, reps) = parseSetInput(trimmed) {
-            print("➕ Quick-add set: \(weight)kg x \(reps) reps")
             onAddSet?(weight, reps)
         } else {
             // Save as note (new note overwrites old one)
-            print("📝 Quick-add note: \(trimmed)")
             onUpdateNotes?(trimmed)
         }
 
