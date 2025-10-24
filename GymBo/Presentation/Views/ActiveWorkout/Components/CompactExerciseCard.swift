@@ -297,7 +297,8 @@ struct CompactExerciseCard: View {
         onAddSet: { _, _ in },
         onRemoveSet: { _ in },
         onMarkAllComplete: {},
-        onReorder: {}
+        onReorder: {},
+        onUpdateNotes: { _ in }
     )
     .padding()
 }
@@ -316,7 +317,8 @@ struct CompactExerciseCard: View {
         onAddSet: { _, _ in },
         onRemoveSet: { _ in },
         onMarkAllComplete: {},
-        onReorder: {}
+        onReorder: {},
+        onUpdateNotes: { _ in }
     )
     .padding()
 }
