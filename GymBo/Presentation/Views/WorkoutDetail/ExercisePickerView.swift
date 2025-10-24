@@ -308,8 +308,8 @@ private struct FilterChip: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(isSelected ? Color.orange : Color(.systemGray6))
-            .foregroundStyle(isSelected ? .white : .primary)
+            .background(isSelected ? Color.primary : Color(.systemGray6))
+            .foregroundStyle(isSelected ? Color(.systemBackground) : .primary)
             .cornerRadius(16)
         }
     }
@@ -328,32 +328,36 @@ private struct ExercisePickerRow: View {
                 // Exercise Icon
                 Image(systemName: equipmentIcon)
                     .font(.title3)
-                    .foregroundStyle(isSelected ? .white : .orange)
+                    .foregroundStyle(isSelected ? Color(.systemBackground) : .primary)
                     .frame(width: 40)
 
                 // Exercise Info
                 VStack(alignment: .leading, spacing: 4) {
                     Text(exercise.name)
                         .font(.headline)
-                        .foregroundStyle(isSelected ? .white : .primary)
+                        .foregroundStyle(isSelected ? Color(.systemBackground) : .primary)
 
                     HStack(spacing: 8) {
                         // Muscle Groups
                         if !exercise.muscleGroupsRaw.isEmpty {
                             Text(exercise.muscleGroupsRaw.prefix(2).joined(separator: ", "))
                                 .font(.caption)
-                                .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
+                                .foregroundStyle(
+                                    isSelected ? Color(.systemBackground).opacity(0.8) : .secondary)
                         }
 
                         // Difficulty
                         if !exercise.difficultyLevelRaw.isEmpty {
                             Text("•")
                                 .foregroundStyle(
-                                    isSelected ? .white.opacity(0.6) : .secondary.opacity(0.5))
+                                    isSelected
+                                        ? Color(.systemBackground).opacity(0.6)
+                                        : .secondary.opacity(0.5))
 
                             Text(exercise.difficultyLevelRaw)
                                 .font(.caption)
-                                .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
+                                .foregroundStyle(
+                                    isSelected ? Color(.systemBackground).opacity(0.8) : .secondary)
                         }
                     }
                 }
@@ -364,11 +368,11 @@ private struct ExercisePickerRow: View {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(.systemBackground))
                 }
             }
             .padding()
-            .background(isSelected ? Color.orange : Color(.systemBackground))
+            .background(isSelected ? Color.primary : Color(.systemBackground))
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
         }

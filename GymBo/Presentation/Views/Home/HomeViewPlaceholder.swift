@@ -24,7 +24,8 @@ struct HomeViewPlaceholder: View {
     @State private var showActiveWorkout = false
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
-    @State private var navigateToNewWorkout: Workout?
+    @State private var navigateToNewWorkout: Workout?  // For newly created workouts (opens ExercisePicker)
+    @State private var navigateToExistingWorkout: Workout?  // For existing workouts (no auto-open)
 
     var body: some View {
         NavigationStack {
@@ -86,6 +87,7 @@ struct HomeViewPlaceholder: View {
                     .environment(store)
                 }
             }
+            // Navigation for NEWLY created workouts (opens ExercisePicker automatically)
             .navigationDestination(item: $navigateToNewWorkout) { workout in
                 if let store = workoutStore {
                     WorkoutDetailView(
@@ -97,6 +99,22 @@ struct HomeViewPlaceholder: View {
                             }
                         },
                         openExercisePickerOnAppear: true
+                    )
+                    .environment(store)
+                }
+            }
+            // Navigation for EXISTING workouts (no auto-open)
+            .navigationDestination(item: $navigateToExistingWorkout) { workout in
+                if let store = workoutStore {
+                    WorkoutDetailView(
+                        workout: workout,
+                        onStartWorkout: {
+                            Task {
+                                await sessionStore.startSession(workoutId: workout.id)
+                                showActiveWorkout = true
+                            }
+                        },
+                        openExercisePickerOnAppear: false
                     )
                     .environment(store)
                 }
@@ -254,7 +272,7 @@ struct HomeViewPlaceholder: View {
     }
 
     private func navigateToWorkout(_ workout: Workout, store: WorkoutStore) {
-        navigateToNewWorkout = workout
+        navigateToExistingWorkout = workout  // Use existing workout navigation (no auto-open)
     }
 
     // MARK: - Actions
