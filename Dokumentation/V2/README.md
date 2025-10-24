@@ -61,6 +61,8 @@
 - ✅ Filter nach Muskelgruppe & Equipment
 - ✅ ExerciseDetailView mit Instructions
 - ✅ Modern Card Design
+- ✅ Create Custom Exercises (Multi-Select Muscles, Equipment, Difficulty)
+- ✅ Delete Custom Exercises (Catalog exercises protected)
 
 **Workout Detail & Exercise Management:**
 
@@ -99,7 +101,7 @@
 **Architecture:**
 
 - ✅ Clean Architecture (4 Layers)
-- ✅ 17 Use Cases (Domain Layer)
+- ✅ 19 Use Cases (Domain Layer)
 - ✅ 3 Repositories + Mappers (Data Layer)
 - ✅ 2 Stores @Observable (Presentation)
 - ✅ DI Container (Infrastructure)
