@@ -48,8 +48,8 @@ struct CompactExerciseCard: View {
     // MARK: - Layout Constants
 
     private enum Layout {
-        static let headerPadding: CGFloat = 20
-        static let setPadding: CGFloat = 20
+        static let headerPadding: CGFloat = 24
+        static let setPadding: CGFloat = 24
         static let cornerRadius: CGFloat = 39
         static let shadowRadius: CGFloat = 4
         static let shadowY: CGFloat = 1
@@ -163,7 +163,7 @@ struct CompactExerciseCard: View {
             Button(action: handleMarkAllComplete) {
                 Image(systemName: "checkmark.circle")
                     .font(.title3)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -172,7 +172,7 @@ struct CompactExerciseCard: View {
             Button(action: handleAddSet) {
                 Image(systemName: "plus.circle")
                     .font(.title3)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -181,7 +181,7 @@ struct CompactExerciseCard: View {
             Button(action: handleReorder) {
                 Image(systemName: "arrow.up.arrow.down")
                     .font(.title3)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.secondary)
             }
         }
     }
