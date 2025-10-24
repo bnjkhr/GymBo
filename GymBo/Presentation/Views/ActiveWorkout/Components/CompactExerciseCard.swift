@@ -117,7 +117,7 @@ struct CompactExerciseCard: View {
                 .padding(.horizontal, Layout.headerPadding)
                 .padding(.bottom, 16)
         }
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .cornerRadius(Layout.cornerRadius)
         .shadow(color: .black.opacity(0.1), radius: Layout.shadowRadius, y: Layout.shadowY)
     }

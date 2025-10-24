@@ -481,13 +481,13 @@ struct ActiveWorkoutSheetView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.black)
+                    .background(Color.primary)
                     .cornerRadius(12)
             }
             .padding(.horizontal)
         }
         .padding(.vertical, 24)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
     }
