@@ -36,6 +36,120 @@
 
 ---
 
+## ✅ Session 2025-10-24 (Session 15) - ExercisesView Redesign
+
+### ExercisesView Exercise Cards Redesign
+**Status:** ✅ Komplett implementiert, BUILD SUCCEEDED
+
+**User Request:**
+- Equipment icon vor Übungsnamen entfernen
+- Equipment Type unter Übungsnamen anzeigen (in grau)
+- Selbe Tags wie HomeView verwenden (Difficulty Badges mit Farben)
+
+**Implementation:**
+
+**ExerciseCard Redesign (ExercisesView.swift):**
+
+**Before:**
+```swift
+HStack(spacing: 12) {
+    Image(systemName: equipmentIcon)  // ← Removed
+        .font(.title3)
+        .frame(width: 32)
+    
+    VStack(alignment: .leading, spacing: 4) {
+        Text(exercise.name)
+        HStack {
+            Text(muscleGroups).foregroundStyle(.secondary)
+            Text("•")
+            Text(difficulty).foregroundStyle(.secondary)
+        }
+    }
+    Spacer()
+    Image(systemName: "chevron.right")
+}
+```
+
+**After:**
+```swift
+HStack(spacing: 12) {
+    VStack(alignment: .leading, spacing: 6) {
+        // Exercise Name
+        Text(exercise.name)
+            .font(.body)
+            .fontWeight(.medium)
+            .lineLimit(1)
+        
+        // Equipment Type + Muscle Groups (gray)
+        HStack(spacing: 8) {
+            Text(exercise.equipmentTypeRaw)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text("•")
+            Text(muscleGroups)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    Spacer()
+    
+    // Difficulty Badge (SAME as HomeView)
+    difficultyBadge(for: exercise.difficultyLevelRaw)
+    
+    Image(systemName: "chevron.right")
+}
+```
+
+**Difficulty Badge (Reused from HomeView):**
+```swift
+@ViewBuilder
+private func difficultyBadge(for level: String) -> some View {
+    let (color, icon) = difficultyStyle(for: level)
+    
+    HStack(spacing: 4) {
+        Image(systemName: icon)
+            .font(.caption2)
+        Text(level)
+            .font(.caption)
+            .fontWeight(.medium)
+    }
+    .foregroundColor(color)
+    .padding(.horizontal, 8)
+    .padding(.vertical, 4)
+    .background(color.opacity(0.15))
+    .cornerRadius(8)
+}
+
+private func difficultyStyle(for level: String) -> (Color, String) {
+    switch level {
+    case "Anfänger":
+        return (.green, "leaf.fill")  // 🍃
+    case "Fortgeschritten":
+        return (.orange, "flame.fill")  // 🔥
+    case "Profi":
+        return (.red, "bolt.fill")  // ⚡
+    default:
+        return (.gray, "circle.fill")
+    }
+}
+```
+
+**Design Improvements:**
+- ✅ **Consistent Design Language:** ExercisesView jetzt same style wie HomeView
+- ✅ **Cleaner Look:** Kein Icon mehr → weniger visuelles Rauschen
+- ✅ **More Informative:** Equipment Type sofort sichtbar (nicht nur Icon)
+- ✅ **Color-Coded Difficulty:** Sofort erkennbar (green/orange/red)
+- ✅ **Better Space Usage:** VStack layout nutzt Raum optimal
+
+**Modified Files:**
+- `Presentation/Views/Exercises/ExercisesView.swift` - ExerciseCard redesign
+
+**Build Status:** ✅ BUILD SUCCEEDED
+**UI Consistency:** ✅ HomeView und ExercisesView haben jetzt identische Badge-Styles
+
+---
+
 ## ✅ Session 2025-10-24 (Session 14) - Equipment Type Labels
 
 ### Equipment Type Labels in HomeView
@@ -924,16 +1038,16 @@ final class WorkoutStore {
 
 ---
 
-**Zuletzt bearbeitet:** 2025-10-24 (Session 14 - Equipment Type Labels)
+**Zuletzt bearbeitet:** 2025-10-24 (Session 15 - ExercisesView Redesign)
 **Session-Dauer:** ~30 Minuten
 **Features:** 
-- Equipment Type Labels in HomeView (Maschine, Freie Gewichte, Gemischt)
-- Removed barbell icon from workout cards
-- Cleaner card design with VStack layout
-**Schema Changes:** equipmentType property in WorkoutEntity + Domain Workout
-**Modified Files:** 5 Files (SwiftDataEntities, Workout, WorkoutMapper, HomeViewPlaceholder, WorkoutSeedData)
-**Design:** Equipment type in gray below workout name (subtle, informative)
-**UI Improvement:** More informative cards, cleaner look, better vertical space usage
+- ExercisesView Exercise Cards Redesign (consistent with HomeView)
+- Removed equipment icon from exercise rows
+- Equipment Type below name in gray + Muscle Groups
+- Difficulty Badges (same style as HomeView: 🍃🔥⚡)
+**Modified Files:** 1 File (ExercisesView.swift)
+**Design:** Consistent design language across HomeView and ExercisesView
+**UI Improvement:** Cleaner look, more informative, color-coded difficulty
 **Dokumentation:** CURRENT_STATE.md, SESSION_MEMORY.md aktualisiert
 **Build Status:** ✅ BUILD SUCCEEDED
-**Testing:** ✅ All 6 workouts display equipment types correctly
+**Testing:** ✅ Exercise cards display correctly with badges

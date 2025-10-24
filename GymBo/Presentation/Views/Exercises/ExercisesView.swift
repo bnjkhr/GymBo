@@ -312,42 +312,47 @@ private struct ExerciseCard: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
-                // Equipment Icon
-                Image(systemName: equipmentIcon)
-                    .font(.title3)
-                    .foregroundStyle(.primary)
-                    .frame(width: 32)
-
-                // Exercise Info
-                VStack(alignment: .leading, spacing: 4) {
+                // Exercise Info (Left)
+                VStack(alignment: .leading, spacing: 6) {
+                    // Exercise Name
                     Text(exercise.name)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
                         .lineLimit(1)
 
+                    // Equipment Type + Muscle Groups
                     HStack(spacing: 8) {
+                        // Equipment Type (gray text)
+                        if !exercise.equipmentTypeRaw.isEmpty {
+                            Text(exercise.equipmentTypeRaw)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        // Separator
+                        if !exercise.equipmentTypeRaw.isEmpty && !exercise.muscleGroupsRaw.isEmpty {
+                            Text("•")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+
                         // Muscle Groups
                         if !exercise.muscleGroupsRaw.isEmpty {
                             Text(exercise.muscleGroupsRaw.prefix(2).joined(separator: ", "))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                        }
-
-                        // Difficulty
-                        if !exercise.difficultyLevelRaw.isEmpty {
-                            Text("•")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-
-                            Text(exercise.difficultyLevelRaw)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
                     }
                 }
 
                 Spacer()
+
+                // Difficulty Badge (Right) - Same style as HomeView
+                if !exercise.difficultyLevelRaw.isEmpty {
+                    difficultyBadge(for: exercise.difficultyLevelRaw)
+                }
 
                 // Chevron
                 Image(systemName: "chevron.right")
@@ -361,14 +366,36 @@ private struct ExerciseCard: View {
         .buttonStyle(.plain)
     }
 
-    private var equipmentIcon: String {
-        switch exercise.equipmentTypeRaw.lowercased() {
-        case "langhantel": return "figure.strengthtraining.traditional"
-        case "kurzhantel": return "dumbbell.fill"
-        case "bodyweight": return "figure.walk"
-        case "maschine": return "gearshape.fill"
-        case "kabelzug": return "arrow.left.and.right"
-        default: return "dumbbell.fill"
+    // MARK: - Difficulty Badge (Same as HomeView)
+
+    @ViewBuilder
+    private func difficultyBadge(for level: String) -> some View {
+        let (color, icon) = difficultyStyle(for: level)
+
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption2)
+            Text(level)
+                .font(.caption)
+                .fontWeight(.medium)
+        }
+        .foregroundColor(color)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.15))
+        .cornerRadius(8)
+    }
+
+    private func difficultyStyle(for level: String) -> (Color, String) {
+        switch level {
+        case "Anfänger":
+            return (.green, "leaf.fill")
+        case "Fortgeschritten":
+            return (.orange, "flame.fill")
+        case "Profi":
+            return (.red, "bolt.fill")
+        default:
+            return (.gray, "circle.fill")
         }
     }
 }

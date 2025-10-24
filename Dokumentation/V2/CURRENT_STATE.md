@@ -7,7 +7,16 @@
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-24 - Session 14 - EQUIPMENT TYPE LABELS):**
+**Letzte Session (2025-10-24 - Session 15 - EXERCISES VIEW REDESIGN):**
+- ✅ ExercisesView Exercise Cards Redesign
+  - Removed equipment icon from exercise rows (cleaner look)
+  - Equipment Type displayed below exercise name in gray (`.secondary`)
+  - Difficulty Badges mit same style as HomeView (🍃 green, 🔥 orange, ⚡ red)
+  - Muscle groups shown after equipment type
+  - VStack layout for name + metadata
+  - Consistent design language across HomeView and ExercisesView
+
+**Session 14 (2025-10-24 - EQUIPMENT TYPE LABELS):**
 - ✅ Equipment Type Labels in HomeView
   - Added `equipmentType: String?` property to WorkoutEntity & Domain Workout
   - 3 Types: "Maschine", "Freie Gewichte", "Gemischt"
