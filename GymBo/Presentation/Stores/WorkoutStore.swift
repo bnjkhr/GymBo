@@ -218,7 +218,20 @@ final class WorkoutStore {
 
             // Update in local array
             if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                print(
+                    "📝 WorkoutStore: Found workout at index \(index), old name: '\(workouts[index].name)', new name: '\(updatedWorkout.name)'"
+                )
                 workouts[index] = updatedWorkout
+                print(
+                    "📝 WorkoutStore: Updated array, workouts[\(index)].name = '\(workouts[index].name)'"
+                )
+
+                // Force SwiftUI to detect the change by creating a new array
+                let temp = workouts
+                workouts = temp
+                print("📝 WorkoutStore: Forced array refresh, workouts.count = \(workouts.count)")
+            } else {
+                print("⚠️ WorkoutStore: Workout not found in local array!")
             }
 
             // Update selection if updated workout was selected
