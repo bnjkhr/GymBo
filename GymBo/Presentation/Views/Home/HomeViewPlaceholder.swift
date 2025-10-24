@@ -225,6 +225,7 @@ struct HomeViewPlaceholder: View {
             }
         }
         .id(workoutsHash)
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 
     private var emptyWorkoutState: some View {

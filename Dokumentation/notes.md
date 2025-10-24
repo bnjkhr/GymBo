@@ -28,7 +28,7 @@ Benachrichtigungen:
 
 
 ----
-Workout "Ganzkörper Maschine" bearbeiten. Diese Übungen müssen rein:
+Workout "Ganzkörper Maschine" bearbeiten. Diese Übungen müssen rein, alles andere raus:
 Übung,Sätze,Wiederholungen,Pause (Sekunden),Gewicht (kg)
 Beinpresse,3,8-12,90,
 Brustpresse,3,8-12,90,
