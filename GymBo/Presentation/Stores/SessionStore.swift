@@ -69,6 +69,7 @@ final class SessionStore {
     private let resumeSessionUseCase: ResumeSessionUseCase
     private let updateSetUseCase: UpdateSetUseCase
     private let updateAllSetsUseCase: UpdateAllSetsUseCase
+    private let updateExerciseNotesUseCase: UpdateExerciseNotesUseCase
     private let addSetUseCase: AddSetUseCase
     private let removeSetUseCase: RemoveSetUseCase
     private let reorderExercisesUseCase: ReorderExercisesUseCase
@@ -92,6 +93,7 @@ final class SessionStore {
         resumeSessionUseCase: ResumeSessionUseCase,
         updateSetUseCase: UpdateSetUseCase,
         updateAllSetsUseCase: UpdateAllSetsUseCase,
+        updateExerciseNotesUseCase: UpdateExerciseNotesUseCase,
         addSetUseCase: AddSetUseCase,
         removeSetUseCase: RemoveSetUseCase,
         reorderExercisesUseCase: ReorderExercisesUseCase,
@@ -108,6 +110,7 @@ final class SessionStore {
         self.resumeSessionUseCase = resumeSessionUseCase
         self.updateSetUseCase = updateSetUseCase
         self.updateAllSetsUseCase = updateAllSetsUseCase
+        self.updateExerciseNotesUseCase = updateExerciseNotesUseCase
         self.addSetUseCase = addSetUseCase
         self.removeSetUseCase = removeSetUseCase
         self.reorderExercisesUseCase = reorderExercisesUseCase
@@ -369,6 +372,38 @@ final class SessionStore {
         } catch {
             self.error = error
             print("❌ Failed to update all sets: \(error)")
+        }
+    }
+
+    /// Update notes for an exercise
+    /// - Parameters:
+    ///   - exerciseId: ID of the exercise
+    ///   - notes: New notes text (overwrites existing)
+    func updateExerciseNotes(exerciseId: UUID, notes: String) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        do {
+            try await updateExerciseNotesUseCase.execute(
+                sessionId: sessionId,
+                exerciseId: exerciseId,
+                notes: notes
+            )
+
+            // Refresh session to get updated notes
+            await refreshCurrentSession()
+
+            showSuccessMessage("Notiz gespeichert")
+            print("✅ Exercise notes updated successfully")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to update exercise notes: \(error)")
         }
     }
 
@@ -829,6 +864,9 @@ extension SessionStore {
                 updateAllSetsUseCase: DefaultUpdateAllSetsUseCase(
                     repository: repository,
                     exerciseRepository: exerciseRepository
+                ),
+                updateExerciseNotesUseCase: DefaultUpdateExerciseNotesUseCase(
+                    sessionRepository: repository
                 ),
                 addSetUseCase: DefaultAddSetUseCase(
                     repository: repository,

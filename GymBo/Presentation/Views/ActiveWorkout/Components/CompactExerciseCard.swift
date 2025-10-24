@@ -40,6 +40,7 @@ struct CompactExerciseCard: View {
     let onRemoveSet: ((UUID) -> Void)?  // (setId) - Remove set
     let onMarkAllComplete: (() -> Void)?
     let onReorder: (() -> Void)?  // Show reorder sheet
+    let onUpdateNotes: ((String) -> Void)?  // Update exercise notes
 
     // MARK: - State
 
@@ -248,9 +249,9 @@ struct CompactExerciseCard: View {
             print("➕ Quick-add set: \(weight)kg x \(reps) reps")
             onAddSet?(weight, reps)
         } else {
-            // Save as note
+            // Save as note (new note overwrites old one)
             print("📝 Quick-add note: \(trimmed)")
-            // TODO: Save note via callback (future feature)
+            onUpdateNotes?(trimmed)
         }
 
         quickAddText = ""

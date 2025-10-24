@@ -295,6 +295,15 @@ struct ActiveWorkoutSheetView: View {
             onReorder: {
                 showReorderSheet = true
                 UISelectionFeedbackGenerator().selectionChanged()
+            },
+            onUpdateNotes: { notes in
+                Task {
+                    print("📝 Update notes: \(notes)")
+                    await sessionStore.updateExerciseNotes(
+                        exerciseId: exercise.id,
+                        notes: notes
+                    )
+                }
             }
         )
     }
