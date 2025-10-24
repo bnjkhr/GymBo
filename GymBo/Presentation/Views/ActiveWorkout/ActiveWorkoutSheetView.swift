@@ -299,6 +299,10 @@ struct ActiveWorkoutSheetView: View {
                     await sessionStore.finishExercise(exerciseId: exercise.id)
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                 }
+            },
+            onReorder: {
+                showReorderSheet = true
+                UISelectionFeedbackGenerator().selectionChanged()
             }
         )
         .transition(
@@ -316,7 +320,7 @@ struct ActiveWorkoutSheetView: View {
         } label: {
             Image(
                 systemName: showAllExercises
-                    ? "list.bullet.clipboard.fill" : "list.bullet.clipboard"
+                    ? "eye" : "eye.slash"
             )
             .font(.title3)
             .foregroundStyle(showAllExercises ? .orange : .primary)

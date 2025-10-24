@@ -39,6 +39,7 @@ struct CompactExerciseCard: View {
     let onAddSet: ((Double, Int) -> Void)?  // (weight, reps) - Add new set
     let onRemoveSet: ((UUID) -> Void)?  // (setId) - Remove set
     let onMarkAllComplete: (() -> Void)?
+    let onReorder: (() -> Void)?  // Show reorder sheet
 
     // MARK: - State
 
@@ -144,6 +145,20 @@ struct CompactExerciseCard: View {
             }
 
             Spacer()
+
+            // 3-dot menu
+            Menu {
+                Button {
+                    // TODO: Add exercise options
+                } label: {
+                    Label("Übung bearbeiten", systemImage: "pencil")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.title3)
+                    .foregroundStyle(.primary)
+                    .padding(.top, 2)
+            }
         }
     }
 
@@ -166,7 +181,7 @@ struct CompactExerciseCard: View {
     private var bottomButtons: some View {
         print("🟢 bottomButtons computed - exercise: \(exercise.id)")
         return HStack(spacing: 16) {
-            // Mark all complete
+            // Mark all complete (✓)
             Button(action: handleMarkAllComplete) {
                 Image(systemName: "checkmark.circle")
                     .font(.title3)
@@ -175,9 +190,18 @@ struct CompactExerciseCard: View {
 
             Spacer()
 
-            // Add set
+            // Add set (+)
             Button(action: handleAddSet) {
                 Image(systemName: "plus.circle")
+                    .font(.title3)
+                    .foregroundStyle(.primary)
+            }
+
+            Spacer()
+
+            // Reorder (↕)
+            Button(action: handleReorder) {
+                Image(systemName: "arrow.up.arrow.down")
                     .font(.title3)
                     .foregroundStyle(.primary)
             }
@@ -209,6 +233,11 @@ struct CompactExerciseCard: View {
         if weight > 0 && reps > 0 {
             onAddSet?(weight, reps)
         }
+    }
+
+    private func handleReorder() {
+        print("🔵🔵🔵 BUTTON ACTION: Reorder")
+        onReorder?()
     }
 
     // MARK: - Actions
@@ -270,7 +299,8 @@ struct CompactExerciseCard: View {
         onUpdateAllSets: { _, _ in },
         onAddSet: { _, _ in },
         onRemoveSet: { _ in },
-        onMarkAllComplete: {}
+        onMarkAllComplete: {},
+        onReorder: {}
     )
     .padding()
 }
@@ -288,7 +318,8 @@ struct CompactExerciseCard: View {
         onUpdateAllSets: { _, _ in },
         onAddSet: { _, _ in },
         onRemoveSet: { _ in },
-        onMarkAllComplete: {}
+        onMarkAllComplete: {},
+        onReorder: {}
     )
     .padding()
 }
