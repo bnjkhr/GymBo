@@ -1,6 +1,6 @@
 # GymBo - Session Memory
 
-**Letzte Aktualisierung:** 2025-10-24
+**Letzte Aktualisierung:** 2025-10-25
 
 ---
 
@@ -17,9 +17,9 @@
 
 ---
 
-## 📊 Projekt-Status (Stand: 2025-10-24)
+## 📊 Projekt-Status (Stand: 2025-10-25)
 
-### Version: 2.1.0 - MVP COMPLETE
+### Version: 2.1.1 - UI Polishing & Bug Fixes
 
 **Alle Core Features implementiert:**
 - ✅ Workout Management (Create/Edit/Delete/Favorite)
@@ -33,6 +33,241 @@
 **Dokumentation aktualisiert:**
 - README.md → 2.1.0, Production Ready Status
 - TODO.md → Alle erledigten Features markiert, neue Features aus notes.md hinzugefügt
+
+---
+
+## ✅ Session 2025-10-25 (Session 18) - Ganzkörper Maschine Workout Update
+
+### Workout "Ganzkörper Maschine" mit korrekten Übungen aktualisiert
+**Status:** ✅ Implementiert und getestet
+
+**User Request:**
+Workout "Ganzkörper Maschine" bearbeiten mit diesen 9 Übungen:
+1. Beinpresse - 3x8 (90s)
+2. Brustpresse - 3x8 (90s)
+3. Latzug zur Brust - 3x8 (90s)
+4. Schulterpresse - 3x8 (90s)
+5. Beinbeuger - 3x8 (90s)
+6. Rudermaschine - 3x8 (90s)
+7. Beinstrecker - 3x8 (90s)
+8. Trizepsmaschine - 3x8 (90s)
+9. Bauchmaschine - 3x12 (60s)
+
+**Implementation:**
+
+**Datei:** `Infrastructure/SeedData/WorkoutSeedData.swift`
+
+```swift
+// 1. Beinpresse: 3x8
+if let exercise = exercises["Beinpresse"] {
+    let ex = WorkoutExerciseEntity(
+        exerciseId: exercise.id,
+        exercise: exercise,
+        sets: createSets(count: 3, reps: 8, weight: 0),
+        workout: fullBodyMachine,
+        order: order
+    )
+    fullBodyMachine.exercises.append(ex)
+    order += 1
+}
+
+// ... (weitere 8 Übungen)
+
+// 9. Bauchmaschine: 3x12 (60s pause)
+if let exercise = exercises["Bauchmuskel-Crunch-Maschine"] {
+    let ex = WorkoutExerciseEntity(
+        exerciseId: exercise.id,
+        exercise: exercise,
+        sets: createSets(count: 3, reps: 12, weight: 0, restTime: 60),
+        workout: fullBodyMachine,
+        order: order
+    )
+    fullBodyMachine.exercises.append(ex)
+    order += 1
+}
+```
+
+**Mapping:**
+- Rudermaschine → "Sitzendes Kabelrudern"
+- Trizepsmaschine → "Trizepsstrecker-Maschine"
+- Bauchmaschine → "Bauchmuskel-Crunch-Maschine"
+
+**Commits:**
+- `a69dfd7` - feat: Update Ganzkörper Maschine workout with correct exercises
+
+---
+
+## ✅ Session 2025-10-25 (Session 17) - Tab-Bar Auto-Hide Fix
+
+### Tab-Bar Auto-Hide in HomeView funktioniert jetzt
+**Status:** ✅ Gelöst - Content-Länge war das Problem
+
+**Problem:**
+Tab-Bar verschwindet beim Scrollen in HomeView nicht, funktioniert aber in ExercisesView.
+
+**Diagnose:**
+Mehrere Ansätze getestet:
+1. ❌ `.safeAreaInset()` für fixen Header
+2. ❌ ZStack entfernen
+3. ❌ Struktur an ExercisesView angleichen (VStack mit fixem Header)
+4. ✅ **Root Cause:** View hatte nicht genug scrollbaren Content!
+
+**Lösung:**
+iOS benötigt eine **Mindest-Scroll-Länge**, um `.tabBarMinimizeBehavior(.onScrollDown)` zu aktivieren. Mit Test-Padding von 500pt funktionierte es sofort.
+
+**Erkenntnisse:**
+- `.tabBarMinimizeBehavior()` ist ein iOS 26 Feature (nicht iOS 18!)
+- Funktioniert nur wenn genug Content zum Scrollen vorhanden ist
+- ExercisesView hatte immer genug Content (100+ Übungen)
+- HomeView mit nur 1-2 Workouts war zu kurz
+
+**Finale Struktur (wie ExercisesView):**
+```swift
+VStack(spacing: 0) {
+    // Fixed Header (scrollt NICHT mit)
+    GreetingHeaderView(...)
+    
+    // Fixed Calendar (scrollt NICHT mit)
+    WorkoutCalendarStripView(...)
+    
+    // Scrollable Content
+    if store.isLoading {
+        ProgressView(...)
+    } else if workouts.isEmpty {
+        emptyWorkoutState
+    } else {
+        workoutScrollView(...)  // ← ScrollView hier drin
+    }
+}
+```
+
+**Commits:**
+- `cf87b0e` - fix: Replicate ExercisesView structure for Tab-Bar auto-hide
+- `6f76132` - test: Add extra scrollable space to test Tab-Bar auto-hide
+- `32080c5` - fix: Remove test padding - Tab-Bar auto-hide works correctly
+
+---
+
+## ✅ Session 2025-10-25 (Session 16) - ExercisesView 3-Line Layout & UI Fixes
+
+### ExercisesView: 3-Zeilen-Layout für Exercise Cards
+**Status:** ✅ Implementiert
+
+**User Request:**
+"Übungen: Darstellung wie folgt: Übungsname /neue Zeile equiptment type /neue Zeile Körperteil(e) /neue Zeile → Körperteile nicht umbrechen sondern kommagetrennt hintereinander"
+
+**Implementation:**
+
+**Datei:** `Presentation/Views/Exercises/ExercisesView.swift`
+
+```swift
+private struct ExerciseCard: View {
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                // Exercise Info (Left) - 3 lines
+                VStack(alignment: .leading, spacing: 4) {
+                    // Line 1: Exercise Name
+                    Text(exercise.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+
+                    // Line 2: Equipment Type
+                    if !exercise.equipmentTypeRaw.isEmpty {
+                        Text(exercise.equipmentTypeRaw)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+
+                    // Line 3: Muscle Groups (comma-separated, no wrap)
+                    if !exercise.muscleGroupsRaw.isEmpty {
+                        Text(exercise.muscleGroupsRaw.joined(separator: ", "))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+
+                Spacer()
+
+                // Difficulty Badge (Right)
+                if !exercise.difficultyLevelRaw.isEmpty {
+                    difficultyBadge(for: exercise.difficultyLevelRaw)
+                }
+
+                // Chevron
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(14)
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
+    }
+}
+```
+
+### HomeView: "Neues Workout erstellen" Button Redesign
+**Status:** ✅ Implementiert
+
+**User Request:**
+"HomeView: Neues Workout erstellen in schwarz, nicht in blau und links zentrieren, direkt unter 'Workouts' (Überschrift)"
+
+**Implementation:**
+
+**Datei:** `Presentation/Views/Home/HomeViewPlaceholder.swift`
+
+```swift
+private var createWorkoutButton: some View {
+    Button {
+        showCreateWorkout = true
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    } label: {
+        HStack(spacing: 8) {
+            Image(systemName: "plus.circle.fill")
+                .font(.body)
+
+            Text("Neues Workout erstellen")
+                .font(.body)
+                .fontWeight(.medium)
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.black)  // ← Schwarz statt Grau
+        .cornerRadius(12)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)  // ← Links ausgerichtet
+}
+```
+
+**Positionierung:**
+- Direkt unter "Workouts" Überschrift
+- Vor der LazyVStack mit den Workout-Cards
+- Links ausgerichtet statt zentriert
+
+### Bug Fix: Syntax Error in AddExerciseToSessionSheet
+**Status:** ✅ Gefixt
+
+**Problem:**
+```swift
+filtered = filtered.filter { $0.    equipmentTypeRaw == equipment }
+```
+Extra Leerzeichen nach `$0.` verursachten Build-Error.
+
+**Fix:**
+```swift
+filtered = filtered.filter { $0.equipmentTypeRaw == equipment }
+```
+
+**Commits:**
+- `ea0403c` - fix: Remove extra whitespace in AddExerciseToSessionSheet filter
+- Implements 3-line layout for ExercisesView cards
 
 ---
 
