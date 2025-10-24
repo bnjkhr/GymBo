@@ -153,6 +153,10 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
                 orderIndex: workoutExercise.orderIndex  // ✅ Use explicit orderIndex instead of array position
             )
 
+            if let notes = workoutExercise.notes {
+                print("📝 Loaded notes from workout template: \"\(notes)\"")
+            }
+
             sessionExercises.append(sessionExercise)
         }
 
