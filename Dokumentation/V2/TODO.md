@@ -233,6 +233,12 @@ Die folgenden Punkte wurden bereits implementiert:
 
 **Build Status:** ✅ BUILD SUCCEEDED
 
+**Post-Implementation Bug Fix:**
+- 🐛 Dark Mode: Weiße Schrift auf weißem Hintergrund behoben
+- Changed `Color.white` → `Color(.systemBackground)` in Exercise Cards
+- Changed `Color.black` → `Color.primary` in buttons for Dark Mode support
+- Commit: `2a17490`
+
 ---
 
 ### 4. Session History (2-3 Stunden)
@@ -639,4 +645,4 @@ Jetzt: "Bankdrücken (Barbell)"
 
 ---
 
-**Last Updated:** 2025-10-24 (Abend) - HomeView Redesign Complete
+**Last Updated:** 2025-10-24 (Abend - Extended) - HomeView Redesign Complete + Dark Mode Fix

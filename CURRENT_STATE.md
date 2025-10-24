@@ -1,7 +1,7 @@
 # GymBo V2 - Current State
 
-**Last Updated:** 2025-10-24 (Abend)
-**Session:** 9
+**Last Updated:** 2025-10-24 (Abend - Extended)
+**Session:** 9 (+ Dark Mode Fix)
 
 ---
 
@@ -1252,4 +1252,44 @@ switch hour {
 
 ---
 
-*This document reflects the current state as of Session 9 (2025-10-24 Abend)*
+## 🐛 Dark Mode Fix (Session 9 Extended)
+
+**Problem:** White text on white background in Active Workout Exercise Cards (Dark Mode)
+
+**Root Cause:**
+- Hardcoded `Color.white` in CompactExerciseCard background
+- Hardcoded `Color.white` in "All Sets Complete" overlay
+- `Color.black` button didn't invert in Dark Mode
+
+**Solution:**
+```swift
+// Before
+.background(Color.white)
+
+// After
+.background(Color(.systemBackground))
+```
+
+**Files Modified:**
+1. `Presentation/Views/ActiveWorkout/Components/CompactExerciseCard.swift`
+   - Line 120: `Color.white` → `Color(.systemBackground)`
+2. `Presentation/Views/ActiveWorkout/ActiveWorkoutSheetView.swift`
+   - Line 490: Overlay background → `Color(.systemBackground)`
+   - Line 484: Button background → `Color.primary` (inverts in Dark Mode)
+
+**Technical Notes:**
+- `Color(.systemBackground)`: UIKit semantic color that adapts to appearance
+- Light Mode: White (#FFFFFF)
+- Dark Mode: Dark (#000000 or #1C1C1E depending on context)
+- `Color.primary`: Adaptive text color (black in light, white in dark)
+
+**Result:**
+- ✅ Exercise cards readable in both modes
+- ✅ Text automatically contrasts with background
+- ✅ Timer section intentionally kept dark for visual hierarchy
+
+**Commit:** `2a17490` - "fix: Dark Mode support in Active Workout view"
+
+---
+
+*This document reflects the current state as of Session 9 Extended (2025-10-24 Abend)*

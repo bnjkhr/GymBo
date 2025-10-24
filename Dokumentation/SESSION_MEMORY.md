@@ -113,6 +113,32 @@
 
 **Build Status:** ✅ BUILD SUCCEEDED (keine Errors, nur bestehende Warnings)
 
+### Dark Mode Fix (Session 9 - Extended)
+**Status:** ✅ Behoben
+
+**Problem:**
+- Weiße Schrift auf weißem Hintergrund in Active Workout Exercise Cards
+- "Alle Sätze fertig" Overlay nicht lesbar im Dark Mode
+- Button-Kontrast problematisch
+
+**Lösung:**
+- `CompactExerciseCard.swift`: `.background(Color.white)` → `.background(Color(.systemBackground))`
+- `ActiveWorkoutSheetView.swift`: Overlay + Button auf adaptive Farben umgestellt
+- `Color(.systemBackground)` passt sich automatisch an Light/Dark Mode an
+- `Color.primary` invertiert im Dark Mode (schwarz → weiß)
+
+**Ergebnis:**
+- ✅ Exercise Cards lesbar in beiden Modi
+- ✅ Light Mode: Schwarze Schrift auf weißem Grund
+- ✅ Dark Mode: Weiße Schrift auf dunklem Grund
+- ✅ Timer-Bereich bleibt intentional schwarz
+
+**Modified Files:**
+- `Presentation/Views/ActiveWorkout/Components/CompactExerciseCard.swift`
+- `Presentation/Views/ActiveWorkout/ActiveWorkoutSheetView.swift`
+
+**Commit:** `2a17490` - "fix: Dark Mode support in Active Workout view"
+
 ---
 
 ## 📝 Offene Features (aus notes.md)
@@ -211,8 +237,9 @@
 
 ---
 
-**Zuletzt bearbeitet:** 2025-10-24 (Abend)
-**Session-Dauer:** ~3 Stunden
+**Zuletzt bearbeitet:** 2025-10-24 (Abend - Extended)
+**Session-Dauer:** ~3.5 Stunden
 **Features:** HomeView Redesign mit Begrüßung, Spintnummer, Calendar Strip
+**Bug Fixes:** Dark Mode Lesbarkeit in Active Workout (weiß auf weiß → adaptive Farben)
 **Neue Komponenten:** 3 neue Views, 1 Repository-Erweiterung
 **Dokumentation:** SESSION_MEMORY.md, TODO.md, CURRENT_STATE.md aktualisiert
