@@ -235,11 +235,14 @@ struct HomeViewPlaceholder: View {
                             Spacer()
                         }
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 12)
+                        .padding(.bottom, 8)
+
+                        // Create New Workout Button (below header, left aligned)
+                        createWorkoutButton
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 16)
 
                         LazyVStack(spacing: 12) {
-                            // Create New Workout Link
-                            createWorkoutLink
 
                             // Favorites section
                             if !favoriteWorkouts.isEmpty {
@@ -296,31 +299,26 @@ struct HomeViewPlaceholder: View {
         .padding(.bottom, 4)
     }
 
-    private var createWorkoutLink: some View {
+    private var createWorkoutButton: some View {
         Button {
             showCreateWorkout = true
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         } label: {
-            HStack {
-                Image(systemName: "plus.circle")
+            HStack(spacing: 8) {
+                Image(systemName: "plus.circle.fill")
                     .font(.body)
-                    .foregroundStyle(.primary)
 
                 Text("Neues Workout erstellen")
                     .font(.body)
                     .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
             }
-            .padding()
-            .background(Color(.secondarySystemGroupedBackground))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.black)
             .cornerRadius(12)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func navigateToWorkout(_ workout: Workout, store: WorkoutStore) {
