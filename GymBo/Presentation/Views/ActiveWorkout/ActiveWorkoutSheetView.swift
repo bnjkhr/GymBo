@@ -32,9 +32,7 @@ struct ActiveWorkoutSheetView: View {
     @StateObject private var restTimerManager = RestTimerStateManager()
 
     @State private var showAllExercises = false
-    @State private var showSummary = false
     @State private var showReorderSheet = false
-    @State private var completedSession: DomainWorkoutSession? = nil  // Store session for summary
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var exerciseEquipment: [UUID: String] = [:]
 
@@ -88,32 +86,11 @@ struct ActiveWorkoutSheetView: View {
                         }
                     }
                 } else {
-                    noSessionView
-                }
-            }
-            .sheet(isPresented: $showSummary) {
-                ZStack {
-                    if let session = completedSession {
-                        WorkoutSummaryView(session: session) {
-                            // Clear currentSession and dismiss
-                            sessionStore.currentSession = nil
-                            showSummary = false
+                    // No session - dismiss sheet immediately
+                    Color.clear
+                        .onAppear {
                             dismiss()
                         }
-                        .onAppear {
-                            print("🔍 Sheet: Showing WorkoutSummaryView")
-                        }
-                    } else {
-                        Text("No session data")
-                            .onAppear {
-                                print("❌ Sheet: completedSession is nil!")
-                            }
-                    }
-                }
-                .onAppear {
-                    print(
-                        "🔍 Sheet: showSummary is true, completedSession: \(completedSession?.id.uuidString ?? "nil")"
-                    )
                 }
             }
             .sheet(isPresented: $showReorderSheet) {
@@ -404,10 +381,8 @@ struct ActiveWorkoutSheetView: View {
     private var endSessionButton: some View {
         Button {
             Task {
-                // Save session before ending (for summary display)
-                completedSession = sessionStore.currentSession
                 await sessionStore.endSession()
-                showSummary = true
+                // Sheet will dismiss automatically when currentSession becomes nil
             }
         } label: {
             Text("Beenden")

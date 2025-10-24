@@ -47,6 +47,9 @@ final class SessionStore {
     /// Currently active workout session (nil if no active session)
     var currentSession: DomainWorkoutSession?
 
+    /// Completed session for summary display (nil if no completed session)
+    var completedSession: DomainWorkoutSession?
+
     /// Loading state for async operations
     var isLoading: Bool = false
 
@@ -198,11 +201,13 @@ final class SessionStore {
         defer { isLoading = false }
 
         do {
-            let completedSession = try await endSessionUseCase.execute(sessionId: sessionId)
-            currentSession = completedSession
+            let finishedSession = try await endSessionUseCase.execute(sessionId: sessionId)
 
-            // Note: We keep currentSession set to allow UI to show summary
-            // The View will set currentSession = nil when appropriate
+            // Save completed session for summary display
+            completedSession = finishedSession
+
+            // Clear active session immediately
+            currentSession = nil
 
             showSuccessMessage("Workout abgeschlossen! 🎉")
         } catch {

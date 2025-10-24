@@ -21,6 +21,7 @@ struct HomeViewPlaceholder: View {
     @Environment(\.dependencyContainer) private var dependencyContainer
     @State private var workoutStore: WorkoutStore?
     @State private var showActiveWorkout = false
+    @State private var showWorkoutSummary = false
 
     var body: some View {
         NavigationStack {
@@ -41,6 +42,19 @@ struct HomeViewPlaceholder: View {
                 if sessionStore.hasActiveSession {
                     ActiveWorkoutSheetView()
                 }
+            }
+            .sheet(isPresented: $showWorkoutSummary) {
+                if let completedSession = sessionStore.completedSession {
+                    WorkoutSummaryView(session: completedSession) {
+                        // Clear completed session and dismiss
+                        sessionStore.completedSession = nil
+                        showWorkoutSummary = false
+                    }
+                }
+            }
+            .onChange(of: sessionStore.completedSession) { oldValue, newValue in
+                // Show summary sheet when a session is completed
+                showWorkoutSummary = (newValue != nil)
             }
             .task {
                 await loadData()
