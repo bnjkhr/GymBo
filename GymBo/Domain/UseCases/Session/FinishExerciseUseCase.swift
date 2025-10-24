@@ -32,8 +32,9 @@ protocol FinishExerciseUseCase {
     /// - Parameters:
     ///   - sessionId: ID of the session
     ///   - exerciseId: ID of the exercise to finish
+    /// - Returns: Updated session
     /// - Throws: UseCaseError if session or exercise not found
-    func execute(sessionId: UUID, exerciseId: UUID) async throws
+    func execute(sessionId: UUID, exerciseId: UUID) async throws -> DomainWorkoutSession
 }
 
 // MARK: - Default Implementation
@@ -53,7 +54,7 @@ final class DefaultFinishExerciseUseCase: FinishExerciseUseCase {
 
     // MARK: - Execute
 
-    func execute(sessionId: UUID, exerciseId: UUID) async throws {
+    func execute(sessionId: UUID, exerciseId: UUID) async throws -> DomainWorkoutSession {
         // 1. Fetch session
         guard var session = try await sessionRepository.fetch(id: sessionId) else {
             throw UseCaseError.sessionNotFound(sessionId)
@@ -72,6 +73,9 @@ final class DefaultFinishExerciseUseCase: FinishExerciseUseCase {
         try await sessionRepository.update(session)
 
         print("✅ Exercise finished: \(exerciseId)")
+
+        // 5. Return updated session
+        return session
     }
 }
 
@@ -83,7 +87,7 @@ final class DefaultFinishExerciseUseCase: FinishExerciseUseCase {
         var executeCalled = false
         var lastExerciseId: UUID?
 
-        func execute(sessionId: UUID, exerciseId: UUID) async throws {
+        func execute(sessionId: UUID, exerciseId: UUID) async throws -> DomainWorkoutSession {
             executeCalled = true
             lastExerciseId = exerciseId
 
@@ -92,6 +96,9 @@ final class DefaultFinishExerciseUseCase: FinishExerciseUseCase {
             }
 
             print("🧪 Mock: Exercise finished \(exerciseId)")
+
+            // Return mock session
+            return DomainWorkoutSession.preview
         }
     }
 #endif

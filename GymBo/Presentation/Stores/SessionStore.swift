@@ -466,20 +466,19 @@ final class SessionStore {
         }
 
         do {
-            try await finishExerciseUseCase.execute(
+            // Execute and get updated session directly (no refresh needed!)
+            let updatedSession = try await finishExerciseUseCase.execute(
                 sessionId: sessionId,
                 exerciseId: exerciseId
             )
 
-            // Refresh to update UI
-            await refreshCurrentSession()
+            // Update UI immediately
+            currentSession = updatedSession
 
             print("✅ Exercise finished: \(exerciseId)")
 
             // Check if this was the last exercise
-            guard let session = currentSession else { return }
-
-            let allExercisesFinished = session.exercises.allSatisfy { $0.isFinished }
+            let allExercisesFinished = updatedSession.exercises.allSatisfy { $0.isFinished }
 
             if allExercisesFinished {
                 // All exercises finished

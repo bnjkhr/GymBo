@@ -187,7 +187,7 @@ struct CompactExerciseCard: View {
             Button {
                 handleReorder()
             } label: {
-                Image(systemName: "arrow.up.arrow.down")
+                Image(systemName: "arrow.up.arrow.down.circle")
                     .font(.title3)
                     .foregroundStyle(Color.gray)
             }
