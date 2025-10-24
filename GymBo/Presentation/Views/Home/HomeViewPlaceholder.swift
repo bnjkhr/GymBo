@@ -301,6 +301,10 @@ struct HomeViewPlaceholder: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 12)
                 }
+
+                // TEST: Extra space to ensure enough scrollable content
+                Color.clear
+                    .frame(height: 500)
             }
         }
         .refreshable {
