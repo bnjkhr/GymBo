@@ -1,7 +1,7 @@
 # GymBo V2 - Current State
 
 **Last Updated:** 2025-10-24  
-**Session:** 5
+**Session:** 6
 
 ---
 
@@ -38,19 +38,24 @@ GymBo V2 ist eine iOS Fitness-Tracking-App basierend auf **Clean Architecture** 
 - Exercise Progress Visualization
 - Workout Summary mit Statistiken
 - Mark All Complete Feature
-- Icon Updates (Auge → Clipboard für Übersicht)
 - Intelligente Notifications:
   - "Nächste Übung" nach abgeschlossener Übung
   - "Workout done! 💪🏼" nach letzter Übung
 - Success Pill in ActiveWorkoutSheetView (sichtbar über allem)
 
-### **Bug Fixes (Session 5)** ✅
-- ✅ Rest Timer startet nicht mehr automatisch beim Workout-Start
-- ✅ Workout-Name wird korrekt im Timer angezeigt (nicht "Workout")
-- ✅ "Nächste Übung" Notification erscheint jetzt sichtbar
-- ✅ Keyboard funktioniert korrekt (Software Keyboard aktiviert)
-- ✅ TextEditor Keyboard lässt sich schließen mit "Fertig"-Button
-- ✅ Optional targetReps für zeitbasierte Übungen behoben
+### **Phase 4: UI Redesign (Session 6)** ✅
+- **Modern Dark Theme**: Schwarzer Hintergrund mit weißen Cards
+- **Kompakte Exercise Cards**: 39pt corner radius (iPhone Display Radius)
+- **Optimierte Checkboxen**: Quadratisch, invertiert (schwarz mit weißem Haken)
+- **Cleaner Header**: Ohne Dot-Indikator und 3-Dot-Menu
+- **Verbesserte Buttons**: Grau statt blau, einheitliches Design
+- **Timer Section**: Schwarzer Hintergrund bis zum oberen Rand
+- **Skip Button**: Forward-Icon statt Text
+- **Navigation**: Checkmark-Icon für Show/Hide Completed
+- **Reorder**: Nur noch in Card-Footer (↕), nicht mehr im Header
+- **Verbesserte Typografie**: Größerer Exercise Name (24pt)
+- **Optimiertes Spacing**: 24pt Padding für bessere Lesbarkeit
+- **Subtile Notizen-Field**: Ohne Hintergrund, dezent
 
 ---
 
@@ -122,9 +127,11 @@ GymBo/
 │   │   │   ├── EditExerciseDetailsView.swift (Zeit/Wiederholungen Toggles)
 │   │   │   └── WorkoutDetailView.swift
 │   │   └── ActiveWorkout/
-│   │       ├── ActiveWorkoutSheetView.swift (Success Pill Overlay)
+│   │       ├── ActiveWorkoutSheetView.swift (Dark Theme, Success Pill Overlay)
 │   │       └── Components/
-│   │           └── TimerSection.swift (Exercise Counter: 2/7)
+│   │           ├── CompactExerciseCard.swift (Redesigned, 39pt corners)
+│   │           ├── CompactSetRow.swift (Square checkboxes, inverted style)
+│   │           └── TimerSection.swift (Exercise Counter, Skip icon)
 │   ├── Stores/
 │   │   ├── SessionStore.swift (Smart Notifications)
 │   │   └── WorkoutStore.swift
@@ -138,6 +145,33 @@ GymBo/
 ---
 
 ## 🎯 Key Features Detail
+
+### **Modern Dark UI Design (Session 6)**
+
+**Color Scheme:**
+- Background: Solid Black
+- Cards: White mit 39pt corner radius
+- Text: Primary (black) on white cards
+- Buttons: Gray (secondary)
+- Checkboxes: Inverted (black fill with white checkmark when completed)
+
+**Layout Principles:**
+- 24pt horizontal padding (mehr Abstand vom Rand)
+- 12pt top padding für erste Card
+- 8pt spacing zwischen Cards
+- Nahtlose schwarze Fläche von Timer bis Cards
+
+**Typography:**
+- Exercise Name: 24pt semibold
+- Weight/Reps: 28pt bold
+- Unit Labels: 12pt gray
+- Equipment: caption, secondary
+
+**Button Design:**
+- Card Footer: 3 Buttons (✓, +, ↕) - alle grau
+- Navigation: Checkmark für Show/Hide, Plus für Add Exercise
+- Alle Buttons: .callout size, .secondary color
+- Timer Controls: -15s, Skip (forward icon), +15s
 
 ### **Time-Based Exercise Support**
 
@@ -282,7 +316,7 @@ ToolbarItemGroup(placement: .keyboard) {
 | **SessionExerciseEntity** | exerciseId, orderIndex | → ExerciseSetEntity[], → WorkoutSessionEntity |
 | **ExerciseSetEntity** | reps, weight, restTime, completed | → SessionExerciseEntity |
 
-### **Schema Changes (Session 5)**
+### **Schema Changes**
 
 **WorkoutExerciseEntity:**
 - Added: `exerciseId: UUID?` (direct reference, fixes lazy loading)
@@ -300,13 +334,18 @@ ToolbarItemGroup(placement: .keyboard) {
 
 ### **Reusable Components**
 - ✅ **SuccessPill**: Auto-dismiss Notifications (3s)
-- ✅ **TimerSection**: Rest Timer & Workout Duration
-- ✅ **CompactExerciseCard**: Exercise Display mit Sets
+- ✅ **TimerSection**: Rest Timer & Workout Duration (schwarzer Hintergrund)
+- ✅ **CompactExerciseCard**: Moderne Exercise Cards (39pt corners, 24pt padding)
+- ✅ **CompactSetRow**: Set-Zeilen mit invertierten Checkboxen
 - ✅ **EditExerciseDetailsView**: Form mit Zeit/Reps Toggle
 
-### **Icons Updated**
-- ❌ `eye.fill` / `eye.slash.fill`
-- ✅ `list.bullet.clipboard.fill` / `list.bullet.clipboard`
+### **Design System**
+- **Corner Radius**: 39pt (iPhone Display Radius)
+- **Card Padding**: 24pt horizontal
+- **Button Size**: .callout (klein & dezent)
+- **Button Color**: Color.gray (explizit grau, nicht tint)
+- **Checkbox Size**: 24x24pt (kompakt)
+- **Typography**: 24pt Exercise Name, 28pt Weight, 12pt Units
 
 ---
 
@@ -340,9 +379,10 @@ ToolbarItemGroup(placement: .keyboard) {
 ## 📝 Development Notes
 
 ### **Git Workflow**
-- Feature-Branches für größere Features
+- Feature-Branches für größere Features (`feature/redesign-exercise-card`)
 - Descriptive Commit Messages
 - Regular Documentation Updates
+- Clean merge strategy
 
 ### **Code Style**
 - SwiftLint (TODO: Setup)
@@ -357,35 +397,44 @@ ToolbarItemGroup(placement: .keyboard) {
 
 ---
 
-## 🎯 Session 5 Summary
+## 🎯 Session 6 Summary
 
-**Main Focus:** Bug Fixes & Polish
+**Main Focus:** UI Redesign - Modern Dark Theme
 
 **Achievements:**
-1. ✅ Time-based Exercise Support implementiert
-2. ✅ Exercise Counter im Timer (2/7)
-3. ✅ Smart Notifications ("Nächste Übung" vs "Workout done!")
-4. ✅ Success Pill Visibility behoben
-5. ✅ Workout-Name Mapping korrigiert
-6. ✅ Rest Timer Auto-Start behoben
-7. ✅ Keyboard Issues gelöst (Software Keyboard + Focus Management)
-8. ✅ Icon Updates (Clipboard statt Auge)
+1. ✅ Komplettes UI Redesign zu modernem Dark Theme
+2. ✅ Schwarzer Hintergrund mit weißen Exercise Cards
+3. ✅ 39pt Corner Radius (iPhone Display Radius)
+4. ✅ Invertierte Checkboxen (schwarz mit weißem Haken)
+5. ✅ Optimierte Typografie (24pt Exercise Name)
+6. ✅ Cleaner Card Header (ohne Dot, ohne 3-Dot-Menu)
+7. ✅ Graue Buttons statt blau (einheitliches Design)
+8. ✅ Timer Section bis zum oberen Rand
+9. ✅ Skip-Button als Icon (forward.fill)
+10. ✅ Checkmark-Icon für Show/Hide Completed
+11. ✅ Reorder nur noch in Card-Footer
+12. ✅ 24pt Padding für bessere Lesbarkeit
+13. ✅ Subtiles Notizen-Field ohne Hintergrund
+
+**Design Principles Applied:**
+- **ULTRATHINK**: Pixel-genaue Details beachtet
+- **Consistency**: Einheitliche Farben und Größen
+- **Simplicity**: Unnötige Elemente entfernt
+- **Spacing**: Mehr Luft zwischen Elementen
+- **Contrast**: Schwarz/Weiß für optimale Lesbarkeit
 
 **Files Modified:**
-- `Domain/Entities/WorkoutExercise.swift`
-- `Domain/UseCases/Workout/UpdateWorkoutExerciseUseCase.swift`
-- `Domain/UseCases/Session/StartSessionUseCase.swift`
-- `Data/Entities/WorkoutSessionEntity.swift`
-- `Data/Mappers/SessionMapper.swift`
-- `Data/Mappers/WorkoutMapper.swift`
-- `Presentation/Views/WorkoutDetail/EditExerciseDetailsView.swift`
-- `Presentation/Views/WorkoutDetail/WorkoutDetailView.swift`
 - `Presentation/Views/ActiveWorkout/ActiveWorkoutSheetView.swift`
+- `Presentation/Views/ActiveWorkout/Components/CompactExerciseCard.swift`
+- `Presentation/Views/ActiveWorkout/Components/CompactSetRow.swift`
 - `Presentation/Views/ActiveWorkout/Components/TimerSection.swift`
-- `Presentation/Stores/SessionStore.swift`
-- `Presentation/Stores/WorkoutStore.swift`
 
-**Lines of Code Changed:** ~500+
+**Git Branch:**
+- Branch: `feature/redesign-exercise-card`
+- Commits: 11
+- Status: Ready to merge to main
+
+**Lines of Code Changed:** ~200+
 
 ---
 
@@ -398,4 +447,4 @@ ToolbarItemGroup(placement: .keyboard) {
 
 ---
 
-*This document reflects the current state as of Session 5 (2025-10-24)*
+*This document reflects the current state as of Session 6 (2025-10-24)*

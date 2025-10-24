@@ -7,9 +7,9 @@
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0+-purple.svg)](https://developer.apple.com/xcode/swiftui/)
 [![License](https://img.shields.io/badge/License-Private-red.svg)]()
 
-> **Status:** ✅ MVP PRODUCTION-READY - Exercise Reordering + Auto-Finish + Production Fixes
+> **Status:** ✅ MVP PRODUCTION-READY - Modern Dark UI + Complete Feature Set
 
-GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnelle Bedienung während des Trainings. Die App verwendet Clean Architecture mit iOS 17+ Features wie `@Observable` und SwiftData.
+GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnelle Bedienung und cleanes Design während des Trainings. Die App verwendet Clean Architecture mit iOS 17+ Features wie `@Observable` und SwiftData.
 
 ---
 
@@ -69,26 +69,38 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
 
 ---
 
-## 🎉 Recent Updates (Session 6 - 2025-10-23)
+## 🎉 Recent Updates (Session 6 - 2025-10-24)
 
-### Exercise Reordering Feature ✅
+### Modern Dark UI Redesign ✅
+- **Black Background Theme**: Seamless black background from timer to cards
+- **White Exercise Cards**: 39pt corner radius (iPhone Display Radius)
+- **Optimized Checkboxes**: Square, inverted (black fill with white checkmark)
+- **Clean Header**: Removed dot indicator and 3-dot menu
+- **Gray Buttons**: Unified button design throughout app
+- **Improved Typography**: 24pt exercise names for better readability
+- **Better Spacing**: 24pt padding for breathing room
+- **Subtle Notizen Field**: No background, minimal distraction
+
+### Previous Updates (Session 5)
+
+#### Exercise Reordering Feature ✅
 - Drag & drop reordering in active sessions
 - **Permanent save toggle** (updates workout template)
 - Dedicated ReorderExercisesSheet (verhindert Button-Auto-Trigger Bug)
 - Production-ready mit explizitem orderIndex handling
 
-### Auto-Finish Exercise ✅
+#### Auto-Finish Exercise ✅
 - Exercises auto-finish when all sets completed
 - Automatically un-finish when set uncompleted
 - Integrated in CompleteSetUseCase
 
-### Production-Ready Fixes ✅
+#### Production-Ready Fixes ✅
 - **StartSessionUseCase**: Uses explicit orderIndex from templates (nicht Array-Position)
 - **WorkoutMapper**: In-place updates (preserves SwiftData relationships)
 - **SessionMapper**: Correctly updates orderIndex during reordering
 - **All mappers**: Avoid entity recreation (performance + stability)
 
-**Commit:** `30b3e6f` - "feat: Production-ready exercise reordering with auto-finish"
+**Branch:** `feature/redesign-exercise-card` (ready to merge)
 
 ---
 
@@ -413,5 +425,5 @@ Für Feature-Requests oder Bug-Reports:
 
 **Developer:** Benjamin Kohler ([@bnjkhr](https://github.com/bnjkhr))  
 **Project Start:** Oktober 2025  
-**Current Version:** v2.0.0 (MVP)  
-**Last Updated:** 2025-10-22
+**Current Version:** v2.1.0 (MVP + Modern UI)  
+**Last Updated:** 2025-10-24

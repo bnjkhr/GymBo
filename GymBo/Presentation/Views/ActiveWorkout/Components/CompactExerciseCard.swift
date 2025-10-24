@@ -39,6 +39,7 @@ struct CompactExerciseCard: View {
     let onAddSet: ((Double, Int) -> Void)?  // (weight, reps) - Add new set
     let onRemoveSet: ((UUID) -> Void)?  // (setId) - Remove set
     let onMarkAllComplete: (() -> Void)?
+    let onReorder: (() -> Void)?  // Show reorder sheet
 
     // MARK: - State
 
@@ -47,8 +48,8 @@ struct CompactExerciseCard: View {
     // MARK: - Layout Constants
 
     private enum Layout {
-        static let headerPadding: CGFloat = 20
-        static let setPadding: CGFloat = 20
+        static let headerPadding: CGFloat = 24
+        static let setPadding: CGFloat = 24
         static let cornerRadius: CGFloat = 39
         static let shadowRadius: CGFloat = 4
         static let shadowY: CGFloat = 1
@@ -56,7 +57,7 @@ struct CompactExerciseCard: View {
     }
 
     private enum Typography {
-        static let nameFontSize: CGFloat = 20
+        static let nameFontSize: CGFloat = 24
         static let weightFontSize: CGFloat = 28
         static let repsFontSize: CGFloat = 24
         static let unitFontSize: CGFloat = 14
@@ -125,12 +126,6 @@ struct CompactExerciseCard: View {
     /// Exercise header with name and equipment
     private var exerciseHeader: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Indicator circle
-            Circle()
-                .fill(.orange)
-                .frame(width: Layout.indicatorSize, height: Layout.indicatorSize)
-                .padding(.top, 6)
-
             // Name and equipment
             VStack(alignment: .leading, spacing: 2) {
                 Text(exerciseName)
@@ -151,12 +146,10 @@ struct CompactExerciseCard: View {
     private var quickAddField: some View {
         TextField("Neuer Satz oder Notiz", text: $quickAddText)
             .textFieldStyle(.plain)
-            .font(.body)
+            .font(.subheadline)
             .foregroundStyle(.secondary)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(8)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 4)
             .onSubmit {
                 handleQuickAdd()
             }
@@ -166,20 +159,29 @@ struct CompactExerciseCard: View {
     private var bottomButtons: some View {
         print("🟢 bottomButtons computed - exercise: \(exercise.id)")
         return HStack(spacing: 16) {
-            // Mark all complete
+            // Mark all complete (✓)
             Button(action: handleMarkAllComplete) {
                 Image(systemName: "checkmark.circle")
                     .font(.title3)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.gray)
             }
 
             Spacer()
 
-            // Add set
+            // Add set (+)
             Button(action: handleAddSet) {
                 Image(systemName: "plus.circle")
                     .font(.title3)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.gray)
+            }
+
+            Spacer()
+
+            // Reorder (↕)
+            Button(action: handleReorder) {
+                Image(systemName: "arrow.up.arrow.down")
+                    .font(.title3)
+                    .foregroundStyle(Color.gray)
             }
         }
     }
@@ -209,6 +211,11 @@ struct CompactExerciseCard: View {
         if weight > 0 && reps > 0 {
             onAddSet?(weight, reps)
         }
+    }
+
+    private func handleReorder() {
+        print("🔵🔵🔵 BUTTON ACTION: Reorder")
+        onReorder?()
     }
 
     // MARK: - Actions
@@ -270,7 +277,8 @@ struct CompactExerciseCard: View {
         onUpdateAllSets: { _, _ in },
         onAddSet: { _, _ in },
         onRemoveSet: { _ in },
-        onMarkAllComplete: {}
+        onMarkAllComplete: {},
+        onReorder: {}
     )
     .padding()
 }
@@ -288,7 +296,8 @@ struct CompactExerciseCard: View {
         onUpdateAllSets: { _, _ in },
         onAddSet: { _, _ in },
         onRemoveSet: { _ in },
-        onMarkAllComplete: {}
+        onMarkAllComplete: {},
+        onReorder: {}
     )
     .padding()
 }

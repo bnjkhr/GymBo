@@ -46,14 +46,22 @@ struct ActiveWorkoutSheetView: View {
                 // Show workout UI if session exists OR if showing summary with completed session
                 if let session = sessionStore.currentSession ?? completedSession {
                     VStack(spacing: 0) {
-                        // Timer Section (ALWAYS visible)
-                        TimerSection(
-                            restTimerManager: restTimerManager,
-                            workoutStartDate: session.startDate,
-                            workoutName: session.workoutName,
-                            currentExercise: currentExerciseNumber(session: session),
-                            totalExercises: session.exercises.count
-                        )
+                        // Timer Section with black background extending to top
+                        ZStack(alignment: .bottom) {
+                            // Black background
+                            Color.black
+                                .ignoresSafeArea(edges: .top)
+
+                            // Timer content (safe area respected for content)
+                            TimerSection(
+                                restTimerManager: restTimerManager,
+                                workoutStartDate: session.startDate,
+                                workoutName: session.workoutName,
+                                currentExercise: currentExerciseNumber(session: session),
+                                totalExercises: session.exercises.count
+                            )
+                        }
+                        .frame(height: 300)
 
                         // Exercise List (ScrollView)
                         if !session.exercises.isEmpty {
@@ -67,7 +75,6 @@ struct ActiveWorkoutSheetView: View {
                         ToolbarItem(placement: .topBarLeading) {
                             HStack(spacing: 16) {
                                 eyeToggleButton
-                                reorderButton
                                 addExerciseButton
                             }
                         }
@@ -182,9 +189,12 @@ struct ActiveWorkoutSheetView: View {
                                 let setsSignature = exercise.sets.map { $0.id.uuidString }.joined(
                                     separator: ",")
 
+                                let isFirstCard = index == 0
+
                                 exerciseCardView(for: exercise, at: index, in: session)
                                     .id("\(exercise.id)-\(setsSignature)")
                                     .padding(.horizontal, 12)
+                                    .padding(.top, isFirstCard ? 12 : 0)
                             }
                         }
 
@@ -194,9 +204,9 @@ struct ActiveWorkoutSheetView: View {
                                 .padding(.horizontal, 12)
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(.bottom, 12)
                 }
-                .background(Color.gray.opacity(0.1))
+                .background(Color.black)
                 .animation(
                     .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
             }
@@ -299,6 +309,10 @@ struct ActiveWorkoutSheetView: View {
                     await sessionStore.finishExercise(exerciseId: exercise.id)
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                 }
+            },
+            onReorder: {
+                showReorderSheet = true
+                UISelectionFeedbackGenerator().selectionChanged()
             }
         )
         .transition(
@@ -308,7 +322,7 @@ struct ActiveWorkoutSheetView: View {
             ))
     }
 
-    /// Eye toggle button for show/hide completed exercises
+    /// Toggle button for show/hide completed exercises
     private var eyeToggleButton: some View {
         Button {
             showAllExercises.toggle()
@@ -316,10 +330,10 @@ struct ActiveWorkoutSheetView: View {
         } label: {
             Image(
                 systemName: showAllExercises
-                    ? "list.bullet.clipboard.fill" : "list.bullet.clipboard"
+                    ? "checkmark.circle.fill" : "checkmark.circle"
             )
-            .font(.title3)
-            .foregroundStyle(showAllExercises ? .orange : .primary)
+            .font(.callout)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -342,8 +356,8 @@ struct ActiveWorkoutSheetView: View {
             UISelectionFeedbackGenerator().selectionChanged()
         } label: {
             Image(systemName: "plus.circle")
-                .font(.title3)
-                .foregroundStyle(.orange)
+                .font(.callout)
+                .foregroundStyle(.secondary)
         }
     }
 
