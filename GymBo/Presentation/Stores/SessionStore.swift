@@ -74,6 +74,7 @@ final class SessionStore {
     private let removeSetUseCase: RemoveSetUseCase
     private let reorderExercisesUseCase: ReorderExercisesUseCase
     private let finishExerciseUseCase: FinishExerciseUseCase
+    private let addExerciseToSessionUseCase: AddExerciseToSessionUseCase
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
     private let workoutRepository: WorkoutRepositoryProtocol
@@ -98,6 +99,7 @@ final class SessionStore {
         removeSetUseCase: RemoveSetUseCase,
         reorderExercisesUseCase: ReorderExercisesUseCase,
         finishExerciseUseCase: FinishExerciseUseCase,
+        addExerciseToSessionUseCase: AddExerciseToSessionUseCase,
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol,
         workoutRepository: WorkoutRepositoryProtocol
@@ -115,6 +117,7 @@ final class SessionStore {
         self.removeSetUseCase = removeSetUseCase
         self.reorderExercisesUseCase = reorderExercisesUseCase
         self.finishExerciseUseCase = finishExerciseUseCase
+        self.addExerciseToSessionUseCase = addExerciseToSessionUseCase
         self.workoutRepository = workoutRepository
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
@@ -639,6 +642,56 @@ final class SessionStore {
         }
     }
 
+    /// Add exercise to active session (with optional workout template update)
+    ///
+    /// **Parameters:**
+    /// - exerciseId: Exercise from catalog to add
+    /// - savePermanently: If true, also adds exercise to workout template
+    func addExerciseToSession(exerciseId: UUID, savePermanently: Bool) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        guard let workoutId = currentSession?.workoutId else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No workout ID in session"]
+            )
+            return
+        }
+
+        do {
+            // 1. Add to session
+            let updatedSession = try await addExerciseToSessionUseCase.execute(
+                sessionId: sessionId,
+                exerciseId: exerciseId
+            )
+
+            // 2. Update UI immediately
+            currentSession = nil
+            currentSession = updatedSession
+
+            // 3. If permanent save requested, add to workout template
+            if savePermanently {
+                try await addExerciseToWorkoutTemplate(
+                    workoutId: workoutId,
+                    exerciseId: exerciseId
+                )
+            }
+
+            showSuccessMessage("Übung hinzugefügt")
+            print("✅ Exercise added to session (permanent: \(savePermanently))")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to add exercise: \(error)")
+        }
+    }
+
     // MARK: - Private Helpers
 
     /// Update workout template exercise order (for permanent save)
@@ -659,6 +712,56 @@ final class SessionStore {
             print("❌ Failed to update workout order: \(error)")
             self.error = error
         }
+    }
+
+    /// Add exercise to workout template (for permanent save)
+    private func addExerciseToWorkoutTemplate(workoutId: UUID, exerciseId: UUID) async throws {
+        print("💾 Adding exercise to workout template...")
+        print("💾 Workout ID: \(workoutId)")
+        print("💾 Exercise ID: \(exerciseId)")
+
+        // Fetch exercise to get default values
+        guard let exercise = try? await exerciseRepository.fetch(id: exerciseId) else {
+            throw NSError(
+                domain: "SessionStore",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Exercise not found"]
+            )
+        }
+
+        // Fetch current workout
+        guard let workout = try? await workoutRepository.fetch(id: workoutId) else {
+            throw NSError(
+                domain: "SessionStore",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Workout not found"]
+            )
+        }
+
+        // Determine next orderIndex
+        let maxOrderIndex = workout.exercises.map { $0.orderIndex }.max() ?? -1
+        let newOrderIndex = maxOrderIndex + 1
+
+        // Create new workout exercise
+        let newWorkoutExercise = WorkoutExercise(
+            exerciseId: exerciseId,
+            targetSets: exercise.lastUsedSetCount ?? 3,
+            targetReps: exercise.lastUsedReps ?? 8,
+            targetTime: nil,
+            targetWeight: exercise.lastUsedWeight,
+            restTime: exercise.lastUsedRestTime ?? 90.0,
+            orderIndex: newOrderIndex,
+            notes: nil
+        )
+
+        // Add to workout
+        var updatedWorkout = workout
+        updatedWorkout.exercises.append(newWorkoutExercise)
+
+        // Save workout
+        try await workoutRepository.update(updatedWorkout)
+
+        print("✅ Exercise added to workout template permanently")
     }
 
     /// Optimistic update of set completion in local state

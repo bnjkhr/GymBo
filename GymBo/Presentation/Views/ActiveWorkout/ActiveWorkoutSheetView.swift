@@ -34,6 +34,7 @@ struct ActiveWorkoutSheetView: View {
     @State private var showAllExercises = false
     @State private var showReorderSheet = false
     @State private var showEndWorkoutConfirmation = false
+    @State private var showAddExerciseSheet = false
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var exerciseEquipment: [UUID: String] = [:]
 
@@ -109,6 +110,18 @@ struct ActiveWorkoutSheetView: View {
                             }
                         }
                     )
+                }
+            }
+            .sheet(isPresented: $showAddExerciseSheet) {
+                AddExerciseToSessionSheet { exercise, savePermanently in
+                    Task {
+                        await sessionStore.addExerciseToSession(
+                            exerciseId: exercise.id,
+                            savePermanently: savePermanently
+                        )
+                        // Reload exercise names after adding
+                        await loadExerciseNames()
+                    }
                 }
             }
             .interactiveDismissDisabled(false)
@@ -340,7 +353,7 @@ struct ActiveWorkoutSheetView: View {
     /// Add exercise button
     private var addExerciseButton: some View {
         Button {
-            // TODO: Add exercise functionality
+            showAddExerciseSheet = true
             UISelectionFeedbackGenerator().selectionChanged()
         } label: {
             Image(systemName: "plus.circle")

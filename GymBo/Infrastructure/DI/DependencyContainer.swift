@@ -52,6 +52,7 @@ final class DependencyContainer {
             removeSetUseCase: makeRemoveSetUseCase(),
             reorderExercisesUseCase: makeReorderExercisesUseCase(),
             finishExerciseUseCase: makeFinishExerciseUseCase(),
+            addExerciseToSessionUseCase: makeAddExerciseToSessionUseCase(),
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository(),
             workoutRepository: makeWorkoutRepository()
@@ -222,6 +223,15 @@ final class DependencyContainer {
     func makeFinishExerciseUseCase() -> FinishExerciseUseCase {
         return DefaultFinishExerciseUseCase(
             sessionRepository: makeSessionRepository()
+        )
+    }
+
+    /// Creates AddExerciseToSessionUseCase
+    /// - Returns: Use case for adding exercises to active session
+    func makeAddExerciseToSessionUseCase() -> AddExerciseToSessionUseCase {
+        return DefaultAddExerciseToSessionUseCase(
+            sessionRepository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository()
         )
     }
 
