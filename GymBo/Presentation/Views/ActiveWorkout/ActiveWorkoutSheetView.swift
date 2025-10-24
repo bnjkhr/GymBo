@@ -356,8 +356,8 @@ struct ActiveWorkoutSheetView: View {
             UISelectionFeedbackGenerator().selectionChanged()
         } label: {
             Image(systemName: "plus.circle")
-                .font(.title3)
-                .foregroundStyle(.orange)
+                .font(.callout)
+                .foregroundStyle(.secondary)
         }
     }
 

@@ -57,7 +57,7 @@ struct CompactExerciseCard: View {
     }
 
     private enum Typography {
-        static let nameFontSize: CGFloat = 20
+        static let nameFontSize: CGFloat = 24
         static let weightFontSize: CGFloat = 28
         static let repsFontSize: CGFloat = 24
         static let unitFontSize: CGFloat = 14
@@ -163,7 +163,7 @@ struct CompactExerciseCard: View {
             Button(action: handleMarkAllComplete) {
                 Image(systemName: "checkmark.circle")
                     .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.gray)
             }
 
             Spacer()
@@ -172,7 +172,7 @@ struct CompactExerciseCard: View {
             Button(action: handleAddSet) {
                 Image(systemName: "plus.circle")
                     .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.gray)
             }
 
             Spacer()
@@ -181,7 +181,7 @@ struct CompactExerciseCard: View {
             Button(action: handleReorder) {
                 Image(systemName: "arrow.up.arrow.down")
                     .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.gray)
             }
         }
     }
