@@ -119,6 +119,7 @@ struct WorkoutMapper {
     private func updateExerciseEntity(_ entity: WorkoutExerciseEntity, from domain: WorkoutExercise)
     {
         entity.order = domain.orderIndex
+        entity.notes = domain.notes
 
         // Note: We don't update exerciseId, as the exercise reference is immutable
         // The entity's exercise relationship is managed separately by the repository
@@ -158,7 +159,8 @@ struct WorkoutMapper {
             sets: [],
             workout: nil,
             session: nil,
-            order: orderIndex
+            order: orderIndex,
+            notes: domain.notes
         )
 
         // Create sets based on target values
@@ -207,7 +209,7 @@ struct WorkoutMapper {
             targetWeight: firstSet?.weight,
             restTime: firstSet?.restTime,
             orderIndex: entity.order,
-            notes: nil
+            notes: entity.notes
         )
     }
 

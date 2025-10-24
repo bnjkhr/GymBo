@@ -94,6 +94,7 @@ final class WorkoutExerciseEntity {
     var workout: WorkoutEntity?
     var session: WorkoutSessionEntity?
     var order: Int = 0  // Maintains the order of exercises in the workout (default 0 for existing data)
+    var notes: String?  // Optional notes for this exercise (persisted across sessions)
 
     init(
         id: UUID = UUID(),
@@ -102,7 +103,8 @@ final class WorkoutExerciseEntity {
         sets: [ExerciseSetEntity] = [],
         workout: WorkoutEntity? = nil,
         session: WorkoutSessionEntity? = nil,
-        order: Int = 0
+        order: Int = 0,
+        notes: String? = nil
     ) {
         self.id = id
         self.exerciseId = exerciseId ?? exercise?.id
@@ -111,6 +113,7 @@ final class WorkoutExerciseEntity {
         self.workout = workout
         self.session = session
         self.order = order
+        self.notes = notes
     }
 }
 
