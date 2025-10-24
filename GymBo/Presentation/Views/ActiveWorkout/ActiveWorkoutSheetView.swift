@@ -198,10 +198,13 @@ struct ActiveWorkoutSheetView: View {
                             }
                         }
 
-                        // Workout Complete Message (when all exercises completed)
-                        if allExercisesCompleted(session: session) {
+                        // Workout Complete Message (when all exercises finished OR completed)
+                        if allExercisesFinished(session: session)
+                            || allExercisesCompleted(session: session)
+                        {
                             workoutCompleteMessage
                                 .padding(.horizontal, 12)
+                                .padding(.top, 12)
                         }
                     }
                     .padding(.bottom, 12)
@@ -422,7 +425,14 @@ struct ActiveWorkoutSheetView: View {
 
     // MARK: - Helpers
 
-    /// Check if all exercises are completed
+    /// Check if all exercises are finished (manually marked as done)
+    private func allExercisesFinished(session: DomainWorkoutSession) -> Bool {
+        let allFinished = session.exercises.allSatisfy { $0.isFinished }
+        print("🔍 allExercisesFinished: \(allFinished)")
+        return allFinished
+    }
+
+    /// Check if all exercises are completed (all sets checked off)
     private func allExercisesCompleted(session: DomainWorkoutSession) -> Bool {
         let allCompleted = session.exercises.allSatisfy { exercise in
             exercise.sets.allSatisfy { $0.completed }
