@@ -43,8 +43,8 @@ struct ActiveWorkoutSheetView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Show workout UI if session exists OR if showing summary with completed session
-                if let session = sessionStore.currentSession ?? completedSession {
+                // Show workout UI only if active session exists
+                if let session = sessionStore.currentSession {
                     VStack(spacing: 0) {
                         // Timer Section with black background extending to top
                         ZStack(alignment: .bottom) {
