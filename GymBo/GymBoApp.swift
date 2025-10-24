@@ -43,22 +43,23 @@ struct GymBoApp: App {
         // ✅ Production-Ready: ModelContainer with V2 schema and migration plan
         // Migrates from V1 (no exerciseId) → V2 (with exerciseId in WorkoutExerciseEntity)
 
-        // 🔧 DEVELOPMENT MODE: Force delete database on every start
-        // Since we delete DB on every DEBUG run, we don't need versioned schemas yet
+        // 🔧 DEVELOPMENT MODE: Database deletion DISABLED to test persistence
+        // Previously deleted DB on every start - now commented out to allow testing
         #if DEBUG
-            let fileManager = FileManager.default
-            if let storeURL = fileManager.urls(
-                for: .applicationSupportDirectory, in: .userDomainMask
-            )
-            .first?
-            .appendingPathComponent("default.store") {
-                AppLogger.app.warning("🔧 DEBUG: Deleting existing database for fresh start...")
-                try? fileManager.removeItem(at: storeURL)
-                try? fileManager.removeItem(
-                    at: storeURL.deletingPathExtension().appendingPathExtension("store-shm"))
-                try? fileManager.removeItem(
-                    at: storeURL.deletingPathExtension().appendingPathExtension("store-wal"))
-            }
+            // DISABLED: Database deletion to allow note persistence testing
+            // let fileManager = FileManager.default
+            // if let storeURL = fileManager.urls(
+            //     for: .applicationSupportDirectory, in: .userDomainMask
+            // )
+            // .first?
+            // .appendingPathComponent("default.store") {
+            //     AppLogger.app.warning("🔧 DEBUG: Deleting existing database for fresh start...")
+            //     try? fileManager.removeItem(at: storeURL)
+            //     try? fileManager.removeItem(
+            //         at: storeURL.deletingPathExtension().appendingPathExtension("store-shm"))
+            //     try? fileManager.removeItem(
+            //         at: storeURL.deletingPathExtension().appendingPathExtension("store-wal"))
+            // }
 
             // Use non-versioned schema (direct entities) to avoid type casting issues
             let schema = Schema([
@@ -74,7 +75,7 @@ struct GymBoApp: App {
                 WorkoutFolderEntity.self,
             ])
             container = try! ModelContainer(for: schema)
-            AppLogger.app.info("✅ SwiftData container created (DEBUG mode - fresh DB)")
+            AppLogger.app.info("✅ SwiftData container created (DEBUG mode - persistence enabled)")
 
         #else
             // PRODUCTION: Use versioned schema with migration plan
