@@ -1,7 +1,7 @@
 # GymBo V2 - Current State
 
 **Last Updated:** 2025-10-24  
-**Session:** 6
+**Session:** 7
 
 ---
 
@@ -57,6 +57,23 @@ GymBo V2 ist eine iOS Fitness-Tracking-App basierend auf **Clean Architecture** 
 - **Optimiertes Spacing**: 24pt Padding für bessere Lesbarkeit
 - **Subtile Notizen-Field**: Ohne Hintergrund, dezent
 
+### **Phase 5: Set Management & Notes (Session 7)** ✅
+- **Set Uncomplete**: Sätze können wieder als unvollständig markiert werden (Toggle)
+- **Cancel Workout**: Workout kann ohne Speichern abgebrochen werden
+  - Confirmation Dialog mit drei Optionen
+  - "Workout beenden" (speichern)
+  - "Workout abbrechen" (verwerfen, destructive)
+  - "Zurück" (cancel)
+- **Exercise Notes mit Persistierung**:
+  - Notizen per Quick-Add-Feld (unter Sätzen)
+  - Neue Notiz überschreibt alte
+  - Max. 200 Zeichen mit automatischer Kürzung
+  - Display: Unter Übungsnamen (caption font, 2 Zeilen)
+  - Notification: "Notiz gespeichert" beim Speichern
+  - **Persistierung**: Notizen werden im Workout-Template gespeichert
+  - Automatisches Laden beim nächsten Workout-Start
+  - Speicherung in beiden Entities (Session + Template)
+
 ---
 
 ## 🏗️ Architecture
@@ -109,7 +126,9 @@ GymBo/
 │   │   │   └── AddExerciseToWorkoutUseCase.swift
 │   │   └── Session/
 │   │       ├── StartSessionUseCase.swift
-│   │       └── CompleteSetUseCase.swift
+│   │       ├── CompleteSetUseCase.swift (toggle completion)
+│   │       ├── CancelSessionUseCase.swift (delete without saving)
+│   │       └── UpdateExerciseNotesUseCase.swift (persist to template)
 │   └── RepositoryProtocols/
 ├── Data/
 │   ├── Entities/
@@ -310,23 +329,31 @@ ToolbarItemGroup(placement: .keyboard) {
 | Entity | Fields | Relationships |
 |--------|--------|---------------|
 | **WorkoutEntity** | name, defaultRestTime, exerciseCount | → WorkoutExerciseEntity[] |
-| **WorkoutExerciseEntity** | exerciseId, targetSets, targetReps?, targetTime?, order | → ExerciseEntity, → WorkoutEntity |
+| **WorkoutExerciseEntity** | exerciseId, targetSets, targetReps?, targetTime?, order, **notes** | → ExerciseEntity, → WorkoutEntity |
 | **ExerciseEntity** | name, muscleGroup, equipment | |
-| **WorkoutSessionEntity** | workoutId, startDate, endDate, state, **workoutName** | → SessionExerciseEntity[] |
-| **SessionExerciseEntity** | exerciseId, orderIndex | → ExerciseSetEntity[], → WorkoutSessionEntity |
+| **WorkoutSessionEntity** | workoutId, startDate, endDate, state, workoutName | → SessionExerciseEntity[] |
+| **SessionExerciseEntity** | exerciseId, orderIndex, **notes** | → ExerciseSetEntity[], → WorkoutSessionEntity |
 | **ExerciseSetEntity** | reps, weight, restTime, completed | → SessionExerciseEntity |
 
 ### **Schema Changes**
 
 **WorkoutExerciseEntity:**
 - Added: `exerciseId: UUID?` (direct reference, fixes lazy loading)
+- Added: `notes: String?` (Session 7, persisted exercise notes)
 
 **WorkoutExercise (Domain):**
 - Changed: `targetReps: Int` → `targetReps: Int?`
 - Added: `targetTime: TimeInterval?`
+- Added: `notes: String?` (Session 7)
+
+**SessionExerciseEntity:**
+- Already had: `notes: String?` (used for active session)
 
 **WorkoutSessionEntity:**
 - Added: `workoutName: String?` (cached for display)
+
+**DomainSessionExercise:**
+- Added: `static let maxNotesLength = 200` (enforced via didSet)
 
 ---
 
@@ -540,6 +567,238 @@ if let session = sessionStore.currentSession {
 
 ---
 
+## 🎯 Session 7 Summary
+
+**Main Focus:** Set Management & Exercise Notes with Persistence
+
+### **Feature 1: Set Uncomplete (Toggle Completion)**
+
+**User Request:** "Ich muss Sätze, die ich als beendet markiert habe, auch wieder entmarkieren können."
+
+**Implementation:**
+1. Changed `CompleteSetUseCase` to use `toggleCompletion()` instead of `markCompleted()`
+2. Removed `.disabled(set.completed)` from `CompactSetRow` checkbox
+3. Added `.buttonStyle(.plain)` for proper interaction
+
+**Result:** ✅ Sets can now be toggled between complete/incomplete states
+
+### **Feature 2: Cancel Workout (Without Saving)**
+
+**User Request:** "Ich muss ein Workout abbrechen können, sodass es nicht gespeichert wird."
+
+**Implementation:**
+
+1. **New Use Case:** `CancelSessionUseCase`
+```swift
+func execute(sessionId: UUID) async throws {
+    guard let session = try await sessionRepository.fetch(id: sessionId) else {
+        throw UseCaseError.sessionNotFound(sessionId)
+    }
+    guard session.state == .active || session.state == .paused else {
+        throw UseCaseError.invalidOperation(...)
+    }
+    try await sessionRepository.delete(id: sessionId)
+}
+```
+
+2. **SessionStore:** Added `cancelSession()` method
+```swift
+func cancelSession() async {
+    try await cancelSessionUseCase.execute(sessionId: sessionId)
+    currentSession = nil  // No completedSession = no summary
+    showSuccessMessage("Workout abgebrochen")
+}
+```
+
+3. **UI:** Confirmation dialog in `ActiveWorkoutSheetView`
+```swift
+.confirmationDialog("Workout beenden?", ...) {
+    Button("Workout beenden") { await sessionStore.endSession() }
+    Button("Workout abbrechen", role: .destructive) { await sessionStore.cancelSession() }
+    Button("Zurück", role: .cancel) { }
+}
+```
+
+**Result:** ✅ Users can now cancel workouts with confirmation dialog (save/discard/back)
+
+### **Feature 3: Exercise Notes with Persistence** 
+
+**User Request:** "Notizen sollten unter dem Übungsnamen angezeigt werden. Wenn ich eine Notiz einlege, soll sie direkt oben erscheinen. Die Notiz muss persistiert werden - wenn ich das Workout beim nächsten mal starte, muss jede Übung wieder ihre Notiz laden."
+
+**Implementation Journey:**
+
+**Part 1: Initial Display (Wrong Approach)**
+- Started adding note button and sheet
+- User corrected: "Stop, wir haben doch bereits das Notiz-Feld unter dem letzen Satz!"
+- Reverted with `git restore`
+
+**Part 2: Correct Approach - Inline Editing**
+
+1. **Modified Quick-Add Logic** in `CompactExerciseCard`:
+```swift
+private func handleQuickAdd() {
+    let trimmed = quickAddText.trimmingCharacters(in: .whitespaces)
+    
+    if let (weight, reps) = parseSetInput(trimmed) {
+        onAddSet?(weight, reps)  // e.g., "100x8"
+    } else {
+        onUpdateNotes?(trimmed)  // Any other text → note
+    }
+}
+```
+
+2. **Created `UpdateExerciseNotesUseCase`:**
+- Updates notes in active session (immediate display)
+- **Persists to workout template** (for future sessions)
+- Enforces max length (200 characters)
+- Trims whitespace
+
+3. **Added Notes Display** in `CompactExerciseCard` header:
+```swift
+if let notes = exercise.notes, !notes.isEmpty {
+    Text(notes)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .lineLimit(2)
+        .padding(.top, 2)
+}
+```
+
+4. **Wired Callback** through `ActiveWorkoutSheetView`:
+```swift
+onUpdateNotes: { notes in
+    Task {
+        await sessionStore.updateExerciseNotes(
+            exerciseId: exercise.id,
+            notes: notes
+        )
+    }
+}
+```
+
+**Part 3: Debugging Persistence Failure**
+
+**Problem:** Notes saved but didn't persist across app restarts
+
+**Debug Process:**
+1. Added extensive logging to track save/load operations
+2. User provided console logs showing:
+   - ✅ "Notes persisted to workout template successfully!"
+   - ❌ NO "Loaded notes from workout template" log on second start
+3. Found root cause: `⚠️ DEBUG: Deleting existing database for fresh start...`
+
+**Root Cause Analysis:**
+- Database deleted on every app start in DEBUG mode (GymBoApp.swift:55)
+- Notes were saved correctly but database wiped before testing
+
+**Part 4: The Actual Bug**
+
+**CRITICAL DISCOVERY:** `WorkoutExerciseEntity` had NO `notes` property! 🐛
+
+The issue wasn't the database deletion - the notes field simply didn't exist in SwiftData:
+
+```swift
+// BEFORE (Bug):
+@Model
+final class WorkoutExerciseEntity {
+    var exerciseId: UUID?
+    var order: Int = 0
+    // ❌ NO notes property!
+}
+
+// AFTER (Fixed):
+@Model
+final class WorkoutExerciseEntity {
+    var exerciseId: UUID?
+    var order: Int = 0
+    var notes: String?  // ✅ Added
+}
+```
+
+**Complete Fix:**
+
+1. **SwiftDataEntities.swift:** Added `notes: String?` to `WorkoutExerciseEntity`
+2. **WorkoutMapper.swift:** Updated three mapping functions:
+   - `toEntity()`: Map notes from domain → entity
+   - `toDomain()`: Map notes from entity → domain  
+   - `updateExerciseEntity()`: Update notes on in-place updates
+3. **GymBoApp.swift:** Disabled database deletion for testing
+4. **Cleanup:** Removed all debug logging
+
+**Result:** ✅ Notes now fully persist across sessions!
+
+### **Technical Improvements**
+
+**Domain Layer:**
+- `DomainSessionExercise.maxNotesLength = 200` with `didSet` enforcement
+- Notes trimmed and truncated automatically
+
+**Data Layer:**
+- Both entities now have notes:
+  - `WorkoutExerciseEntity.notes` (template, persists)
+  - `SessionExerciseEntity.notes` (already existed, active session)
+
+**Persistence Strategy:**
+```swift
+// 1. Update in session (immediate display)
+session.exercises[exerciseIndex].notes = finalNotes
+try await sessionRepository.update(session)
+
+// 2. Update in workout template (for future sessions)
+guard var workout = try await workoutRepository.fetch(id: session.workoutId) else { return }
+workout.exercises[workoutExerciseIndex].notes = finalNotes
+try await workoutRepository.update(workout)
+```
+
+**UI Enhancements:**
+- Notification pill: "Notiz gespeichert"
+- Notes display with 2-line limit and caption font
+- Inline editing via existing quick-add field
+
+### **Bug Fixes**
+
+1. **UseCaseError.deleteFailed:** Added missing case for delete operations
+2. **Preview Code:** Added `onUpdateNotes` parameter to all preview instances
+3. **Set Toggle:** Changed from one-way to bidirectional completion
+
+### **Files Created:**
+- `Domain/UseCases/Session/CancelSessionUseCase.swift`
+- `Domain/UseCases/Session/UpdateExerciseNotesUseCase.swift`
+
+### **Files Modified:**
+- `SwiftDataEntities.swift` (+notes field)
+- `Data/Mappers/WorkoutMapper.swift` (+notes mapping)
+- `Domain/Entities/SessionExercise.swift` (+maxNotesLength)
+- `Domain/Entities/WorkoutExercise.swift` (+notes property)
+- `Domain/UseCases/Session/CompleteSetUseCase.swift` (toggle)
+- `Presentation/Stores/SessionStore.swift` (+cancelSession, +updateExerciseNotes)
+- `Presentation/Views/ActiveWorkout/ActiveWorkoutSheetView.swift` (+confirmation dialog)
+- `Presentation/Views/ActiveWorkout/Components/CompactExerciseCard.swift` (+notes display, +quick-add logic)
+- `Presentation/Views/ActiveWorkout/Components/CompactSetRow.swift` (remove disabled)
+- `GymBoApp.swift` (disable DB deletion for persistence testing)
+
+### **Git Commits (Session 7):**
+1. `c123083` - feat: Add Set Uncomplete feature (toggleCompletion)
+2. `404dcbc` - feat: Add Cancel Workout with confirmation dialog
+3. `f8d66a8` - fix: Add deleteFailed case to UseCaseError
+4. `af8bf33` - fix: Add cancelSessionUseCase to preview
+5. Multiple commits for notes feature development
+6. `2cf8d03` - fix: Disable database deletion in DEBUG mode
+7. `9b9d935` - fix: Add notes field to WorkoutExerciseEntity and update mappers
+8. `82ae504` - chore: Remove debug logging from note persistence feature
+
+**Total Lines Changed:** ~400+
+
+### **Key Learnings**
+
+1. **Always check SwiftData schema:** Domain entities can have fields that don't exist in Data layer
+2. **Database deletion in DEBUG:** Can mask persistence issues during testing
+3. **User feedback is crucial:** Initial UI approach was wrong, user caught it immediately
+4. **Inline editing > Complex UI:** Simple quick-add field better than note button/sheet
+5. **Dual persistence pattern:** Save to both session (immediate) and template (future)
+
+---
+
 ## 📞 Support & Contact
 
 **Developer:** Ben Kohler  
@@ -549,4 +808,4 @@ if let session = sessionStore.currentSession {
 
 ---
 
-*This document reflects the current state as of Session 6 (2025-10-24)*
+*This document reflects the current state as of Session 7 (2025-10-24)*
