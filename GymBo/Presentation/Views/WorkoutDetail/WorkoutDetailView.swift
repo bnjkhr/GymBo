@@ -92,7 +92,7 @@ struct WorkoutDetailView: View {
                         showExercisePicker = true
                     } label: {
                         Image(systemName: "plus.circle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(.primary)
                     }
                     .accessibilityLabel("Übung hinzufügen")
 
@@ -220,56 +220,62 @@ struct WorkoutDetailView: View {
 
     // MARK: - Subviews
 
-    /// Stats cards showing workout overview
+    /// Stats cards showing workout overview (Modern Compact Design)
     private func statsSection(for workout: Workout) -> some View {
         HStack(spacing: 12) {
             StatCard(
                 icon: "figure.strengthtraining.traditional",
-                title: "Übungen",
-                value: "\(workout.exerciseCount)"
+                value: "\(workout.exerciseCount)",
+                label: "Übungen"
             )
 
             StatCard(
                 icon: "list.bullet",
-                title: "Sätze",
-                value: "\(workout.totalSets)"
+                value: "\(workout.totalSets)",
+                label: "Sätze"
             )
 
             StatCard(
                 icon: "clock",
-                title: "ca. Dauer",
-                value: estimatedDuration(for: workout)
+                value: estimatedDuration(for: workout),
+                label: "Dauer"
             )
         }
+        .padding(.horizontal)
     }
 
-    /// List of exercises in the workout
+    /// List of exercises in the workout (Modern Compact Design)
     private func exercisesSection(for workout: Workout) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Übungen")
-                .font(.title3)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 4)
+            // Section Header
+            HStack {
+                Text("Übungen")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
 
-            List {
+            // Exercise Cards
+            VStack(spacing: 8) {
                 ForEach(
                     Array(
                         workout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }).enumerated()
                     ),
                     id: \.element.id
                 ) { index, exercise in
-                    ExerciseRow(
+                    ExerciseCard(
                         exercise: exercise,
                         exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung \(index + 1)",
                         orderNumber: index + 1
                     )
-                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
                     .onTapGesture {
                         exerciseToEdit = exercise
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    .contextMenu {
                         Button(role: .destructive) {
                             Task {
                                 await removeExercise(exercise)
@@ -279,29 +285,31 @@ struct WorkoutDetailView: View {
                         }
                     }
                 }
-                .onMove { indexSet, destination in
-                    moveExercises(from: indexSet, to: destination, in: workout)
-                }
             }
-            .listStyle(.plain)
-            .scrollDisabled(true)
-            .frame(height: CGFloat(workout.exercises.count) * 90)  // Approximate row height
-            .environment(\.editMode, .constant(.active))  // Enable drag handles
+            .padding(.horizontal, 16)
         }
     }
 
-    /// Start workout button
+    /// Start workout button (Modern iOS 26 Design)
     private var startButton: some View {
-        Button(action: onStartWorkout) {
-            Label("Workout starten", systemImage: "play.fill")
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.orange)
-                .foregroundColor(.white)
-                .cornerRadius(12)
+        Button(action: {
+            onStartWorkout()
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }) {
+            HStack(spacing: 8) {
+                Image(systemName: "play.fill")
+                    .font(.body)
+                Text("Workout starten")
+                    .font(.body)
+                    .fontWeight(.semibold)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(Color.primary)
+            .foregroundColor(Color(.systemBackground))
+            .cornerRadius(14)
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
     }
 
     // MARK: - Computed Properties
@@ -488,82 +496,99 @@ struct WorkoutDetailView: View {
     }
 }
 
-// MARK: - Stat Card
+// MARK: - Stat Card (Modern iOS 26 Compact Design)
 
-/// Small stat card showing a metric
+/// Modern compact stat card
 private struct StatCard: View {
     let icon: String
-    let title: String
     let value: String
+    let label: String
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(.orange)
+                .font(.callout)
+                .foregroundStyle(.secondary)
 
             Text(value)
                 .font(.title3)
-                .fontWeight(.bold)
+                .fontWeight(.semibold)
+                .monospacedDigit()
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
 
-            Text(title)
-                .font(.caption)
+            Text(label)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 100)  // Fixed height for all cards
-        .padding()
-        .background(Color(.systemGray6))
+        .padding(.vertical, 12)
+        .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
     }
 }
 
-// MARK: - Exercise Row
+// MARK: - Exercise Card (Modern iOS 26 Compact Design)
 
-/// Row showing an exercise in the workout
-private struct ExerciseRow: View {
+/// Modern compact exercise card for workout detail
+private struct ExerciseCard: View {
     let exercise: WorkoutExercise
     let exerciseName: String
     let orderNumber: Int
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Order number
+        HStack(spacing: 12) {
+            // Order number badge
             Text("\(orderNumber)")
-                .font(.headline)
+                .font(.subheadline)
+                .fontWeight(.medium)
                 .foregroundStyle(.secondary)
-                .frame(width: 24)
+                .frame(width: 28, height: 28)
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(Circle())
 
             // Exercise info
             VStack(alignment: .leading, spacing: 4) {
                 Text(exerciseName)
-                    .font(.headline)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
 
-                HStack(spacing: 8) {
-                    if let weight = exercise.targetWeight, weight > 0 {
-                        Text("\(Int(weight)) kg")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    // Show either reps or time
+                // Stats in compact format
+                HStack(spacing: 10) {
+                    // Sets × Reps or Time
                     if let reps = exercise.targetReps {
                         Text("\(exercise.targetSets) × \(reps)")
                             .font(.subheadline)
+                            .monospacedDigit()
                             .foregroundStyle(.secondary)
                     } else if let time = exercise.targetTime {
                         Text("\(exercise.targetSets) × \(Int(time))s")
                             .font(.subheadline)
+                            .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }
 
+                    // Weight
+                    if let weight = exercise.targetWeight, weight > 0 {
+                        Text("•")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("\(Int(weight)) kg")
+                            .font(.subheadline)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+
+                    // Rest time
                     if let restTime = exercise.restTime {
-                        Text("• \(Int(restTime))s Pause")
-                            .font(.caption)
+                        Text("•")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("\(Int(restTime))s")
+                            .font(.subheadline)
+                            .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -571,15 +596,14 @@ private struct ExerciseRow: View {
 
             Spacer()
 
-            // Chevron
+            // Chevron indicator
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
-        .padding()
-        .background(Color(.systemBackground))
+        .padding(14)
+        .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
     }
 }
 

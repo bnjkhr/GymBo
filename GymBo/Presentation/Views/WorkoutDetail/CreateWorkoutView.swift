@@ -53,10 +53,14 @@ struct CreateWorkoutView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                nameSection
-                restTimeSection
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    nameSection
+                    restTimeSection
+                }
+                .padding()
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Neues Workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -78,35 +82,65 @@ struct CreateWorkoutView: View {
         }
     }
 
-    // MARK: - Sections
+    // MARK: - Sections (Modern iOS 26 Design)
 
     private var nameSection: some View {
-        Section {
-            TextField("Workout Name", text: $workoutName)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Name")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+                .textCase(.uppercase)
+
+            TextField("z.B. Push Day", text: $workoutName)
                 .focused($isNameFieldFocused)
                 .autocorrectionDisabled()
+                .textFieldStyle(.plain)
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
                 .accessibilityLabel("Workout Name")
-        } header: {
-            Text("Details")
-        } footer: {
-            Text("Gib deinem Workout einen aussagekräftigen Namen")
-                .font(.caption)
         }
     }
 
     private var restTimeSection: some View {
-        Section {
-            Picker("Standard-Pause", selection: $defaultRestTime) {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Standard-Pausenzeit")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 8) {
                 ForEach(restTimeOptions, id: \.value) { option in
-                    Text(option.label).tag(option.value)
+                    Button {
+                        defaultRestTime = option.value
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    } label: {
+                        HStack {
+                            Text(option.label)
+                                .font(.body)
+                                .foregroundColor(.primary)
+
+                            Spacer()
+
+                            if defaultRestTime == option.value {
+                                Image(systemName: "checkmark")
+                                    .font(.subheadline)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(12)
+                    }
                 }
             }
-            .accessibilityLabel("Standard-Pausenzeit zwischen Sätzen")
-        } header: {
-            Text("Pausenzeit")
-        } footer: {
+
             Text("Diese Pausenzeit wird als Standard für alle Übungen verwendet")
                 .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 4)
         }
     }
 

@@ -42,7 +42,7 @@ struct HomeViewPlaceholder: View {
                     } label: {
                         Image(systemName: "plus.circle")
                             .font(.title2)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(.primary)
                     }
                     .accessibilityLabel("Neues Workout erstellen")
                 }
@@ -181,58 +181,80 @@ struct HomeViewPlaceholder: View {
         let favoriteWorkouts = workouts.filter { $0.isFavorite }
         let regularWorkouts = workouts.filter { !$0.isFavorite }
 
-        return List {
+        return ScrollView {
             if store.isLoading {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                }
+                ProgressView()
+                    .padding(.top, 40)
             } else if workouts.isEmpty {
-                ContentUnavailableView(
-                    "Keine Workouts",
-                    systemImage: "dumbbell",
-                    description: Text("Erstelle dein erstes Workout")
-                )
-            } else {
-                // Favorites section
-                if !favoriteWorkouts.isEmpty {
-                    Section("Favoriten") {
-                        ForEach(favoriteWorkouts) { workout in
-                            NavigationLink {
-                                WorkoutDetailView(workout: workout) {
-                                    startWorkout(workout)
-                                }
-                                .environment(store)
-                            } label: {
-                                WorkoutRowContent(workout: workout)
-                            }
-                        }
-                    }
-                }
+                VStack(spacing: 16) {
+                    Image(systemName: "dumbbell")
+                        .font(.system(size: 60))
+                        .foregroundColor(.secondary)
 
-                // Regular workouts
-                if !regularWorkouts.isEmpty {
-                    Section("Alle Workouts") {
+                    Text("Keine Workouts")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+
+                    Text("Erstelle dein erstes Workout")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 40)
+            } else {
+                LazyVStack(spacing: 12) {
+                    // Favorites section
+                    if !favoriteWorkouts.isEmpty {
+                        sectionHeader(title: "Favoriten")
+
+                        ForEach(favoriteWorkouts) { workout in
+                            WorkoutCard(workout: workout, store: store) {
+                                navigateToWorkout(workout, store: store)
+                            } onStart: {
+                                startWorkout(workout)
+                            }
+                        }
+                    }
+
+                    // Regular workouts
+                    if !regularWorkouts.isEmpty {
+                        sectionHeader(title: "Alle Workouts")
+                            .padding(.top, favoriteWorkouts.isEmpty ? 0 : 8)
+
                         ForEach(regularWorkouts) { workout in
-                            NavigationLink {
-                                WorkoutDetailView(workout: workout) {
-                                    startWorkout(workout)
-                                }
-                                .environment(store)
-                            } label: {
-                                WorkoutRowContent(workout: workout)
+                            WorkoutCard(workout: workout, store: store) {
+                                navigateToWorkout(workout, store: store)
+                            } onStart: {
+                                startWorkout(workout)
                             }
                         }
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
-        .id(workouts.map { $0.name }.joined())  // Force List to recreate when names change
+        .id(workouts.map { $0.name }.joined())  // Force view to recreate when names change
         .refreshable {
             await store.refresh()
             workouts = store.workouts  // Update local state on pull-to-refresh
         }
+    }
+
+    private func sectionHeader(title: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+                .textCase(.uppercase)
+            Spacer()
+        }
+        .padding(.horizontal, 4)
+        .padding(.bottom, 4)
+    }
+
+    private func navigateToWorkout(_ workout: Workout, store: WorkoutStore) {
+        navigateToNewWorkout = workout
     }
 
     // MARK: - Actions
@@ -263,38 +285,83 @@ struct HomeViewPlaceholder: View {
     }
 }
 
-// MARK: - Workout Row Content
+// MARK: - Workout Card (Modern iOS 26 Design)
 
-private struct WorkoutRowContent: View {
+private struct WorkoutCard: View {
     let workout: Workout
+    let store: WorkoutStore
+    let onTap: () -> Void
+    let onStart: () -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Icon
-            Image(systemName: workout.isFavorite ? "star.fill" : "dumbbell.fill")
-                .font(.title2)
-                .foregroundColor(workout.isFavorite ? .yellow : .orange)
-                .frame(width: 40)
-
-            // Content
-            VStack(alignment: .leading, spacing: 4) {
-                Text(workout.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header: Icon + Title + Favorite
                 HStack(spacing: 12) {
-                    Label(
-                        "\(workout.exerciseCount)",
-                        systemImage: "figure.strengthtraining.traditional")
-                    Label("\(workout.totalSets)", systemImage: "list.bullet")
-                }
-                .font(.caption)
-                .foregroundColor(.secondary)
-            }
+                    // Icon
+                    Image(systemName: "dumbbell.fill")
+                        .font(.title3)
+                        .foregroundColor(.primary)
+                        .frame(width: 32, height: 32)
 
-            Spacer()
+                    // Title
+                    Text(workout.name)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+
+                    Spacer()
+
+                    // Favorite Star
+                    if workout.isFavorite {
+                        Image(systemName: "star.fill")
+                            .font(.subheadline)
+                            .foregroundColor(.yellow)
+                    }
+                }
+
+                // Stats
+                HStack(spacing: 16) {
+                    Label {
+                        Text("\(workout.exerciseCount)")
+                            .font(.subheadline)
+                            .monospacedDigit()
+                    } icon: {
+                        Image(systemName: "figure.strengthtraining.traditional")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
+
+                    Label {
+                        Text("\(workout.totalSets)")
+                            .font(.subheadline)
+                            .monospacedDigit()
+                    } icon: {
+                        Image(systemName: "list.bullet")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
+
+                    Spacer()
+                }
+            }
+            .padding(16)
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
         }
-        .padding(.vertical, 8)  // iOS HIG: Ensure minimum 44pt touch target height
+        .buttonStyle(CardButtonStyle())
+    }
+}
+
+// MARK: - Card Button Style (iOS 26 Press Effect)
+
+private struct CardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
