@@ -29,13 +29,13 @@ struct WorkoutDetailView: View {
     let openExercisePickerOnAppear: Bool
 
     @Environment(SessionStore.self) private var sessionStore
+    @Environment(WorkoutStore.self) private var workoutStore
     @Environment(\.dependencyContainer) private var dependencyContainer
     @Environment(\.dismiss) private var dismiss
 
     @State private var workout: Workout?
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var isLoadingExercises = true
-    @State private var workoutStore: WorkoutStore?
     @State private var isFavorite: Bool = false
     @State private var showExercisePicker = false
     @State private var exerciseToEdit: WorkoutExercise?
@@ -159,12 +159,12 @@ struct WorkoutDetailView: View {
             }
         }
         .sheet(isPresented: $showEditWorkout) {
-            if let workout = workout, let store = workoutStore {
+            if let workout = workout {
                 EditWorkoutView(
                     workout: workout,
                     onSave: { name, restTime in
                         Task {
-                            await store.updateWorkout(
+                            await workoutStore.updateWorkout(
                                 workoutId: workout.id,
                                 name: name,
                                 defaultRestTime: restTime
@@ -174,7 +174,7 @@ struct WorkoutDetailView: View {
                         }
                     }
                 )
-                .environment(store)
+                .environment(workoutStore)
             }
         }
         .confirmationDialog(
@@ -340,11 +340,6 @@ struct WorkoutDetailView: View {
             print("❌ Failed to load fresh workout: \(error)")
         }
 
-        // Initialize workout store for mutations (add/remove/reorder)
-        if workoutStore == nil {
-            workoutStore = container.makeWorkoutStore()
-        }
-
         // Load exercise names
         await loadExerciseNames()
     }
@@ -374,33 +369,29 @@ struct WorkoutDetailView: View {
 
     /// Toggle favorite status
     private func toggleFavorite() async {
-        guard let store = workoutStore else { return }
-
         // Optimistic update (sofortiges UI Feedback)
         isFavorite.toggle()
 
         print("🌟 Toggled favorite: \(workout?.name ?? "Unknown") → isFavorite: \(isFavorite)")
 
         // Dann Backend update
-        await store.toggleFavorite(workoutId: workoutId)
+        await workoutStore.toggleFavorite(workoutId: workoutId)
 
         // Update local workout from store
-        if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+        if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
         }
     }
 
     /// Add multiple exercises to workout
     private func addExercises(_ exercises: [ExerciseEntity]) async {
-        guard let store = workoutStore else { return }
-
         // Add each exercise
         for exercise in exercises {
-            await store.addExercise(exerciseId: exercise.id, to: workoutId)
+            await workoutStore.addExercise(exerciseId: exercise.id, to: workoutId)
         }
 
         // Update local workout from store
-        if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+        if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
         }
 
@@ -410,17 +401,15 @@ struct WorkoutDetailView: View {
         // Show success message
         let count = exercises.count
         let message = count == 1 ? "1 Übung hinzugefügt" : "\(count) Übungen hinzugefügt"
-        store.showSuccess(message)
+        workoutStore.showSuccess(message)
     }
 
     /// Remove exercise from workout
     private func removeExercise(_ exercise: WorkoutExercise) async {
-        guard let store = workoutStore else { return }
-
-        await store.removeExercise(exerciseId: exercise.id, from: workoutId)
+        await workoutStore.removeExercise(exerciseId: exercise.id, from: workoutId)
 
         // Update local workout from store
-        if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+        if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
         }
     }
@@ -435,9 +424,7 @@ struct WorkoutDetailView: View {
         restTime: TimeInterval?,
         notes: String?
     ) async {
-        guard let store = workoutStore else { return }
-
-        await store.updateExercise(
+        await workoutStore.updateExercise(
             in: workoutId,
             exerciseId: exercise.id,
             targetSets: targetSets,
@@ -449,16 +436,14 @@ struct WorkoutDetailView: View {
         )
 
         // Update local workout from store
-        if let updatedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+        if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
         }
     }
 
     /// Delete workout and navigate back
     private func deleteWorkout() async {
-        guard let store = workoutStore else { return }
-
-        await store.deleteWorkout(workoutId: workoutId)
+        await workoutStore.deleteWorkout(workoutId: workoutId)
 
         // Navigate back to home
         dismiss()
@@ -466,8 +451,6 @@ struct WorkoutDetailView: View {
 
     /// Move exercises (drag & drop reordering)
     private func moveExercises(from source: IndexSet, to destination: Int, in workout: Workout) {
-        guard let store = workoutStore else { return }
-
         // Create new order based on move
         var sortedExercises = workout.exercises.sorted(by: { $0.orderIndex < $1.orderIndex })
         sortedExercises.move(fromOffsets: source, toOffset: destination)
@@ -488,10 +471,10 @@ struct WorkoutDetailView: View {
 
         // Update in backend
         Task {
-            await store.reorderExercises(in: workoutId, exerciseIds: newOrder)
+            await workoutStore.reorderExercises(in: workoutId, exerciseIds: newOrder)
 
             // After store reloaded, update local workout from store
-            if let refreshedWorkout = store.workouts.first(where: { $0.id == workoutId }) {
+            if let refreshedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
                 self.workout = refreshedWorkout
             }
         }

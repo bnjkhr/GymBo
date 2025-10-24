@@ -86,18 +86,19 @@ struct HomeViewPlaceholder: View {
                 }
             }
             .navigationDestination(item: $navigateToNewWorkout) { workout in
-                WorkoutDetailView(
-                    workout: workout,
-                    onStartWorkout: {
-                        Task {
-                            if let store = workoutStore {
+                if let store = workoutStore {
+                    WorkoutDetailView(
+                        workout: workout,
+                        onStartWorkout: {
+                            Task {
                                 await sessionStore.startSession(workoutId: workout.id)
                                 showActiveWorkout = true
                             }
-                        }
-                    },
-                    openExercisePickerOnAppear: true
-                )
+                        },
+                        openExercisePickerOnAppear: true
+                    )
+                    .environment(store)
+                }
             }
             .sheet(isPresented: $showActiveWorkout) {
                 if sessionStore.hasActiveSession {
@@ -177,6 +178,7 @@ struct HomeViewPlaceholder: View {
                                 WorkoutDetailView(workout: workout) {
                                     startWorkout(workout)
                                 }
+                                .environment(store)
                             } label: {
                                 WorkoutRowContent(workout: workout)
                             }
@@ -192,6 +194,7 @@ struct HomeViewPlaceholder: View {
                                 WorkoutDetailView(workout: workout) {
                                     startWorkout(workout)
                                 }
+                                .environment(store)
                             } label: {
                                 WorkoutRowContent(workout: workout)
                             }
