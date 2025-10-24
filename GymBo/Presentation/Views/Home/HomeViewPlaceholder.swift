@@ -24,7 +24,6 @@ struct HomeViewPlaceholder: View {
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
     @State private var navigateToNewWorkout: Workout?
-    @State private var hasLoadedInitialData = false
 
     var body: some View {
         NavigationStack {
@@ -119,12 +118,18 @@ struct HomeViewPlaceholder: View {
                 // Show summary sheet when a session is completed
                 showWorkoutSummary = (newValue != nil)
             }
-            .task {
-                // Only load on first appear, not on every navigation event
-                if !hasLoadedInitialData {
-                    await loadData()
-                    hasLoadedInitialData = true
+            .onAppear {
+                // Reload workouts every time view appears to catch updates
+                Task {
+                    if let store = workoutStore {
+                        print("🔄 HomeView: Reloading workouts on appear")
+                        await store.refresh()
+                    }
                 }
+            }
+            .task {
+                // Initial load
+                await loadData()
             }
         }
     }
