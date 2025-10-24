@@ -27,7 +27,7 @@ struct MainTabView: View {
                 }
                 .tag(0)
 
-            ExercisesViewPlaceholder()
+            ExercisesView()
                 .tabItem {
                     Label("Übungen", systemImage: "figure.run")
                 }
