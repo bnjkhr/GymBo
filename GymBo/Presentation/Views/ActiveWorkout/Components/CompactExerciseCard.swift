@@ -165,6 +165,7 @@ struct CompactExerciseCard: View {
                     .font(.title3)
                     .foregroundStyle(Color.gray)
             }
+            .buttonStyle(.plain)
 
             Spacer()
 
@@ -174,6 +175,7 @@ struct CompactExerciseCard: View {
                     .font(.title3)
                     .foregroundStyle(Color.gray)
             }
+            .buttonStyle(.plain)
 
             Spacer()
 
@@ -183,6 +185,7 @@ struct CompactExerciseCard: View {
                     .font(.title3)
                     .foregroundStyle(Color.gray)
             }
+            .buttonStyle(.plain)
         }
     }
 
