@@ -55,14 +55,10 @@ final class DefaultFinishExerciseUseCase: FinishExerciseUseCase {
     // MARK: - Execute
 
     func execute(sessionId: UUID, exerciseId: UUID) async throws -> DomainWorkoutSession {
-        let startTime = Date()
-
         // 1. Fetch session
         guard var session = try await sessionRepository.fetch(id: sessionId) else {
             throw UseCaseError.sessionNotFound(sessionId)
         }
-        let fetchTime = Date().timeIntervalSince(startTime)
-        print("⏱️ Fetch session: \(String(format: "%.3f", fetchTime))s")
 
         // 2. Find exercise
         guard let exerciseIndex = session.exercises.firstIndex(where: { $0.id == exerciseId })
@@ -74,10 +70,7 @@ final class DefaultFinishExerciseUseCase: FinishExerciseUseCase {
         session.exercises[exerciseIndex].isFinished = true
 
         // 4. Persist changes
-        let updateStart = Date()
         try await sessionRepository.update(session)
-        let updateTime = Date().timeIntervalSince(updateStart)
-        print("⏱️ Persist changes: \(String(format: "%.3f", updateTime))s")
 
         print("✅ Exercise finished: \(exerciseId)")
 

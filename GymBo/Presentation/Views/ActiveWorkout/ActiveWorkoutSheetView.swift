@@ -210,8 +210,6 @@ struct ActiveWorkoutSheetView: View {
                     .padding(.bottom, 12)
                 }
                 .background(Color.black)
-                .animation(
-                    .timingCurve(0.2, 0.0, 0.0, 1.0, duration: 0.3), value: showAllExercises)
             }
         }
     }
@@ -321,11 +319,6 @@ struct ActiveWorkoutSheetView: View {
                 UISelectionFeedbackGenerator().selectionChanged()
             }
         )
-        .transition(
-            .asymmetric(
-                insertion: .opacity.combined(with: .move(edge: .bottom)),
-                removal: .opacity.combined(with: .move(edge: .top))
-            ))
     }
 
     /// Toggle button for show/hide completed exercises
