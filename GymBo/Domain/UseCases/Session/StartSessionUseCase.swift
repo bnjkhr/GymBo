@@ -191,6 +191,9 @@ enum UseCaseError: Error, LocalizedError {
     /// Failed to update in repository
     case updateFailed(Error)
 
+    /// Failed to delete from repository
+    case deleteFailed(Error)
+
     /// Invalid operation (e.g., completing already completed set)
     case invalidOperation(String)
 
@@ -221,6 +224,8 @@ enum UseCaseError: Error, LocalizedError {
             return "Failed to save: \(error.localizedDescription)"
         case .updateFailed(let error):
             return "Failed to update: \(error.localizedDescription)"
+        case .deleteFailed(let error):
+            return "Failed to delete: \(error.localizedDescription)"
         case .invalidOperation(let message):
             return "Invalid operation: \(message)"
         case .repositoryError(let error):
