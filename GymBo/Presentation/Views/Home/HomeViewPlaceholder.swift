@@ -20,6 +20,7 @@ struct HomeViewPlaceholder: View {
     @Environment(SessionStore.self) private var sessionStore
     @Environment(\.dependencyContainer) private var dependencyContainer
     @State private var workoutStore: WorkoutStore?
+    @State private var workouts: [Workout] = []  // LOCAL state instead of store
     @State private var showActiveWorkout = false
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
@@ -124,12 +125,19 @@ struct HomeViewPlaceholder: View {
                     if let store = workoutStore {
                         print("🔄 HomeView: Reloading workouts on appear")
                         await store.refresh()
+                        // Copy to local @State to force SwiftUI update
+                        workouts = store.workouts
+                        print("🔄 HomeView: Updated local workouts array, count=\(workouts.count)")
                     }
                 }
             }
             .task {
                 // Initial load
                 await loadData()
+                // Copy to local state
+                if let store = workoutStore {
+                    workouts = store.workouts
+                }
             }
         }
     }
@@ -166,14 +174,17 @@ struct HomeViewPlaceholder: View {
     }
 
     private func workoutListView(store: WorkoutStore) -> some View {
-        List {
+        let favoriteWorkouts = workouts.filter { $0.isFavorite }
+        let regularWorkouts = workouts.filter { !$0.isFavorite }
+
+        return List {
             if store.isLoading {
                 HStack {
                     Spacer()
                     ProgressView()
                     Spacer()
                 }
-            } else if store.workouts.isEmpty {
+            } else if workouts.isEmpty {
                 ContentUnavailableView(
                     "Keine Workouts",
                     systemImage: "dumbbell",
@@ -181,9 +192,9 @@ struct HomeViewPlaceholder: View {
                 )
             } else {
                 // Favorites section
-                if !store.favoriteWorkouts.isEmpty {
+                if !favoriteWorkouts.isEmpty {
                     Section("Favoriten") {
-                        ForEach(store.favoriteWorkouts) { workout in
+                        ForEach(favoriteWorkouts) { workout in
                             NavigationLink {
                                 WorkoutDetailView(workout: workout) {
                                     startWorkout(workout)
@@ -197,9 +208,9 @@ struct HomeViewPlaceholder: View {
                 }
 
                 // Regular workouts
-                if !store.regularWorkouts.isEmpty {
+                if !regularWorkouts.isEmpty {
                     Section("Alle Workouts") {
-                        ForEach(store.regularWorkouts) { workout in
+                        ForEach(regularWorkouts) { workout in
                             NavigationLink {
                                 WorkoutDetailView(workout: workout) {
                                     startWorkout(workout)
