@@ -32,36 +32,40 @@ struct HomeViewPlaceholder: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // New Greeting Header with Locker & Profile
-                GreetingHeaderView(
-                    showProfile: $showProfile,
-                    showLockerInput: $showLockerInput
-                )
-
+            ZStack(alignment: .top) {
                 // Content
-                ZStack(alignment: .top) {
-                    Group {
-                        if sessionStore.hasActiveSession {
-                            // Show continue session button
+                Group {
+                    if sessionStore.hasActiveSession {
+                        // Show continue session button (no scroll needed)
+                        VStack(spacing: 0) {
+                            GreetingHeaderView(
+                                showProfile: $showProfile,
+                                showLockerInput: $showLockerInput
+                            )
                             continueSessionView
-                        } else if let store = workoutStore {
-                            // Show workout list
-                            workoutListView(store: store)
-                        } else {
-                            // Loading state
+                        }
+                    } else if let store = workoutStore {
+                        // Show workout list with integrated header
+                        workoutListView(store: store)
+                    } else {
+                        // Loading state
+                        VStack(spacing: 0) {
+                            GreetingHeaderView(
+                                showProfile: $showProfile,
+                                showLockerInput: $showLockerInput
+                            )
                             ProgressView("Loading...")
                         }
                     }
+                }
 
-                    // Success Pill Overlay
-                    if let store = workoutStore, store.showSuccessPill,
-                        let message = store.successMessage
-                    {
-                        SuccessPill(message: message)
-                            .padding(.top, 8)
-                            .zIndex(1000)
-                    }
+                // Success Pill Overlay
+                if let store = workoutStore, store.showSuccessPill,
+                    let message = store.successMessage
+                {
+                    SuccessPill(message: message)
+                        .padding(.top, 8)
+                        .zIndex(1000)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -200,11 +204,18 @@ struct HomeViewPlaceholder: View {
         let regularWorkouts = workouts.filter { !$0.isFavorite }
 
         return ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: 0) {
+                // Greeting Header (integrated into ScrollView for Tab-Bar auto-hide)
+                GreetingHeaderView(
+                    showProfile: $showProfile,
+                    showLockerInput: $showLockerInput
+                )
+
                 // Workout Calendar Strip
                 WorkoutCalendarStripView()
                     .padding(.horizontal, 16)
                     .padding(.top, 12)
+                    .padding(.bottom, 4)
 
                 if store.isLoading {
                     ProgressView()
