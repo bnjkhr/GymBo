@@ -24,13 +24,14 @@ struct HomeViewPlaceholder: View {
     @State private var showActiveWorkout = false
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
+    @State private var showProfile = false
     @State private var navigateToNewWorkout: Workout?  // For newly created workouts (opens ExercisePicker)
     @State private var navigateToExistingWorkout: Workout?  // For existing workouts (no auto-open)
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Custom Header: Workouts + Button
+                // Custom Header: Workouts + Profile Button
                 HStack(alignment: .center) {
                     Text("Workouts")
                         .font(.largeTitle)
@@ -39,14 +40,14 @@ struct HomeViewPlaceholder: View {
                     Spacer()
 
                     Button {
-                        showCreateWorkout = true
+                        showProfile = true
                     } label: {
-                        Image(systemName: "plus.circle")
+                        Image(systemName: "person.circle")
                             .font(.title2)
                             .foregroundStyle(.primary)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Neues Workout erstellen")
+                    .accessibilityLabel("Profil öffnen")
                 }
                 .padding(.horizontal)
                 .padding(.top, 8)
@@ -87,6 +88,9 @@ struct HomeViewPlaceholder: View {
                     }
                     .environment(store)
                 }
+            }
+            .sheet(isPresented: $showProfile) {
+                ProfileView()
             }
             // Navigation for NEWLY created workouts (opens ExercisePicker automatically)
             .navigationDestination(item: $navigateToNewWorkout) { workout in
@@ -221,9 +225,13 @@ struct HomeViewPlaceholder: View {
                 .padding(.top, 40)
             } else {
                 LazyVStack(spacing: 12) {
+                    // Create New Workout Link
+                    createWorkoutLink
+
                     // Favorites section
                     if !favoriteWorkouts.isEmpty {
                         sectionHeader(title: "Favoriten")
+                            .padding(.top, 8)
 
                         ForEach(favoriteWorkouts) { workout in
                             WorkoutCard(workout: workout, store: store) {
@@ -237,7 +245,7 @@ struct HomeViewPlaceholder: View {
                     // Regular workouts
                     if !regularWorkouts.isEmpty {
                         sectionHeader(title: "Alle Workouts")
-                            .padding(.top, favoriteWorkouts.isEmpty ? 0 : 8)
+                            .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
 
                         ForEach(regularWorkouts) { workout in
                             WorkoutCard(workout: workout, store: store) {
@@ -270,6 +278,33 @@ struct HomeViewPlaceholder: View {
         }
         .padding(.horizontal, 4)
         .padding(.bottom, 4)
+    }
+
+    private var createWorkoutLink: some View {
+        Button {
+            showCreateWorkout = true
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } label: {
+            HStack {
+                Image(systemName: "plus.circle")
+                    .font(.body)
+                    .foregroundStyle(.primary)
+
+                Text("Neues Workout erstellen")
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding()
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(12)
+        }
     }
 
     private func navigateToWorkout(_ workout: Workout, store: WorkoutStore) {
