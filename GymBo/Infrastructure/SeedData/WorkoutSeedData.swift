@@ -3,6 +3,7 @@
 //  GymBo
 //
 //  Created on 2025-10-23.
+//  Updated on 2025-10-24 - 6 comprehensive sample workouts with difficulty levels
 //
 
 import Foundation
@@ -63,169 +64,28 @@ struct WorkoutSeedData {
     {
         var workouts: [WorkoutEntity] = []
 
-        // 1. Push Day (Chest, Shoulders, Triceps)
-        if let benchPress = exercises["Bankdrücken"] {
-            let pushDay = WorkoutEntity(
-                name: "Push Day",
-                date: Date(),
-                exercises: [],
-                defaultRestTime: 90,
-                notes: "Fokus auf Brust, Schultern und Trizeps",
-                isFavorite: true
-            )
-
-            // Bankdrücken: 4x8
-            let benchExercise = WorkoutExerciseEntity(
-                exerciseId: benchPress.id,
-                exercise: benchPress,
-                sets: createSets(count: 4, reps: 8, weight: 100.0),
-                workout: pushDay,
-                order: 0
-            )
-
-            pushDay.exercises.append(benchExercise)
-            pushDay.exerciseCount = 1
-
-            workouts.append(pushDay)
-        }
-
-        // 2. Pull Day (Back, Biceps)
-        if let latPulldown = exercises["Latzug zur Brust"] {
-            let pullDay = WorkoutEntity(
-                name: "Pull Day",
-                date: Date(),
-                exercises: [],
-                defaultRestTime: 90,
-                notes: "Fokus auf Rücken und Bizeps",
-                isFavorite: false
-            )
-
-            // Latzug zur Brust: 3x10
-            let latExercise = WorkoutExerciseEntity(
-                exerciseId: latPulldown.id,
-                exercise: latPulldown,
-                sets: createSets(count: 3, reps: 10, weight: 80.0),
-                workout: pullDay,
-                order: 0
-            )
-
-            pullDay.exercises.append(latExercise)
-            pullDay.exerciseCount = 1
-
-            workouts.append(pullDay)
-        }
-
-        // 3. Leg Day (Legs, Glutes)
-        if let squats = exercises["Kniebeugen"] {
-            let legDay = WorkoutEntity(
-                name: "Leg Day",
-                date: Date(),
-                exercises: [],
-                defaultRestTime: 120,  // Longer rest for legs
-                notes: "Fokus auf Beine und Gesäß",
-                isFavorite: true
-            )
-
-            // Kniebeugen: 4x12
-            let squatExercise = WorkoutExerciseEntity(
-                exerciseId: squats.id,
-                exercise: squats,
-                sets: createSets(count: 4, reps: 12, weight: 60.0),
-                workout: legDay,
-                order: 0
-            )
-
-            legDay.exercises.append(squatExercise)
-            legDay.exerciseCount = 1
-
-            workouts.append(legDay)
-        }
-
-        // 4. TEST WORKOUT - Multi-Exercise (for testing drag-and-drop reordering)
-        let testWorkout = WorkoutEntity(
-            name: "TEST - Multi Exercise",
-            date: Date(),
-            exercises: [],
-            defaultRestTime: 90,
-            notes: "Test workout mit 4 Übungen für Drag & Drop Testing",
-            isFavorite: false
-        )
-
-        var exerciseOrder = 0
-
-        // Exercise 1: Bankdrücken
-        if let benchPress = exercises["Bankdrücken"] {
-            let ex1 = WorkoutExerciseEntity(
-                exerciseId: benchPress.id,
-                exercise: benchPress,
-                sets: createSets(count: 3, reps: 10, weight: 80.0),
-                workout: testWorkout,
-                order: exerciseOrder
-            )
-            testWorkout.exercises.append(ex1)
-            exerciseOrder += 1
-        }
-
-        // Exercise 2: Kniebeugen
-        if let squats = exercises["Kniebeugen"] {
-            let ex2 = WorkoutExerciseEntity(
-                exerciseId: squats.id,
-                exercise: squats,
-                sets: createSets(count: 3, reps: 12, weight: 60.0),
-                workout: testWorkout,
-                order: exerciseOrder
-            )
-            testWorkout.exercises.append(ex2)
-            exerciseOrder += 1
-        }
-
-        // Exercise 3: Latzug zur Brust
-        if let latPulldown = exercises["Latzug zur Brust"] {
-            let ex3 = WorkoutExerciseEntity(
-                exerciseId: latPulldown.id,
-                exercise: latPulldown,
-                sets: createSets(count: 3, reps: 10, weight: 70.0),
-                workout: testWorkout,
-                order: exerciseOrder
-            )
-            testWorkout.exercises.append(ex3)
-            exerciseOrder += 1
-        }
-
-        // Exercise 4: Kreuzheben
-        if let deadlift = exercises["Kreuzheben"] {
-            let ex4 = WorkoutExerciseEntity(
-                exerciseId: deadlift.id,
-                exercise: deadlift,
-                sets: createSets(count: 3, reps: 8, weight: 100.0),
-                workout: testWorkout,
-                order: exerciseOrder
-            )
-            testWorkout.exercises.append(ex4)
-            exerciseOrder += 1
-        }
-
-        testWorkout.exerciseCount = testWorkout.exercises.count
-        workouts.append(testWorkout)
-
-        // 5. Ganzkörper Maschine
+        // ========================================
+        // 1. MASCHINEN: Ganzkörper Anfänger
+        // ========================================
         let fullBodyMachine = WorkoutEntity(
             name: "Ganzkörper Maschine",
             date: Date(),
             exercises: [],
             defaultRestTime: 90,
             notes: "Anfängerfreundliches Ganzkörpertraining an Maschinen",
-            isFavorite: false
+            isFavorite: true,
+            isSampleWorkout: true,
+            difficultyLevel: "Anfänger"
         )
 
         var order = 0
 
-        // 1. Beinpresse: 3x8
+        // Beinpresse: 3x12
         if let exercise = exercises["Beinpresse"] {
             let ex = WorkoutExerciseEntity(
                 exerciseId: exercise.id,
                 exercise: exercise,
-                sets: createSets(count: 3, reps: 8, weight: 0),
+                sets: createSets(count: 3, reps: 12, weight: 0),
                 workout: fullBodyMachine,
                 order: order
             )
@@ -233,12 +93,12 @@ struct WorkoutSeedData {
             order += 1
         }
 
-        // 2. Brustpresse: 3x8
+        // Brustpresse: 3x10
         if let exercise = exercises["Brustpresse-Maschine"] {
             let ex = WorkoutExerciseEntity(
                 exerciseId: exercise.id,
                 exercise: exercise,
-                sets: createSets(count: 3, reps: 8, weight: 0),
+                sets: createSets(count: 3, reps: 10, weight: 0),
                 workout: fullBodyMachine,
                 order: order
             )
@@ -246,12 +106,12 @@ struct WorkoutSeedData {
             order += 1
         }
 
-        // 3. Latzug: 3x8
-        if let exercise = exercises["Latzug"] {
+        // Latzug: 3x10
+        if let exercise = exercises["Latzug zur Brust"] {
             let ex = WorkoutExerciseEntity(
                 exerciseId: exercise.id,
                 exercise: exercise,
-                sets: createSets(count: 3, reps: 8, weight: 0),
+                sets: createSets(count: 3, reps: 10, weight: 0),
                 workout: fullBodyMachine,
                 order: order
             )
@@ -259,12 +119,12 @@ struct WorkoutSeedData {
             order += 1
         }
 
-        // 4. Schulterpresse: 3x8
+        // Schulterpresse: 3x10
         if let exercise = exercises["Schulterpresse-Maschine"] {
             let ex = WorkoutExerciseEntity(
                 exerciseId: exercise.id,
                 exercise: exercise,
-                sets: createSets(count: 3, reps: 8, weight: 0),
+                sets: createSets(count: 3, reps: 10, weight: 0),
                 workout: fullBodyMachine,
                 order: order
             )
@@ -272,12 +132,12 @@ struct WorkoutSeedData {
             order += 1
         }
 
-        // 5. Beinbeuger: 3x8
+        // Beinbeuger: 3x12
         if let exercise = exercises["Beinbeuger"] {
             let ex = WorkoutExerciseEntity(
                 exerciseId: exercise.id,
                 exercise: exercise,
-                sets: createSets(count: 3, reps: 8, weight: 0),
+                sets: createSets(count: 3, reps: 12, weight: 0),
                 workout: fullBodyMachine,
                 order: order
             )
@@ -285,51 +145,12 @@ struct WorkoutSeedData {
             order += 1
         }
 
-        // 6. Rudermaschine: 3x8
+        // Sitzendes Rudern: 3x10
         if let exercise = exercises["Sitzendes Kabelrudern"] {
             let ex = WorkoutExerciseEntity(
                 exerciseId: exercise.id,
                 exercise: exercise,
-                sets: createSets(count: 3, reps: 8, weight: 0),
-                workout: fullBodyMachine,
-                order: order
-            )
-            fullBodyMachine.exercises.append(ex)
-            order += 1
-        }
-
-        // 7. Beinstrecker: 3x8 (falls vorhanden - ansonsten überspringen)
-        if let exercise = exercises["Beinstrecker"] {
-            let ex = WorkoutExerciseEntity(
-                exerciseId: exercise.id,
-                exercise: exercise,
-                sets: createSets(count: 3, reps: 8, weight: 0),
-                workout: fullBodyMachine,
-                order: order
-            )
-            fullBodyMachine.exercises.append(ex)
-            order += 1
-        }
-
-        // 8. Trizepsmaschine: 3x8
-        if let exercise = exercises["Trizepsstrecker-Maschine"] {
-            let ex = WorkoutExerciseEntity(
-                exerciseId: exercise.id,
-                exercise: exercise,
-                sets: createSets(count: 3, reps: 8, weight: 0),
-                workout: fullBodyMachine,
-                order: order
-            )
-            fullBodyMachine.exercises.append(ex)
-            order += 1
-        }
-
-        // 9. Bauchmaschine: 3x12 (60s Rest)
-        if let exercise = exercises["Bauchmuskel-Crunch-Maschine"] {
-            let ex = WorkoutExerciseEntity(
-                exerciseId: exercise.id,
-                exercise: exercise,
-                sets: createSets(count: 3, reps: 12, weight: 0, restTime: 60),
+                sets: createSets(count: 3, reps: 10, weight: 0),
                 workout: fullBodyMachine,
                 order: order
             )
@@ -340,10 +161,536 @@ struct WorkoutSeedData {
         fullBodyMachine.exerciseCount = fullBodyMachine.exercises.count
         workouts.append(fullBodyMachine)
 
+        // ========================================
+        // 2. MASCHINEN: Oberkörper Fortgeschritten
+        // ========================================
+        let upperBodyMachine = WorkoutEntity(
+            name: "Oberkörper Maschine",
+            date: Date(),
+            exercises: [],
+            defaultRestTime: 90,
+            notes: "Intensives Oberkörpertraining an Maschinen",
+            isFavorite: false,
+            isSampleWorkout: true,
+            difficultyLevel: "Fortgeschritten"
+        )
+
+        order = 0
+
+        // Brustpresse: 4x8
+        if let exercise = exercises["Brustpresse-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 8, weight: 0),
+                workout: upperBodyMachine,
+                order: order
+            )
+            upperBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // Latzug: 4x8
+        if let exercise = exercises["Latzug zur Brust"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 8, weight: 0),
+                workout: upperBodyMachine,
+                order: order
+            )
+            upperBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // Schulterpresse: 4x10
+        if let exercise = exercises["Schulterpresse-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 10, weight: 0),
+                workout: upperBodyMachine,
+                order: order
+            )
+            upperBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // Sitzendes Rudern: 4x10
+        if let exercise = exercises["Sitzendes Kabelrudern"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 10, weight: 0),
+                workout: upperBodyMachine,
+                order: order
+            )
+            upperBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // Butterfly: 3x12
+        if let exercise = exercises["Butterfly"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 0),
+                workout: upperBodyMachine,
+                order: order
+            )
+            upperBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // Trizepsmaschine: 3x12
+        if let exercise = exercises["Trizepsstrecker-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 0),
+                workout: upperBodyMachine,
+                order: order
+            )
+            upperBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        // Bizeps Curl Maschine: 3x12
+        if let exercise = exercises["Bizeps-Curl-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 0),
+                workout: upperBodyMachine,
+                order: order
+            )
+            upperBodyMachine.exercises.append(ex)
+            order += 1
+        }
+
+        upperBodyMachine.exerciseCount = upperBodyMachine.exercises.count
+        workouts.append(upperBodyMachine)
+
+        // ========================================
+        // 3. FREIE GEWICHTE: Push Day
+        // ========================================
+        let pushDay = WorkoutEntity(
+            name: "Push Day (Langhantel)",
+            date: Date(),
+            exercises: [],
+            defaultRestTime: 120,
+            notes: "Brust, Schultern und Trizeps mit freien Gewichten",
+            isFavorite: true,
+            isSampleWorkout: true,
+            difficultyLevel: "Fortgeschritten"
+        )
+
+        order = 0
+
+        // Bankdrücken: 4x6
+        if let exercise = exercises["Bankdrücken"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 6, weight: 80.0, restTime: 120),
+                workout: pushDay,
+                order: order
+            )
+            pushDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Schrägbankdrücken: 4x8
+        if let exercise = exercises["Schrägbankdrücken"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 8, weight: 60.0),
+                workout: pushDay,
+                order: order
+            )
+            pushDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Überkopfdrücken: 4x8
+        if let exercise = exercises["Überkopfdrücken"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 8, weight: 40.0),
+                workout: pushDay,
+                order: order
+            )
+            pushDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Dips: 3x10
+        if let exercise = exercises["Dips"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 10, weight: 0),
+                workout: pushDay,
+                order: order
+            )
+            pushDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Trizepsdrücken am Kabel: 3x12
+        if let exercise = exercises["Trizepsdrücken am Kabel"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 0),
+                workout: pushDay,
+                order: order
+            )
+            pushDay.exercises.append(ex)
+            order += 1
+        }
+
+        pushDay.exerciseCount = pushDay.exercises.count
+        workouts.append(pushDay)
+
+        // ========================================
+        // 4. FREIE GEWICHTE: Pull Day
+        // ========================================
+        let pullDay = WorkoutEntity(
+            name: "Pull Day (Langhantel & Kurzhantel)",
+            date: Date(),
+            exercises: [],
+            defaultRestTime: 120,
+            notes: "Rücken und Bizeps mit freien Gewichten",
+            isFavorite: false,
+            isSampleWorkout: true,
+            difficultyLevel: "Fortgeschritten"
+        )
+
+        order = 0
+
+        // Kreuzheben: 4x5
+        if let exercise = exercises["Kreuzheben"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 5, weight: 100.0, restTime: 180),
+                workout: pullDay,
+                order: order
+            )
+            pullDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Langhantelrudern: 4x8
+        if let exercise = exercises["Langhantelrudern"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 8, weight: 60.0),
+                workout: pullDay,
+                order: order
+            )
+            pullDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Klimmzüge: 4x6
+        if let exercise = exercises["Klimmzüge"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 6, weight: 0),
+                workout: pullDay,
+                order: order
+            )
+            pullDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Kurzhantelrudern: 3x10
+        if let exercise = exercises["Kurzhantelrudern"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 10, weight: 30.0),
+                workout: pullDay,
+                order: order
+            )
+            pullDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Bizeps Curls: 3x12
+        if let exercise = exercises["Kurzhantel-Bizeps-Curls"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 12.0),
+                workout: pullDay,
+                order: order
+            )
+            pullDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Hammer Curls: 3x12
+        if let exercise = exercises["Hammer-Curls"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 12.0),
+                workout: pullDay,
+                order: order
+            )
+            pullDay.exercises.append(ex)
+            order += 1
+        }
+
+        pullDay.exerciseCount = pullDay.exercises.count
+        workouts.append(pullDay)
+
+        // ========================================
+        // 5. GEMISCHT: Beine Push/Pull (Profi)
+        // ========================================
+        let legDay = WorkoutEntity(
+            name: "Beine Push/Pull",
+            date: Date(),
+            exercises: [],
+            defaultRestTime: 180,
+            notes: "Komplettes Beintraining für Fortgeschrittene",
+            isFavorite: true,
+            isSampleWorkout: true,
+            difficultyLevel: "Profi"
+        )
+
+        order = 0
+
+        // Kniebeugen (Langhantel): 5x5
+        if let exercise = exercises["Kniebeugen"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 5, reps: 5, weight: 100.0, restTime: 180),
+                workout: legDay,
+                order: order
+            )
+            legDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Beinpresse (Maschine): 4x10
+        if let exercise = exercises["Beinpresse"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 10, weight: 0),
+                workout: legDay,
+                order: order
+            )
+            legDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Rumänisches Kreuzheben (Langhantel): 4x8
+        if let exercise = exercises["Rumänisches Kreuzheben"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 8, weight: 80.0),
+                workout: legDay,
+                order: order
+            )
+            legDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Beinbeuger (Maschine): 3x12
+        if let exercise = exercises["Beinbeuger"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 0),
+                workout: legDay,
+                order: order
+            )
+            legDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Beinstrecker (Maschine): 3x12
+        if let exercise = exercises["Beinstrecker"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 0),
+                workout: legDay,
+                order: order
+            )
+            legDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Walking Lunges (Kurzhantel): 3x12 pro Bein
+        if let exercise = exercises["Ausfallschritte"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 20.0),
+                workout: legDay,
+                order: order
+            )
+            legDay.exercises.append(ex)
+            order += 1
+        }
+
+        // Wadenheben (Maschine): 4x15
+        if let exercise = exercises["Wadenheben stehend"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 15, weight: 0, restTime: 60),
+                workout: legDay,
+                order: order
+            )
+            legDay.exercises.append(ex)
+            order += 1
+        }
+
+        legDay.exerciseCount = legDay.exercises.count
+        workouts.append(legDay)
+
+        // ========================================
+        // 6. GEMISCHT: Oberkörper Hybrid
+        // ========================================
+        let hybridUpper = WorkoutEntity(
+            name: "Oberkörper Hybrid",
+            date: Date(),
+            exercises: [],
+            defaultRestTime: 90,
+            notes: "Kombination aus freien Gewichten und Maschinen",
+            isFavorite: false,
+            isSampleWorkout: true,
+            difficultyLevel: "Fortgeschritten"
+        )
+
+        order = 0
+
+        // Bankdrücken (Langhantel): 4x8
+        if let exercise = exercises["Bankdrücken"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 8, weight: 70.0, restTime: 120),
+                workout: hybridUpper,
+                order: order
+            )
+            hybridUpper.exercises.append(ex)
+            order += 1
+        }
+
+        // Brustpresse (Maschine): 3x10
+        if let exercise = exercises["Brustpresse-Maschine"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 10, weight: 0),
+                workout: hybridUpper,
+                order: order
+            )
+            hybridUpper.exercises.append(ex)
+            order += 1
+        }
+
+        // Klimmzüge (Bodyweight): 4x8
+        if let exercise = exercises["Klimmzüge"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 8, weight: 0),
+                workout: hybridUpper,
+                order: order
+            )
+            hybridUpper.exercises.append(ex)
+            order += 1
+        }
+
+        // Latzug (Maschine): 3x10
+        if let exercise = exercises["Latzug zur Brust"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 10, weight: 0),
+                workout: hybridUpper,
+                order: order
+            )
+            hybridUpper.exercises.append(ex)
+            order += 1
+        }
+
+        // Kurzhantel Schulterdrücken: 4x10
+        if let exercise = exercises["Kurzhantel-Schulterdrücken"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 4, reps: 10, weight: 20.0),
+                workout: hybridUpper,
+                order: order
+            )
+            hybridUpper.exercises.append(ex)
+            order += 1
+        }
+
+        // Seitheben (Kurzhantel): 3x12
+        if let exercise = exercises["Seitheben"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 10.0),
+                workout: hybridUpper,
+                order: order
+            )
+            hybridUpper.exercises.append(ex)
+            order += 1
+        }
+
+        // Bizeps Curls (Kurzhantel): 3x12
+        if let exercise = exercises["Kurzhantel-Bizeps-Curls"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 12.0),
+                workout: hybridUpper,
+                order: order
+            )
+            hybridUpper.exercises.append(ex)
+            order += 1
+        }
+
+        // Trizepsdrücken (Kabel): 3x12
+        if let exercise = exercises["Trizepsdrücken am Kabel"] {
+            let ex = WorkoutExerciseEntity(
+                exerciseId: exercise.id,
+                exercise: exercise,
+                sets: createSets(count: 3, reps: 12, weight: 0),
+                workout: hybridUpper,
+                order: order
+            )
+            hybridUpper.exercises.append(ex)
+            order += 1
+        }
+
+        hybridUpper.exerciseCount = hybridUpper.exercises.count
+        workouts.append(hybridUpper)
+
         return workouts
     }
 
-    private static func createSets(count: Int, reps: Int, weight: Double, restTime: TimeInterval = 90) -> [ExerciseSetEntity] {
+    private static func createSets(
+        count: Int, reps: Int, weight: Double, restTime: TimeInterval = 90
+    ) -> [ExerciseSetEntity] {
         var sets: [ExerciseSetEntity] = []
 
         for _ in 0..<count {

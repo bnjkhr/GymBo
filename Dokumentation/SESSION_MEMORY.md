@@ -36,6 +36,156 @@
 
 ---
 
+## ✅ Session 2025-10-24 (Session 13) - Sample Workouts + Difficulty Levels
+
+### 6 Comprehensive Sample Workouts
+**Status:** ✅ Komplett implementiert, getestet, BUILD SUCCEEDED
+
+**Motivation:**
+- App brauchte production-ready Beispiel-Workouts
+- User wollte 2x Maschinen, 2x Freie Gewichte, 2x Gemischt
+- Difficulty Tags sollten Anfänger vs. Fortgeschrittene vs. Profi zeigen
+
+**1. Neue Sample Workouts:**
+
+**Nur Maschinen (2):**
+1. **"Ganzkörper Maschine"** - Anfänger 🍃
+   - 6 Übungen: Beinpresse, Brustpresse, Latzug, Schulterpresse, Beinbeuger, Sitzendes Rudern
+   - 3x10-12 Reps pro Übung
+   - 90s Rest
+   - Perfekt für Gym-Einsteiger
+
+2. **"Oberkörper Maschine"** - Fortgeschritten 🔥
+   - 7 Übungen: Brustpresse, Latzug, Schulterpresse, Sitzendes Rudern, Butterfly, Trizeps-, Bizepsmaschine
+   - 3-4x8-12 Reps
+   - Intensiveres Oberkörpertraining
+
+**Nur Freie Gewichte (2):**
+3. **"Push Day (Langhantel)"** - Fortgeschritten 🔥
+   - 5 Übungen: Bankdrücken (4x6), Schrägbank (4x8), Überkopfdrücken (4x8), Dips (3x10), Trizeps Kabel (3x12)
+   - 120s Rest (schwerere Gewichte)
+   - Classic compound movements
+
+4. **"Pull Day (Langhantel & Kurzhantel)"** - Fortgeschritten 🔥
+   - 6 Übungen: Kreuzheben (4x5, 180s rest!), Langhantelrudern (4x8), Klimmzüge (4x6), Kurzhantelrudern (3x10), Bizeps Curls, Hammer Curls
+   - 120-180s Rest
+   - Heavy pulling focus
+
+**Gemischt (2):**
+5. **"Beine Push/Pull"** - Profi ⚡
+   - 7 Übungen: Kniebeugen (5x5), Beinpresse, Rumänisches Kreuzheben, Beinbeuger, Beinstrecker, Ausfallschritte, Wadenheben (4x15)
+   - 180s Rest für Squats
+   - Kombination Langhantel + Maschinen
+   - Komplettes Beintraining
+
+6. **"Oberkörper Hybrid"** - Fortgeschritten 🔥
+   - 8 Übungen: Mix aus Bankdrücken, Brustpresse, Klimmzüge, Latzug, Kurzhantel Schulterdrücken, Seitheben, Bizeps, Trizeps
+   - 90-120s Rest
+   - Best of both worlds (Free weights + Machines)
+
+**2. Difficulty Level System:**
+
+**Schema Changes:**
+```swift
+// SwiftDataEntities.swift - WorkoutEntity
+var difficultyLevel: String?  // "Anfänger", "Fortgeschritten", "Profi"
+
+// Domain/Entities/Workout.swift
+var difficultyLevel: String?  // "Anfänger", "Fortgeschritten", "Profi"
+```
+
+**WorkoutMapper Updates:**
+- `toEntity()`: Maps difficultyLevel to SwiftData
+- `toDomain()`: Maps difficultyLevel from SwiftData
+- `updateEntity()`: Updates difficultyLevel on in-place updates
+- Backwards compatible: nil für alte Workouts ohne Level
+
+**3. HomeView Difficulty Badges:**
+
+**Implementation (HomeViewPlaceholder.swift - WorkoutCard):**
+```swift
+// Difficulty Badge
+if let difficulty = workout.difficultyLevel {
+    difficultyBadge(for: difficulty)
+}
+
+private func difficultyBadge(for level: String) -> some View {
+    let (color, icon) = difficultyStyle(for: level)
+    
+    HStack(spacing: 4) {
+        Image(systemName: icon)
+            .font(.caption2)
+        Text(level)
+            .font(.caption)
+            .fontWeight(.medium)
+    }
+    .foregroundColor(color)
+    .padding(.horizontal, 8)
+    .padding(.vertical, 4)
+    .background(color.opacity(0.15))
+    .cornerRadius(8)
+}
+
+private func difficultyStyle(for level: String) -> (Color, String) {
+    switch level {
+    case "Anfänger":
+        return (.green, "leaf.fill")
+    case "Fortgeschritten":
+        return (.orange, "flame.fill")
+    case "Profi":
+        return (.red, "bolt.fill")
+    default:
+        return (.gray, "circle.fill")
+    }
+}
+```
+
+**Design:**
+- Green pill mit 🍃 leaf icon für "Anfänger"
+- Orange pill mit 🔥 flame icon für "Fortgeschritten"
+- Red pill mit ⚡ bolt icon für "Profi"
+- 15% opacity background (subtle, nicht überwältigend)
+- Positioned bottom-right in stats row
+
+**4. WorkoutSeedData Komplett überarbeitet:**
+
+**Removed:**
+- "Push Day" (single exercise)
+- "Pull Day" (single exercise)
+- "Leg Day" (single exercise)
+- "TEST - Multi Exercise" (Test-Workout)
+- Old "Ganzkörper Maschine" (kept but improved)
+
+**Added:**
+- 5 neue comprehensive Workouts
+- Alle mit `isSampleWorkout: true` Flag
+- Alle mit `difficultyLevel` gesetzt
+- Realistiche Gewichte für jede Übung
+- Varied rep ranges (5-15 reps)
+- Varied rest times (60-180s)
+
+**Neue Dateien:**
+- Keine neuen Dateien (nur Änderungen)
+
+**Modified Files:**
+- `SwiftDataEntities.swift` - difficultyLevel property in WorkoutEntity
+- `Domain/Entities/Workout.swift` - difficultyLevel property
+- `Data/Mappers/WorkoutMapper.swift` - Mapping für difficultyLevel
+- `Presentation/Views/Home/HomeViewPlaceholder.swift` - Difficulty badges
+- `Infrastructure/SeedData/WorkoutSeedData.swift` - 6 neue Workouts
+
+**Build Status:** ✅ BUILD SUCCEEDED
+**Testing:** App zeigt jetzt 6 production-ready Workouts mit Difficulty Badges
+**Performance:** Keine Performance-Issues, Seed läuft schnell
+
+**Learnings:**
+- Optional Properties in SwiftData für backwards compatibility
+- Difficulty Badges verbessern UX massiv (User sieht sofort Level)
+- Sample Workouts müssen realistic sein (Gewichte, Rest Times)
+- Icon + Color Coding ist intuitiver als nur Text
+
+---
+
 ## ✅ Session 2025-10-24 (Session 12) - Add Exercise to Active Workout
 
 ### Add Exercise to Active Session Feature
@@ -688,16 +838,16 @@ final class WorkoutStore {
 
 ---
 
-**Zuletzt bearbeitet:** 2025-10-24 (Session 12 - Add Exercise to Active Workout)
-**Session-Dauer:** ~3 Stunden
+**Zuletzt bearbeitet:** 2025-10-24 (Session 13 - Sample Workouts + Difficulty Levels)
+**Session-Dauer:** ~2 Stunden
 **Features:** 
-- Add Exercise to Active Session (Domain + Presentation Layer)
-- Session-Only vs. Permanent Save Modi
-- WorkoutDetailView Refresh Trigger Pattern
-**New Use Cases:** AddExerciseToSessionUseCase mit Progressive Overload
-**New Views:** AddExerciseToSessionSheet (Single-Select Picker + Toggle)
-**Bug Fixes:** 4 Compiler-Fehler behoben (Parameter names, Environment, Property names)
-**Store Enhancements:** SessionStore (addExerciseToSession), WorkoutStore (refreshTrigger)
+- 6 Comprehensive Sample Workouts (2x Machines, 2x Free Weights, 2x Mixed)
+- Difficulty Level System (Anfänger, Fortgeschritten, Profi)
+- HomeView Difficulty Badges (colored pills mit Icons)
+**Schema Changes:** difficultyLevel property in WorkoutEntity + Domain Workout
+**Modified Files:** 5 Files (SwiftDataEntities, Workout, WorkoutMapper, HomeViewPlaceholder, WorkoutSeedData)
+**Design:** Green/Orange/Red badges mit leaf/flame/bolt icons
+**Sample Workouts:** Production-ready mit realistic weights & rest times
 **Dokumentation:** CURRENT_STATE.md, SESSION_MEMORY.md aktualisiert
 **Build Status:** ✅ BUILD SUCCEEDED
-**Testing:** ✅ Beide Modi funktionieren perfekt, UI updates sofort
+**Testing:** ✅ All workouts seeded successfully, badges display correctly

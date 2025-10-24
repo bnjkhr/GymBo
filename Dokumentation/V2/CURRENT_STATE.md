@@ -1,13 +1,36 @@
 # GymBo V2 - Aktueller Stand (2025-10-24)
 
-**Status:** ✅ MVP PRODUCTION-READY! Custom Exercises (Create & Delete)
+**Status:** ✅ MVP PRODUCTION-READY! 6 Sample Workouts mit Difficulty Levels
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
-**Design:** Exercise Library + Custom Exercise Management
+**Design:** Modern iOS 26 mit Difficulty Badges
 
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-24 - Session 12 - ADD EXERCISE TO ACTIVE WORKOUT):**
+**Letzte Session (2025-10-24 - Session 13 - SAMPLE WORKOUTS + DIFFICULTY LEVELS):**
+- ✅ 6 Comprehensive Sample Workouts
+  - **2x Maschinen:** "Ganzkörper Maschine" (Anfänger), "Oberkörper Maschine" (Fortgeschritten)
+  - **2x Freie Gewichte:** "Push Day (Langhantel)" (Fortgeschritten), "Pull Day (Langhantel & Kurzhantel)" (Fortgeschritten)
+  - **2x Gemischt:** "Beine Push/Pull" (Profi), "Oberkörper Hybrid" (Fortgeschritten)
+  - Alle Workouts mit sinnvollen Set/Rep Schemes und Gewichten
+  - Progressive Overload ready (verschiedene Intensitäten)
+- ✅ Difficulty Level System
+  - New property: `difficultyLevel: String?` in WorkoutEntity & Domain Workout
+  - 3 Levels: "Anfänger" (🍃 green), "Fortgeschritten" (🔥 orange), "Profi" (⚡ red)
+  - WorkoutMapper updated für bidirectionale Mapping
+  - Backwards compatible (nil für alte Workouts)
+- ✅ HomeView Difficulty Badges
+  - Colored pills mit Icon + Text
+  - Icon changes per level (leaf, flame, bolt)
+  - Positioned in stats row (bottom-right of workout cards)
+  - 15% opacity background für subtle look
+- ✅ WorkoutSeedData Komplett überarbeitet
+  - Alte Test-Workouts entfernt
+  - 6 production-ready Workouts
+  - Detaillierte Exercises pro Workout (4-8 Übungen)
+  - Muscle group coverage (Legs, Push, Pull, Full Body)
+
+**Session 12 (2025-10-24 - ADD EXERCISE TO ACTIVE WORKOUT):**
 - ✅ Add Exercise to Active Session Feature
   - Plus-Button in ActiveWorkoutSheetView Toolbar
   - AddExerciseToSessionSheet mit Single-Select Picker

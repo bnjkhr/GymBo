@@ -404,7 +404,7 @@ private struct WorkoutCard: View {
                     }
                 }
 
-                // Stats
+                // Stats & Difficulty
                 HStack(spacing: 16) {
                     Label {
                         Text("\(workout.exerciseCount)")
@@ -427,6 +427,11 @@ private struct WorkoutCard: View {
                     .foregroundColor(.secondary)
 
                     Spacer()
+
+                    // Difficulty Badge
+                    if let difficulty = workout.difficultyLevel {
+                        difficultyBadge(for: difficulty)
+                    }
                 }
             }
             .padding(16)
@@ -435,6 +440,39 @@ private struct WorkoutCard: View {
             .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
         }
         .buttonStyle(CardButtonStyle())
+    }
+
+    // MARK: - Difficulty Badge
+
+    @ViewBuilder
+    private func difficultyBadge(for level: String) -> some View {
+        let (color, icon) = difficultyStyle(for: level)
+
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption2)
+            Text(level)
+                .font(.caption)
+                .fontWeight(.medium)
+        }
+        .foregroundColor(color)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.15))
+        .cornerRadius(8)
+    }
+
+    private func difficultyStyle(for level: String) -> (Color, String) {
+        switch level {
+        case "Anfänger":
+            return (.green, "leaf.fill")
+        case "Fortgeschritten":
+            return (.orange, "flame.fill")
+        case "Profi":
+            return (.red, "bolt.fill")
+        default:
+            return (.gray, "circle.fill")
+        }
     }
 }
 
