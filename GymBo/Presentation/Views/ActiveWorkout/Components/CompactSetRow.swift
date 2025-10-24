@@ -91,7 +91,7 @@ struct CompactSetRow: View {
                     }
                 }
             }
-            .disabled(set.completed)
+            .buttonStyle(.plain)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 4)

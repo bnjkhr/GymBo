@@ -75,8 +75,8 @@ final class DefaultCompleteSetUseCase: CompleteSetUseCase {
             throw UseCaseError.setNotFound(setId)
         }
 
-        // Mark set as completed (toggles completed status)
-        session.exercises[exerciseIndex].sets[setIndex].markCompleted()
+        // Toggle set completion status
+        session.exercises[exerciseIndex].sets[setIndex].toggleCompletion()
 
         // Auto-finish exercise if all sets are completed
         let allSetsCompleted = session.exercises[exerciseIndex].sets.allSatisfy { $0.completed }
