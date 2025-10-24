@@ -169,8 +169,12 @@ struct WorkoutDetailView: View {
                                 name: name,
                                 defaultRestTime: restTime
                             )
-                            // Reload workout data
-                            await loadData()
+                            // Update local workout from store (already updated by WorkoutStore)
+                            if let updatedWorkout = workoutStore.workouts.first(where: {
+                                $0.id == workoutId
+                            }) {
+                                self.workout = updatedWorkout
+                            }
                         }
                     }
                 )
