@@ -228,8 +228,10 @@ struct HomeViewPlaceholder: View {
                 }
             }
         }
+        .id(workouts.map { $0.name }.joined())  // Force List to recreate when names change
         .refreshable {
             await store.refresh()
+            workouts = store.workouts  // Update local state on pull-to-refresh
         }
     }
 
