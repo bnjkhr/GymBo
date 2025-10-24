@@ -985,6 +985,10 @@ extension SessionStore {
                 finishExerciseUseCase: DefaultFinishExerciseUseCase(
                     sessionRepository: repository
                 ),
+                addExerciseToSessionUseCase: DefaultAddExerciseToSessionUseCase(
+                    sessionRepository: repository,
+                    exerciseRepository: exerciseRepository
+                ),
                 sessionRepository: repository,
                 exerciseRepository: exerciseRepository,
                 workoutRepository: workoutRepository
