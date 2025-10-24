@@ -150,12 +150,12 @@ struct AddExerciseToSessionSheet: View {
 
         // Muscle group filter
         if let muscleGroup = selectedMuscleGroup {
-            filtered = filtered.filter { $0.muscleGroups.contains(muscleGroup) }
+            filtered = filtered.filter { $0.muscleGroupsRaw.contains(muscleGroup) }
         }
 
         // Equipment filter
         if let equipment = selectedEquipment {
-            filtered = filtered.filter { $0.equipment == equipment }
+            filtered = filtered.filter { $0.equipmentTypeRaw == equipment }
         }
 
         cachedFilteredExercises = filtered.sorted { $0.name < $1.name }
