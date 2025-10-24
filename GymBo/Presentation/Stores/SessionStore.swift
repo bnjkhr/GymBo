@@ -819,6 +819,7 @@ extension SessionStore {
                 ),
                 completeSetUseCase: DefaultCompleteSetUseCase(sessionRepository: repository),
                 endSessionUseCase: DefaultEndSessionUseCase(sessionRepository: repository),
+                cancelSessionUseCase: DefaultCancelSessionUseCase(sessionRepository: repository),
                 pauseSessionUseCase: DefaultPauseSessionUseCase(sessionRepository: repository),
                 resumeSessionUseCase: DefaultResumeSessionUseCase(sessionRepository: repository),
                 updateSetUseCase: DefaultUpdateSetUseCase(
