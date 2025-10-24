@@ -169,7 +169,10 @@ struct WorkoutDetailView: View {
                                 name: name,
                                 defaultRestTime: restTime
                             )
-                            // Update local workout from store (already updated by WorkoutStore)
+                            // Force reload from database to update UI
+                            print("🔄 WorkoutDetailView: Forcing refresh after update")
+                            await workoutStore.refresh()
+                            // Update local workout from refreshed store
                             if let updatedWorkout = workoutStore.workouts.first(where: {
                                 $0.id == workoutId
                             }) {
