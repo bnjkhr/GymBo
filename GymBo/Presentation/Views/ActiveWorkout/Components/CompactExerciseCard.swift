@@ -126,12 +126,6 @@ struct CompactExerciseCard: View {
     /// Exercise header with name and equipment
     private var exerciseHeader: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Indicator circle
-            Circle()
-                .fill(.orange)
-                .frame(width: Layout.indicatorSize, height: Layout.indicatorSize)
-                .padding(.top, 6)
-
             // Name and equipment
             VStack(alignment: .leading, spacing: 2) {
                 Text(exerciseName)
@@ -145,20 +139,6 @@ struct CompactExerciseCard: View {
             }
 
             Spacer()
-
-            // 3-dot menu
-            Menu {
-                Button {
-                    // TODO: Add exercise options
-                } label: {
-                    Label("Übung bearbeiten", systemImage: "pencil")
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.title3)
-                    .foregroundStyle(.primary)
-                    .padding(.top, 2)
-            }
         }
     }
 

@@ -322,7 +322,7 @@ struct ActiveWorkoutSheetView: View {
             ))
     }
 
-    /// Eye toggle button for show/hide completed exercises
+    /// Toggle button for show/hide completed exercises
     private var eyeToggleButton: some View {
         Button {
             showAllExercises.toggle()
@@ -330,7 +330,7 @@ struct ActiveWorkoutSheetView: View {
         } label: {
             Image(
                 systemName: showAllExercises
-                    ? "eye" : "eye.slash"
+                    ? "checkmark.circle.fill" : "checkmark.circle"
             )
             .font(.callout)
             .foregroundStyle(.secondary)
