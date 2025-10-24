@@ -203,7 +203,7 @@ struct ActiveWorkoutSheetView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                .background(Color.gray.opacity(0.1))
+                .background(Color.black)
                 .clipShape(
                     UnevenRoundedRectangle(
                         topLeadingRadius: 39,
