@@ -203,7 +203,86 @@ struct HomeViewPlaceholder: View {
         let favoriteWorkouts = workouts.filter { $0.isFavorite }
         let regularWorkouts = workouts.filter { !$0.isFavorite }
 
-        return VStack(spacing: 0) {
+        return ScrollView {
+            VStack(spacing: 0) {
+                if store.isLoading {
+                    ProgressView()
+                        .padding(.top, 40)
+                } else if workouts.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "dumbbell")
+                            .font(.system(size: 60))
+                            .foregroundColor(.secondary)
+
+                        Text("Keine Workouts")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+
+                        Text("Erstelle dein erstes Workout")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 40)
+                } else {
+                    // Workouts Section
+                    VStack(spacing: 0) {
+                        // Section Header
+                        HStack {
+                            Text("Workouts")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
+
+                        // Create New Workout Button (below header, left aligned)
+                        createWorkoutButton
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 16)
+
+                        LazyVStack(spacing: 12) {
+
+                            // Favorites section
+                            if !favoriteWorkouts.isEmpty {
+                                sectionHeader(title: "Favoriten")
+                                    .padding(.top, 8)
+
+                                ForEach(favoriteWorkouts) { workout in
+                                    WorkoutCard(workout: workout, store: store) {
+                                        navigateToWorkout(workout, store: store)
+                                    } onStart: {
+                                        startWorkout(workout)
+                                    }
+                                }
+                            }
+
+                            // Regular workouts
+                            if !regularWorkouts.isEmpty {
+                                sectionHeader(title: "Alle Workouts")
+                                    .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
+
+                                ForEach(regularWorkouts) { workout in
+                                    WorkoutCard(workout: workout, store: store) {
+                                        navigateToWorkout(workout, store: store)
+                                    } onStart: {
+                                        startWorkout(workout)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+                    }
+                }
+            }
+        }
+        .refreshable {
+            await store.refresh()
+            workouts = store.workouts  // Update local state on pull-to-refresh
+            updateWorkoutsHash()
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
             // Fixed Header (stays visible while scrolling)
             VStack(spacing: 0) {
                 // Greeting Header
@@ -219,88 +298,6 @@ struct HomeViewPlaceholder: View {
                     .padding(.bottom, 12)
             }
             .background(Color(.systemBackground))
-
-            // Scrollable Content
-            ScrollView {
-                VStack(spacing: 0) {
-                    if store.isLoading {
-                        ProgressView()
-                            .padding(.top, 40)
-                    } else if workouts.isEmpty {
-                        VStack(spacing: 16) {
-                            Image(systemName: "dumbbell")
-                                .font(.system(size: 60))
-                                .foregroundColor(.secondary)
-
-                            Text("Keine Workouts")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-
-                            Text("Erstelle dein erstes Workout")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.top, 40)
-                    } else {
-                        // Workouts Section
-                        VStack(spacing: 0) {
-                            // Section Header
-                            HStack {
-                                Text("Workouts")
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                Spacer()
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 8)
-
-                            // Create New Workout Button (below header, left aligned)
-                            createWorkoutButton
-                                .padding(.horizontal, 16)
-                                .padding(.bottom, 16)
-
-                            LazyVStack(spacing: 12) {
-
-                                // Favorites section
-                                if !favoriteWorkouts.isEmpty {
-                                    sectionHeader(title: "Favoriten")
-                                        .padding(.top, 8)
-
-                                    ForEach(favoriteWorkouts) { workout in
-                                        WorkoutCard(workout: workout, store: store) {
-                                            navigateToWorkout(workout, store: store)
-                                        } onStart: {
-                                            startWorkout(workout)
-                                        }
-                                    }
-                                }
-
-                                // Regular workouts
-                                if !regularWorkouts.isEmpty {
-                                    sectionHeader(title: "Alle Workouts")
-                                        .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
-
-                                    ForEach(regularWorkouts) { workout in
-                                        WorkoutCard(workout: workout, store: store) {
-                                            navigateToWorkout(workout, store: store)
-                                        } onStart: {
-                                            startWorkout(workout)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 12)
-                        }
-                    }
-                }
-            }
-            .refreshable {
-                await store.refresh()
-                workouts = store.workouts  // Update local state on pull-to-refresh
-                updateWorkoutsHash()
-            }
-            .tabBarMinimizeBehavior(.onScrollDown)
         }
         .id(workoutsHash)  // Force view to recreate when workouts change (using cached hash)
     }
