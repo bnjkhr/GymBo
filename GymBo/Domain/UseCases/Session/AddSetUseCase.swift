@@ -109,7 +109,10 @@ final class DefaultAddSetUseCase: AddSetUseCase {
         // 7. Add set to exercise
         session.exercises[exerciseIndex].sets.append(newSet)
 
-        // 8. Persist changes to session
+        // 8. Reset isFinished flag (user is adding more sets, so exercise is not finished)
+        session.exercises[exerciseIndex].isFinished = false
+
+        // 9. Persist changes to session
         try await repository.update(session)
 
         // 9. Update exercise history (lastUsedWeight, lastUsedReps)
