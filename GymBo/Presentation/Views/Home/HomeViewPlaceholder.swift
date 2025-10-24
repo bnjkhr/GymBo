@@ -24,6 +24,7 @@ struct HomeViewPlaceholder: View {
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
     @State private var navigateToNewWorkout: Workout?
+    @State private var hasLoadedInitialData = false
 
     var body: some View {
         NavigationStack {
@@ -119,7 +120,11 @@ struct HomeViewPlaceholder: View {
                 showWorkoutSummary = (newValue != nil)
             }
             .task {
-                await loadData()
+                // Only load on first appear, not on every navigation event
+                if !hasLoadedInitialData {
+                    await loadData()
+                    hasLoadedInitialData = true
+                }
             }
         }
     }
