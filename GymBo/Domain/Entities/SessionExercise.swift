@@ -42,7 +42,18 @@ struct DomainSessionExercise: Identifiable, Equatable {
 
     /// Optional user notes for this exercise during the session
     /// Example: "Felt heavy today", "Form was good"
-    var notes: String?
+    /// Maximum length: 200 characters
+    var notes: String? {
+        didSet {
+            // Enforce max length
+            if let notes = notes, notes.count > Self.maxNotesLength {
+                self.notes = String(notes.prefix(Self.maxNotesLength))
+            }
+        }
+    }
+
+    /// Maximum allowed length for notes
+    static let maxNotesLength = 200
 
     /// Optional rest time in seconds before the next exercise
     /// Used for timer between exercises

@@ -123,11 +123,11 @@ struct CompactExerciseCard: View {
 
     // MARK: - Subviews
 
-    /// Exercise header with name and equipment
+    /// Exercise header with name, equipment, and notes
     private var exerciseHeader: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Name and equipment
-            VStack(alignment: .leading, spacing: 2) {
+            // Name, equipment, and notes
+            VStack(alignment: .leading, spacing: 4) {
                 Text(exerciseName)
                     .font(.system(size: Typography.nameFontSize, weight: .semibold))
 
@@ -135,6 +135,15 @@ struct CompactExerciseCard: View {
                     Text(equipment)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                // Notes (if present)
+                if let notes = exercise.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .padding(.top, 2)
                 }
             }
 
