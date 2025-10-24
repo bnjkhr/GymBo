@@ -115,6 +115,7 @@ struct HomeViewPlaceholder: View {
             .sheet(isPresented: $showActiveWorkout) {
                 if sessionStore.hasActiveSession {
                     ActiveWorkoutSheetView()
+                        .environment(workoutStore)
                 }
             }
             .sheet(isPresented: $showWorkoutSummary) {
