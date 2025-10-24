@@ -300,6 +300,7 @@ struct HomeViewPlaceholder: View {
                 workouts = store.workouts  // Update local state on pull-to-refresh
                 updateWorkoutsHash()
             }
+            .tabBarMinimizeBehavior(.onScrollDown)
         }
         .id(workoutsHash)  // Force view to recreate when workouts change (using cached hash)
     }
