@@ -50,10 +50,10 @@ struct HomeViewPlaceholder: View {
                         .zIndex(1000)
                 }
             }
-            .navigationTitle {
-                HStack(spacing: 8) {
-                    Text("Workouts")
-
+            .navigationTitle("Workouts")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
                     Button {
                         showCreateWorkout = true
                     } label: {
