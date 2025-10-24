@@ -36,6 +36,273 @@
 
 ---
 
+## ✅ Session 2025-10-24 (Session 12) - Add Exercise to Active Workout
+
+### Add Exercise to Active Session Feature
+**Status:** ✅ Komplett implementiert, getestet, alle Bugs gefixt
+
+**Feature:**
+- Plus-Button in ActiveWorkoutSheetView
+- Öffnet AddExerciseToSessionSheet mit Exercise Picker
+- Single-Select Picker mit Search/Filter
+- Toggle: "Dauerhaft in Workout speichern"
+- Zwei Modi:
+  - **Session-Only:** Übung nur für aktuelle Session hinzufügen
+  - **Permanent:** Übung zu Session UND Workout-Template hinzufügen
+
+**1. Domain Layer - AddExerciseToSessionUseCase:**
+- Business Logic für Hinzufügen von Übungen zu aktiven Sessions
+- Progressive Overload Integration (lastUsed values)
+- Validierung: Session & Exercise müssen existieren
+- Automatische orderIndex-Berechnung (maxOrderIndex + 1)
+- Default Sets mit Smart Defaults (lastUsed oder Fallback-Werte)
+
+**Implementation Details:**
+```swift
+func execute(sessionId: UUID, exerciseId: UUID) async throws -> DomainWorkoutSession {
+    // 1. Fetch active session
+    guard var session = try await sessionRepository.fetchActiveSession() else {
+        throw AddExerciseToSessionError.sessionNotFound(sessionId)
+    }
+    
+    // 2. Fetch exercise from catalog
+    guard let catalogExercise = try? await exerciseRepository.fetch(id: exerciseId) else {
+        throw AddExerciseToSessionError.exerciseNotFound(exerciseId)
+    }
+    
+    // 3. Determine next orderIndex
+    let maxOrderIndex = session.exercises.map { $0.orderIndex }.max() ?? -1
+    let newOrderIndex = maxOrderIndex + 1
+    
+    // 4. Create default sets with Progressive Overload
+    let defaultSets = createDefaultSets(from: catalogExercise)
+    
+    // 5. Create new session exercise
+    let newSessionExercise = DomainSessionExercise(
+        exerciseId: exerciseId,
+        sets: defaultSets,
+        notes: nil,
+        restTimeToNext: catalogExercise.lastUsedRestTime ?? 90.0,
+        orderIndex: newOrderIndex,
+        isFinished: false
+    )
+    
+    // 6. Add to session and persist
+    session.exercises.append(newSessionExercise)
+    try await sessionRepository.update(session)
+    
+    return session
+}
+
+private func createDefaultSets(from exercise: DomainExercise) -> [DomainSessionSet] {
+    let targetSetCount = exercise.lastUsedSetCount ?? 3
+    return (0..<targetSetCount).map { index in
+        DomainSessionSet(
+            setNumber: index + 1,
+            type: .normal,
+            targetReps: exercise.lastUsedReps ?? 8,
+            targetWeight: exercise.lastUsedWeight,
+            actualReps: nil,
+            actualWeight: nil,
+            isCompleted: false
+        )
+    }
+}
+```
+
+**2. Presentation Layer - AddExerciseToSessionSheet:**
+- Navigation Stack mit Exercise List
+- Search & Filter (Muscle Groups, Equipment)
+- Single-Select Pattern (Button statt Checkbox)
+- Caching für Performance (wie ExercisesView)
+- Bottom Toggle Section mit Erklärung
+- Auto-Dismiss nach Auswahl
+
+**UI Features:**
+```swift
+struct AddExerciseToSessionSheet: View {
+    let onAddExercise: (ExerciseEntity, Bool) -> Void
+    
+    @State private var savePermanently = false
+    @State private var cachedFilteredExercises: [ExerciseEntity] = []
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Exercise List
+                List {
+                    ForEach(cachedFilteredExercises) { exercise in
+                        ExerciseRowButton(exercise: exercise) {
+                            selectExercise(exercise)
+                        }
+                    }
+                }
+                .searchable(text: $searchText)
+                
+                // Bottom Toggle Section
+                permanentSaveToggle
+            }
+        }
+    }
+    
+    private var permanentSaveToggle: some View {
+        Toggle(isOn: $savePermanently) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Dauerhaft in Workout speichern")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Text("Übung wird dem Workout-Template hinzugefügt")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .tint(.orange)
+        .padding()
+    }
+}
+```
+
+**3. SessionStore Enhancement:**
+- `addExerciseToSession(exerciseId:savePermanently:)` Methode
+- Private Helper: `addExerciseToWorkoutTemplate()`
+- Immediate UI Update (set currentSession = nil then reload)
+- Success Message mit Haptic Feedback
+
+**Implementation:**
+```swift
+func addExerciseToSession(exerciseId: UUID, savePermanently: Bool) async {
+    guard let sessionId = currentSession?.id,
+          let workoutId = currentSession?.workoutId else {
+        return
+    }
+
+    do {
+        // 1. Add to session
+        let updatedSession = try await addExerciseToSessionUseCase.execute(
+            sessionId: sessionId,
+            exerciseId: exerciseId
+        )
+
+        // 2. Update UI immediately
+        currentSession = nil
+        currentSession = updatedSession
+
+        // 3. If permanent save requested, add to workout template
+        if savePermanently {
+            try await addExerciseToWorkoutTemplate(
+                workoutId: workoutId,
+                exerciseId: exerciseId
+            )
+        }
+
+        showSuccessMessage("Übung hinzugefügt")
+    } catch {
+        self.error = error
+    }
+}
+
+private func addExerciseToWorkoutTemplate(workoutId: UUID, exerciseId: UUID) async throws {
+    guard let exercise = try? await exerciseRepository.fetch(id: exerciseId),
+          let workout = try? await workoutRepository.fetch(id: workoutId) else {
+        throw NSError(...)
+    }
+    
+    let maxOrderIndex = workout.exercises.map { $0.orderIndex }.max() ?? -1
+    
+    let newWorkoutExercise = WorkoutExercise(
+        exerciseId: exerciseId,
+        targetSets: exercise.lastUsedSetCount ?? 3,
+        targetReps: exercise.lastUsedReps ?? 8,
+        targetWeight: exercise.lastUsedWeight,
+        restTime: exercise.lastUsedRestTime ?? 90.0,
+        orderIndex: maxOrderIndex + 1,
+        notes: nil
+    )
+    
+    var updatedWorkout = workout
+    updatedWorkout.exercises.append(newWorkoutExercise)
+    try await workoutRepository.update(updatedWorkout)
+}
+```
+
+**4. WorkoutDetailView Refresh Fix:**
+- **Problem:** Nach permanentem Hinzufügen war Workout-Übersicht nicht aktualisiert
+- **Lösung:** Refresh Trigger Pattern
+
+**WorkoutStore Enhancement:**
+```swift
+@Observable
+final class WorkoutStore {
+    var workouts: [Workout] = []
+    var refreshTrigger: Int = 0
+    
+    func triggerRefresh() {
+        refreshTrigger += 1
+        Task {
+            await loadWorkouts()
+        }
+    }
+}
+```
+
+**WorkoutDetailView Update:**
+```swift
+.task(id: workoutStore.refreshTrigger) {
+    // Reload when refreshTrigger changes
+    await loadData()
+}
+```
+
+**ActiveWorkoutSheetView Trigger:**
+```swift
+.sheet(isPresented: $showAddExerciseSheet) {
+    AddExerciseToSessionSheet { exercise, savePermanently in
+        Task {
+            await sessionStore.addExerciseToSession(
+                exerciseId: exercise.id,
+                savePermanently: savePermanently
+            )
+            await loadExerciseNames()
+            
+            if savePermanently {
+                workoutStore.triggerRefresh()
+            }
+        }
+    }
+}
+```
+
+**Neue Dateien:**
+- `/Domain/UseCases/Session/AddExerciseToSessionUseCase.swift`
+- `/Presentation/Views/ActiveWorkout/Sheets/AddExerciseToSessionSheet.swift`
+
+**Modified Files:**
+- `SessionStore.swift` - addExerciseToSession(), addExerciseToWorkoutTemplate()
+- `WorkoutStore.swift` - refreshTrigger property & triggerRefresh()
+- `ActiveWorkoutSheetView.swift` - Plus button, sheet, WorkoutStore environment
+- `WorkoutDetailView.swift` - task(id: refreshTrigger)
+- `HomeViewPlaceholder.swift` - WorkoutStore environment für ActiveWorkoutSheetView
+- `DependencyContainer.swift` - AddExerciseToSessionUseCase factory
+
+**Bug Fixes (während Session):**
+1. **Parameter Name Mismatch:** `catalogExerciseId` → `exerciseId`
+2. **Preview Missing Dependency:** Added addExerciseToSessionUseCase to SessionStore.preview
+3. **Property Name Errors:** `muscleGroups` → `muscleGroupsRaw`, `equipment` → `equipmentTypeRaw`
+4. **Environment Missing:** Added `.environment(workoutStore)` zu ActiveWorkoutSheetView
+
+**Build Status:** ✅ BUILD SUCCEEDED
+**Testing:** ✅ Beide Modi funktionieren perfekt
+**UI Updates:** ✅ Sofortige Aktualisierung in allen Views
+
+**Commits:**
+- `866601a` - feat: Implement Add Exercise to Active Session
+- `2bb717d` - fix: Add missing dependency to SessionStore preview
+- `4ca604d` - fix: Update property names to match ExerciseEntity
+- `5c2e8dc` - fix: Add WorkoutStore environment to ActiveWorkoutSheetView
+- `11a6102` - feat: Implement WorkoutDetailView refresh trigger
+
+---
+
 ## ✅ Session 2025-10-24 (Session 11) - TextField Performance & UI Update Fixes
 
 ### Critical Performance Fixes
@@ -421,13 +688,16 @@
 
 ---
 
-**Zuletzt bearbeitet:** 2025-10-24 (Session 11 - TextField Performance & UI Update Fixes)
-**Session-Dauer:** ~2 Stunden
-**Features:** Critical Performance Fixes für alle TextFields
-**Bug Fixes:** 
-- TextField Performance (Gesture gate timeout, Invalid frame dimension)
-- Keyboard verdeckt TextField nicht mehr
-- UI aktualisiert sofort nach Speichern (keine App-Neustarts)
-**Modified Views:** 5 Views mit Performance-Verbesserungen
+**Zuletzt bearbeitet:** 2025-10-24 (Session 12 - Add Exercise to Active Workout)
+**Session-Dauer:** ~3 Stunden
+**Features:** 
+- Add Exercise to Active Session (Domain + Presentation Layer)
+- Session-Only vs. Permanent Save Modi
+- WorkoutDetailView Refresh Trigger Pattern
+**New Use Cases:** AddExerciseToSessionUseCase mit Progressive Overload
+**New Views:** AddExerciseToSessionSheet (Single-Select Picker + Toggle)
+**Bug Fixes:** 4 Compiler-Fehler behoben (Parameter names, Environment, Property names)
+**Store Enhancements:** SessionStore (addExerciseToSession), WorkoutStore (refreshTrigger)
 **Dokumentation:** CURRENT_STATE.md, SESSION_MEMORY.md aktualisiert
-**Performance:** Butterweiche TextField-Performance in allen Input-Views
+**Build Status:** ✅ BUILD SUCCEEDED
+**Testing:** ✅ Beide Modi funktionieren perfekt, UI updates sofort

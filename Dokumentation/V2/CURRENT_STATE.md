@@ -7,7 +7,26 @@
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-24 - Session 11 - TEXTFIELD PERFORMANCE FIXES):**
+**Letzte Session (2025-10-24 - Session 12 - ADD EXERCISE TO ACTIVE WORKOUT):**
+- ✅ Add Exercise to Active Session Feature
+  - Plus-Button in ActiveWorkoutSheetView Toolbar
+  - AddExerciseToSessionSheet mit Single-Select Picker
+  - Toggle: "Dauerhaft in Workout speichern" (Session-only vs. Permanent)
+  - AddExerciseToSessionUseCase mit Progressive Overload (lastUsed Values)
+  - Exercises mit Default Sets (3 sets basierend auf letzten Werten)
+  - Automatic orderIndex assignment
+  - Integration mit WorkoutRepository für permanent save
+- ✅ WorkoutDetailView Refresh Fix
+  - refreshTrigger in WorkoutStore für automatische UI-Updates
+  - WorkoutDetailView lädt sofort neu nach Exercise-Änderungen
+  - Keine manuellen Refreshes mehr nötig
+  - .task(id: refreshTrigger) Pattern für reaktive Updates
+- ✅ Bug Fixes
+  - Missing parameter in AddExerciseToSessionUseCase (exerciseId)
+  - Missing WorkoutStore in ActiveWorkoutSheetView environment
+  - Property names in AddExerciseToSessionSheet (muscleGroupsRaw, equipmentTypeRaw)
+
+**Session 11 (2025-10-24 - TEXTFIELD PERFORMANCE FIXES):**
 - ✅ Critical Performance Fixes
   - TextField Performance: .scrollDismissesKeyboard(.interactively) in allen Views
   - Keyboard Coverage Fix: .padding(.bottom, 100) + Toolbar "Fertig" Button
