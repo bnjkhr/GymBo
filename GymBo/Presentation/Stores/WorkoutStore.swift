@@ -216,20 +216,27 @@ final class WorkoutStore {
                 defaultRestTime: defaultRestTime
             )
 
-            // Update in local array
+            // Update in local array - create completely new array to force @Observable detection
             if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
                 print(
                     "📝 WorkoutStore: Found workout at index \(index), old name: '\(workouts[index].name)', new name: '\(updatedWorkout.name)'"
                 )
-                workouts[index] = updatedWorkout
-                print(
-                    "📝 WorkoutStore: Updated array, workouts[\(index)].name = '\(workouts[index].name)'"
-                )
 
-                // Force SwiftUI to detect the change by creating a new array
-                let temp = workouts
-                workouts = temp
-                print("📝 WorkoutStore: Forced array refresh, workouts.count = \(workouts.count)")
+                // Create brand new array (not just copy reference)
+                var newWorkouts: [Workout] = []
+                for (i, workout) in workouts.enumerated() {
+                    if i == index {
+                        newWorkouts.append(updatedWorkout)
+                    } else {
+                        newWorkouts.append(workout)
+                    }
+                }
+                workouts = newWorkouts
+
+                print(
+                    "📝 WorkoutStore: Created new array, workouts[\(index)].name = '\(workouts[index].name)'"
+                )
+                print("📝 WorkoutStore: New array identity, workouts.count = \(workouts.count)")
             } else {
                 print("⚠️ WorkoutStore: Workout not found in local array!")
             }
