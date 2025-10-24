@@ -30,14 +30,14 @@ struct CompactSetRow: View {
                     showEditSheet = true
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text(formatNumber(set.weight))
                         .font(.system(size: 28, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(set.completed ? .gray : .primary)
 
                     Text("kg")
-                        .font(.system(size: 16))
+                        .font(.system(size: 12))
                         .foregroundStyle(.gray)
                 }
             }
@@ -52,14 +52,14 @@ struct CompactSetRow: View {
                     showEditSheet = true
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text("\(set.reps)")
                         .font(.system(size: 28, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(set.completed ? .gray : .primary)
 
                     Text("reps")
-                        .font(.system(size: 16))
+                        .font(.system(size: 12))
                         .foregroundStyle(.gray)
                 }
             }
@@ -68,14 +68,22 @@ struct CompactSetRow: View {
 
             Spacer()
 
-            // Checkbox
+            // Checkbox (Square with black checkmark)
             Button {
                 onToggle()
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             } label: {
-                Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 32))
-                    .foregroundStyle(set.completed ? .green : .gray.opacity(0.3))
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(set.completed ? Color.black : Color.gray.opacity(0.3), lineWidth: 2)
+                        .frame(width: 32, height: 32)
+
+                    if set.completed {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.black)
+                    }
+                }
             }
             .disabled(set.completed)
         }
@@ -107,7 +115,8 @@ struct CompactSetRow: View {
     private func saveChanges(updateAll: Bool) {
         // Parse and validate values
         guard let weight = Double(editingWeight), weight > 0,
-              let reps = Int(editingReps), reps > 0 else {
+            let reps = Int(editingReps), reps > 0
+        else {
             return
         }
 

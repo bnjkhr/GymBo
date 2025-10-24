@@ -43,6 +43,12 @@ struct ActiveWorkoutSheetView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                // Black background for timer section extending to top edge
+                Color.black
+                    .ignoresSafeArea(edges: .top)
+                    .frame(height: 300)
+                    .frame(maxHeight: .infinity, alignment: .top)
+
                 // Show workout UI if session exists OR if showing summary with completed session
                 if let session = sessionStore.currentSession ?? completedSession {
                     VStack(spacing: 0) {
@@ -54,6 +60,7 @@ struct ActiveWorkoutSheetView: View {
                             currentExercise: currentExerciseNumber(session: session),
                             totalExercises: session.exercises.count
                         )
+                        .ignoresSafeArea(edges: .top)
 
                         // Exercise List (ScrollView)
                         if !session.exercises.isEmpty {
