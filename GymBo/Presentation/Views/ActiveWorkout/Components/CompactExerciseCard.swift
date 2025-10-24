@@ -166,12 +166,10 @@ struct CompactExerciseCard: View {
     private var quickAddField: some View {
         TextField("Neuer Satz oder Notiz", text: $quickAddText)
             .textFieldStyle(.plain)
-            .font(.body)
+            .font(.subheadline)
             .foregroundStyle(.secondary)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(8)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 4)
             .onSubmit {
                 handleQuickAdd()
             }

@@ -43,24 +43,25 @@ struct ActiveWorkoutSheetView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Black background for timer section extending to top edge
-                Color.black
-                    .ignoresSafeArea(edges: .top)
-                    .frame(height: 300)
-                    .frame(maxHeight: .infinity, alignment: .top)
-
                 // Show workout UI if session exists OR if showing summary with completed session
                 if let session = sessionStore.currentSession ?? completedSession {
                     VStack(spacing: 0) {
-                        // Timer Section (ALWAYS visible)
-                        TimerSection(
-                            restTimerManager: restTimerManager,
-                            workoutStartDate: session.startDate,
-                            workoutName: session.workoutName,
-                            currentExercise: currentExerciseNumber(session: session),
-                            totalExercises: session.exercises.count
-                        )
-                        .ignoresSafeArea(edges: .top)
+                        // Timer Section with black background extending to top
+                        ZStack(alignment: .bottom) {
+                            // Black background
+                            Color.black
+                                .ignoresSafeArea(edges: .top)
+
+                            // Timer content (safe area respected for content)
+                            TimerSection(
+                                restTimerManager: restTimerManager,
+                                workoutStartDate: session.startDate,
+                                workoutName: session.workoutName,
+                                currentExercise: currentExerciseNumber(session: session),
+                                totalExercises: session.exercises.count
+                            )
+                        }
+                        .frame(height: 300)
 
                         // Exercise List (ScrollView)
                         if !session.exercises.isEmpty {
@@ -74,7 +75,6 @@ struct ActiveWorkoutSheetView: View {
                         ToolbarItem(placement: .topBarLeading) {
                             HStack(spacing: 16) {
                                 eyeToggleButton
-                                reorderButton
                                 addExerciseButton
                             }
                         }
@@ -335,8 +335,8 @@ struct ActiveWorkoutSheetView: View {
                 systemName: showAllExercises
                     ? "eye" : "eye.slash"
             )
-            .font(.title3)
-            .foregroundStyle(showAllExercises ? .orange : .primary)
+            .font(.callout)
+            .foregroundStyle(.secondary)
         }
     }
 

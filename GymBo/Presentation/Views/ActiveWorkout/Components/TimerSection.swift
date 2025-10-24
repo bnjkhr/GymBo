@@ -153,21 +153,15 @@ struct TimerSection: View {
                     .foregroundStyle(.white)
             }
 
-            // Skip
+            // Skip (forward arrows)
             Button {
                 restTimerManager?.cancelRest()
                 // Post notification for parent view
                 NotificationCenter.default.post(name: .skipRestTimer, object: nil)
             } label: {
-                Text("Skip")
-                    .font(.headline)
+                Image(systemName: "forward.fill")
+                    .font(.title2)
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 8)
-                    .background(
-                        Capsule()
-                            .strokeBorder(.white, lineWidth: 1.5)
-                    )
             }
 
             // +15 seconds
