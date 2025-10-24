@@ -143,7 +143,7 @@ struct CreateWorkoutView: View {
 
             // Success - dismiss and show success message
             dismiss()
-            workoutStore.showSuccessMessage("Workout '\(workout.name)' erstellt")
+            workoutStore.showSuccess("Workout '\(workout.name)' erstellt")
 
         } catch {
             // Error is handled by WorkoutStore
