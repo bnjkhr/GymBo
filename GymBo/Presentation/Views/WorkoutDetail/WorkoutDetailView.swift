@@ -26,6 +26,7 @@ struct WorkoutDetailView: View {
 
     let workoutId: UUID
     let onStartWorkout: () -> Void
+    let openExercisePickerOnAppear: Bool
 
     @Environment(SessionStore.self) private var sessionStore
     @Environment(\.dependencyContainer) private var dependencyContainer
@@ -41,9 +42,13 @@ struct WorkoutDetailView: View {
 
     // MARK: - Initialization
 
-    init(workout: Workout, onStartWorkout: @escaping () -> Void) {
+    init(
+        workout: Workout, onStartWorkout: @escaping () -> Void,
+        openExercisePickerOnAppear: Bool = false
+    ) {
         self.workoutId = workout.id
         self.onStartWorkout = onStartWorkout
+        self.openExercisePickerOnAppear = openExercisePickerOnAppear
         self._workout = State(initialValue: workout)
         self._isFavorite = State(initialValue: workout.isFavorite)
     }
@@ -142,6 +147,14 @@ struct WorkoutDetailView: View {
         )
         .task {
             await loadData()
+        }
+        .onAppear {
+            // Open ExercisePicker automatically if requested
+            if openExercisePickerOnAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showExercisePicker = true
+                }
+            }
         }
     }
 

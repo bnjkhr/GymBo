@@ -28,6 +28,10 @@ struct CreateWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(WorkoutStore.self) private var workoutStore
 
+    // MARK: - Callback
+
+    let onWorkoutCreated: (Workout) -> Void
+
     // MARK: - State
 
     @State private var workoutName = ""
@@ -141,9 +145,10 @@ struct CreateWorkoutView: View {
                 defaultRestTime: TimeInterval(defaultRestTime)
             )
 
-            // Success - dismiss and show success message
+            // Success - call callback with created workout
             dismiss()
             workoutStore.showSuccess("Workout '\(workout.name)' erstellt")
+            onWorkoutCreated(workout)
 
         } catch {
             // Error is handled by WorkoutStore
@@ -155,12 +160,12 @@ struct CreateWorkoutView: View {
 // MARK: - Preview
 
 #Preview("Create Workout") {
-    CreateWorkoutView()
+    CreateWorkoutView(onWorkoutCreated: { _ in })
         .environment(WorkoutStore.preview)
 }
 
 #Preview("Create Workout - Dark") {
-    CreateWorkoutView()
+    CreateWorkoutView(onWorkoutCreated: { _ in })
         .environment(WorkoutStore.preview)
         .preferredColorScheme(.dark)
 }

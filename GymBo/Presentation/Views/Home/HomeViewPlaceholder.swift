@@ -23,44 +23,69 @@ struct HomeViewPlaceholder: View {
     @State private var showActiveWorkout = false
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
+    @State private var navigateToNewWorkout: Workout?
 
     var body: some View {
         NavigationStack {
-            Group {
-                if sessionStore.hasActiveSession {
-                    // Show continue session button
-                    continueSessionView
-                } else if let store = workoutStore {
-                    // Show workout list
-                    workoutListView(store: store)
-                } else {
-                    // Loading state
-                    ProgressView("Loading...")
+            ZStack(alignment: .top) {
+                Group {
+                    if sessionStore.hasActiveSession {
+                        // Show continue session button
+                        continueSessionView
+                    } else if let store = workoutStore {
+                        // Show workout list
+                        workoutListView(store: store)
+                    } else {
+                        // Loading state
+                        ProgressView("Loading...")
+                    }
+                }
+
+                // Success Pill Overlay
+                if let store = workoutStore, store.showSuccessPill,
+                    let message = store.successMessage
+                {
+                    SuccessPill(message: message)
+                        .padding(.top, 8)
+                        .zIndex(1000)
                 }
             }
-            .navigationTitle("Workouts")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+            .navigationTitle {
+                HStack(spacing: 8) {
+                    Text("Workouts")
+
                     Button {
                         showCreateWorkout = true
                     } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(.orange)
+                        Image(systemName: "plus.circle")
+                            .font(.title2)
+                            .foregroundStyle(.primary)
                     }
                     .accessibilityLabel("Neues Workout erstellen")
                 }
             }
             .sheet(isPresented: $showCreateWorkout) {
                 if let store = workoutStore {
-                    CreateWorkoutView()
-                        .environment(store)
-                        .onDisappear {
-                            // Refresh workout list after creating
-                            Task {
-                                await store.loadWorkouts()
+                    CreateWorkoutView { createdWorkout in
+                        // Navigate to the created workout's detail view
+                        navigateToNewWorkout = createdWorkout
+                    }
+                    .environment(store)
+                }
+            }
+            .navigationDestination(item: $navigateToNewWorkout) { workout in
+                WorkoutDetailView(
+                    workout: workout,
+                    onStartWorkout: {
+                        Task {
+                            if let store = workoutStore {
+                                await sessionStore.startSession(workoutId: workout.id)
+                                showActiveWorkout = true
                             }
                         }
-                }
+                    },
+                    openExercisePickerOnAppear: true
+                )
             }
             .sheet(isPresented: $showActiveWorkout) {
                 if sessionStore.hasActiveSession {
