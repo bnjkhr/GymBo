@@ -199,77 +199,106 @@ struct HomeViewPlaceholder: View {
         let favoriteWorkouts = workouts.filter { $0.isFavorite }
         let regularWorkouts = workouts.filter { !$0.isFavorite }
 
-        return ScrollView {
+        return VStack(spacing: 0) {
+            // Fixed Header (outside ScrollView, like ExercisesView)
+            GreetingHeaderView(
+                showProfile: $showProfile,
+                showLockerInput: $showLockerInput
+            )
+
+            // Workout Calendar Strip (outside ScrollView, like ExercisesView)
+            WorkoutCalendarStripView()
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 12)
+
+            // Scrollable Content (like exerciseList in ExercisesView)
+            if store.isLoading {
+                ProgressView("Lade Workouts...")
+                    .frame(maxHeight: .infinity)
+            } else if workouts.isEmpty {
+                emptyWorkoutState
+            } else {
+                workoutScrollView(
+                    store: store, favoriteWorkouts: favoriteWorkouts,
+                    regularWorkouts: regularWorkouts)
+            }
+        }
+        .id(workoutsHash)
+    }
+
+    private var emptyWorkoutState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "dumbbell")
+                .font(.system(size: 60))
+                .foregroundColor(.secondary)
+
+            Text("Keine Workouts")
+                .font(.title3)
+                .fontWeight(.semibold)
+
+            Text("Erstelle dein erstes Workout")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxHeight: .infinity)
+        .padding()
+    }
+
+    private func workoutScrollView(
+        store: WorkoutStore, favoriteWorkouts: [Workout], regularWorkouts: [Workout]
+    ) -> some View {
+        ScrollView {
             VStack(spacing: 0) {
-                if store.isLoading {
-                    ProgressView()
-                        .padding(.top, 40)
-                } else if workouts.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "dumbbell")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-
-                        Text("Keine Workouts")
+                // Workouts Section
+                VStack(spacing: 0) {
+                    // Section Header
+                    HStack {
+                        Text("Workouts")
                             .font(.title3)
-                            .fontWeight(.semibold)
-
-                        Text("Erstelle dein erstes Workout")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .fontWeight(.bold)
+                        Spacer()
                     }
-                    .padding(.top, 40)
-                } else {
-                    // Workouts Section
-                    VStack(spacing: 0) {
-                        // Section Header
-                        HStack {
-                            Text("Workouts")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                            Spacer()
-                        }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+
+                    // Create New Workout Button (below header, left aligned)
+                    createWorkoutButton
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 16)
 
-                        // Create New Workout Button (below header, left aligned)
-                        createWorkoutButton
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
+                    LazyVStack(spacing: 12) {
 
-                        LazyVStack(spacing: 12) {
+                        // Favorites section
+                        if !favoriteWorkouts.isEmpty {
+                            sectionHeader(title: "Favoriten")
+                                .padding(.top, 8)
 
-                            // Favorites section
-                            if !favoriteWorkouts.isEmpty {
-                                sectionHeader(title: "Favoriten")
-                                    .padding(.top, 8)
-
-                                ForEach(favoriteWorkouts) { workout in
-                                    WorkoutCard(workout: workout, store: store) {
-                                        navigateToWorkout(workout, store: store)
-                                    } onStart: {
-                                        startWorkout(workout)
-                                    }
-                                }
-                            }
-
-                            // Regular workouts
-                            if !regularWorkouts.isEmpty {
-                                sectionHeader(title: "Alle Workouts")
-                                    .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
-
-                                ForEach(regularWorkouts) { workout in
-                                    WorkoutCard(workout: workout, store: store) {
-                                        navigateToWorkout(workout, store: store)
-                                    } onStart: {
-                                        startWorkout(workout)
-                                    }
+                            ForEach(favoriteWorkouts) { workout in
+                                WorkoutCard(workout: workout, store: store) {
+                                    navigateToWorkout(workout, store: store)
+                                } onStart: {
+                                    startWorkout(workout)
                                 }
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 12)
+
+                        // Regular workouts
+                        if !regularWorkouts.isEmpty {
+                            sectionHeader(title: "Alle Workouts")
+                                .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
+
+                            ForEach(regularWorkouts) { workout in
+                                WorkoutCard(workout: workout, store: store) {
+                                    navigateToWorkout(workout, store: store)
+                                } onStart: {
+                                    startWorkout(workout)
+                                }
+                            }
+                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
                 }
             }
         }
@@ -278,24 +307,6 @@ struct HomeViewPlaceholder: View {
             workouts = store.workouts  // Update local state on pull-to-refresh
             updateWorkoutsHash()
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            // Fixed Header (stays visible while scrolling)
-            VStack(spacing: 0) {
-                // Greeting Header
-                GreetingHeaderView(
-                    showProfile: $showProfile,
-                    showLockerInput: $showLockerInput
-                )
-
-                // Workout Calendar Strip
-                WorkoutCalendarStripView()
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .padding(.bottom, 12)
-            }
-            .background(Color(.systemBackground))
-        }
-        .id(workoutsHash)  // Force view to recreate when workouts change (using cached hash)
     }
 
     private func sectionHeader(title: String) -> some View {

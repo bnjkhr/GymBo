@@ -28,3 +28,16 @@ Benachrichtigungen:
 
 
 ----
+Workout "Ganzkörper Maschine" bearbeiten. Diese Übungen müssen rein:
+Übung,Sätze,Wiederholungen,Pause (Sekunden),Gewicht (kg)
+Beinpresse,3,8-12,90,
+Brustpresse,3,8-12,90,
+Lat-Zug zur Brust,3,8-12,90,
+Schulterpresse,3,8-12,90,
+Beinbeuger,3,8-12,90,
+Rudermaschine,3,8-12,90,
+Beinstrecker,3,8-12,90,
+Trizepsmaschine,3,8-12,90,
+Bauchmaschine,3,12-15,60,
+
+Bei von-bis Angaben immer die niedrigste Zahl nehmen z.B. 8-12 wird zu 8
