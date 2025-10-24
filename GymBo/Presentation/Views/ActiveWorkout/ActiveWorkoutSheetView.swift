@@ -33,6 +33,7 @@ struct ActiveWorkoutSheetView: View {
 
     @State private var showAllExercises = false
     @State private var showReorderSheet = false
+    @State private var showEndWorkoutConfirmation = false
     @State private var exerciseNames: [UUID: String] = [:]
     @State private var exerciseEquipment: [UUID: String] = [:]
 
@@ -380,14 +381,36 @@ struct ActiveWorkoutSheetView: View {
 
     private var endSessionButton: some View {
         Button {
-            Task {
-                await sessionStore.endSession()
-                // Sheet will dismiss automatically when currentSession becomes nil
-            }
+            showEndWorkoutConfirmation = true
         } label: {
             Text("Beenden")
                 .font(.subheadline)
                 .fontWeight(.semibold)
+        }
+        .confirmationDialog(
+            "Workout beenden?",
+            isPresented: $showEndWorkoutConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Workout beenden") {
+                Task {
+                    await sessionStore.endSession()
+                    // Sheet will dismiss automatically when currentSession becomes nil
+                }
+            }
+
+            Button("Workout abbrechen", role: .destructive) {
+                Task {
+                    await sessionStore.cancelSession()
+                    // Sheet will dismiss automatically when currentSession becomes nil
+                }
+            }
+
+            Button("Zurück", role: .cancel) {
+                // Just dismiss the confirmation dialog
+            }
+        } message: {
+            Text("Möchtest du das Workout speichern oder verwerfen?")
         }
     }
 
@@ -436,10 +459,7 @@ struct ActiveWorkoutSheetView: View {
 
             // Finish Workout Button
             Button {
-                Task {
-                    await sessionStore.endSession()
-                    // Sheet will dismiss automatically, HomeView will show summary
-                }
+                showEndWorkoutConfirmation = true
             } label: {
                 Text("Workout beenden")
                     .font(.headline)

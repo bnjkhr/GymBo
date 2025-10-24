@@ -64,6 +64,7 @@ final class SessionStore {
     private let startSessionUseCase: StartSessionUseCase
     private let completeSetUseCase: CompleteSetUseCase
     private let endSessionUseCase: EndSessionUseCase
+    private let cancelSessionUseCase: CancelSessionUseCase
     private let pauseSessionUseCase: PauseSessionUseCase
     private let resumeSessionUseCase: ResumeSessionUseCase
     private let updateSetUseCase: UpdateSetUseCase
@@ -86,6 +87,7 @@ final class SessionStore {
         startSessionUseCase: StartSessionUseCase,
         completeSetUseCase: CompleteSetUseCase,
         endSessionUseCase: EndSessionUseCase,
+        cancelSessionUseCase: CancelSessionUseCase,
         pauseSessionUseCase: PauseSessionUseCase,
         resumeSessionUseCase: ResumeSessionUseCase,
         updateSetUseCase: UpdateSetUseCase,
@@ -101,6 +103,7 @@ final class SessionStore {
         self.startSessionUseCase = startSessionUseCase
         self.completeSetUseCase = completeSetUseCase
         self.endSessionUseCase = endSessionUseCase
+        self.cancelSessionUseCase = cancelSessionUseCase
         self.pauseSessionUseCase = pauseSessionUseCase
         self.resumeSessionUseCase = resumeSessionUseCase
         self.updateSetUseCase = updateSetUseCase
@@ -213,6 +216,35 @@ final class SessionStore {
         } catch {
             self.error = error
             print("❌ Failed to end session: \(error)")
+        }
+    }
+
+    /// Cancel (discard) the current workout session without saving
+    func cancelSession() async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "No active session"
+                ])
+            return
+        }
+
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            try await cancelSessionUseCase.execute(sessionId: sessionId)
+
+            // Clear active session immediately (no completedSession, no summary)
+            currentSession = nil
+
+            showSuccessMessage("Workout abgebrochen")
+            print("🗑️ Session canceled successfully")
+        } catch {
+            self.error = error
+            print("❌ Failed to cancel session: \(error)")
         }
     }
 

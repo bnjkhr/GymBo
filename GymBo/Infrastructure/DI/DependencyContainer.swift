@@ -42,6 +42,7 @@ final class DependencyContainer {
             startSessionUseCase: makeStartSessionUseCase(),
             completeSetUseCase: makeCompleteSetUseCase(),
             endSessionUseCase: makeEndSessionUseCase(),
+            cancelSessionUseCase: makeCancelSessionUseCase(),
             pauseSessionUseCase: makePauseSessionUseCase(),
             resumeSessionUseCase: makeResumeSessionUseCase(),
             updateSetUseCase: makeUpdateSetUseCase(),
@@ -130,6 +131,14 @@ final class DependencyContainer {
     func makeEndSessionUseCase() -> EndSessionUseCase {
         // ✅ Sprint 1.2 COMPLETE
         return DefaultEndSessionUseCase(
+            sessionRepository: makeSessionRepository()
+        )
+    }
+
+    /// Creates CancelSessionUseCase
+    /// - Returns: Use case for canceling (discarding) a workout session
+    func makeCancelSessionUseCase() -> CancelSessionUseCase {
+        return DefaultCancelSessionUseCase(
             sessionRepository: makeSessionRepository()
         )
     }
