@@ -474,7 +474,22 @@ final class SessionStore {
             // Refresh to update UI
             await refreshCurrentSession()
 
-            print("✅ Exercise finished")
+            print("✅ Exercise finished: \(exerciseId)")
+
+            // Check if this was the last exercise
+            guard let session = currentSession else { return }
+
+            let allExercisesFinished = session.exercises.allSatisfy { $0.isFinished }
+
+            if allExercisesFinished {
+                // All exercises finished
+                showSuccessMessage("Workout done! 💪🏼")
+                print("🎉 All exercises finished - showing success message")
+            } else {
+                // More exercises to go
+                showSuccessMessage("Nächste Übung")
+                print("➡️ Exercise finished, more to go - showing next exercise message")
+            }
         } catch {
             self.error = error
             print("❌ Failed to finish exercise: \(error)")
