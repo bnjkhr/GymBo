@@ -1,7 +1,7 @@
 # GymBo V2 - Current State
 
 **Last Updated:** 2025-10-24  
-**Session:** 7
+**Session:** 8
 
 ---
 
@@ -73,6 +73,45 @@ GymBo V2 ist eine iOS Fitness-Tracking-App basierend auf **Clean Architecture** 
   - **Persistierung**: Notizen werden im Workout-Template gespeichert
   - Automatisches Laden beim nächsten Workout-Start
   - Speicherung in beiden Entities (Session + Template)
+
+### **Phase 6: Workout Management (Session 8)** ✅
+- **iOS 18 Upgrade**: Deployment Target auf iOS 18.0 erhöht
+- **Multi-Select ExercisePicker**:
+  - Mehrere Übungen antippen → Checkmark + Orange Highlight
+  - Nochmal antippen → Demarkiert
+  - Haken-Button oben rechts zum Hinzufügen aller markierten
+  - Haptic Feedback bei Selection
+  - Success Pill: "3 Übungen hinzugefügt"
+- **Standardisierte Headers**: Einheitliches Design über alle Main Views (Home, Übungen, Fortschritt)
+  - `.largeTitle` + `.bold` Typografie
+  - Identisches Padding (horizontal, top: 8, bottom: 12)
+  - Custom Header mit HStack statt navigationTitle
+- **Create Workout**:
+  - CreateWorkoutView: Name + Rest Time Picker (30s-3min)
+  - Auto-Navigation zu WorkoutDetailView nach Creation
+  - ExercisePicker öffnet automatisch
+  - Success Pill: "Workout 'NAME' erstellt"
+- **Delete Workout**:
+  - `trash.circle` Button (rot) in WorkoutDetailView
+  - Confirmation Dialog: "Workout löschen?"
+  - Cascade deletion von allen Übungen
+  - Navigation zurück zu HomeView
+  - Success Pill: "Workout gelöscht"
+- **Update Workout**:
+  - `pencil.circle` Button in WorkoutDetailView
+  - EditWorkoutView: Name + Rest Time bearbeiten
+  - Validation (Name nicht leer, Rest Time > 0)
+  - Success Pill: "Workout aktualisiert"
+  - **HomeView Refresh Fix**: Liste updated sofort nach Änderung
+- **SF Symbol Icons**:
+  - `plus.circle` für Hinzufügen (nicht .fill)
+  - `pencil.circle` für Bearbeiten
+  - `trash.circle` für Löschen (rot)
+- **SwiftUI List Bug Fix**:
+  - `.id()` Modifier auf List mit concatenated workout names
+  - Force List recreation bei Name-Änderung
+  - Local `@State` für workouts array in HomeView
+  - `.onAppear` refresh zum Laden aktueller Daten
 
 ---
 
@@ -803,9 +842,237 @@ try await workoutRepository.update(workout)
 
 **Developer:** Ben Kohler  
 **Project:** GymBo V2  
-**iOS Target:** 17.0+  
+**iOS Target:** 18.0+  
 **Architecture:** Clean Architecture + SwiftData
 
 ---
 
-*This document reflects the current state as of Session 7 (2025-10-24)*
+## 🎯 Session 8 Summary
+
+**Main Focus:** iOS 18 Upgrade + Workout Management (Create, Delete, Update)
+
+### **Part 1: iOS 18 Upgrade + Multi-Select ExercisePicker**
+
+**User Request:** "Ändere die Requirements der App auf iOS 18. Dann nutzen wir auch coole Dinge, die es bei 17 noch nicht gab. Im ExercisePicker will ich mehrere Übungen auswählen können und dann durch Haken-Symbol speichern."
+
+**Implementation:**
+
+1. **iOS Deployment Target**: 17.0 → 18.0 (project.pbxproj, 4 occurrences)
+
+2. **Multi-Select ExercisePicker Refactor**:
+   - Changed callback: `onExerciseSelected: (ExerciseEntity)` → `onExercisesSelected: ([ExerciseEntity])`
+   - Added `@State private var selectedExercises: Set<UUID>`
+   - Toggle selection on tap: `if selectedExercises.contains(id) { remove } else { add }`
+   - Haptic feedback: `UIImpactFeedbackGenerator(style: .light)`
+   - Visual feedback: Orange background + white text + checkmark icon when selected
+   - Checkmark button in toolbar: `Image(systemName: "checkmark")`, disabled when empty
+   - Success pill: "1 Übung hinzugefügt" or "3 Übungen hinzugefügt"
+
+3. **WorkoutDetailView Integration**:
+   - `addExercises([ExerciseEntity])` method for batch add
+   - Loop through all selected exercises
+
+### **Part 2: Standardized Headers**
+
+**User Feedback:** "Button für Workout hinzufügen muss exakt neben der Überschrift 'Workouts' stehen. SF-Symbol plus.circle (nicht filled)."
+
+**Implementation:**
+
+1. **HomeView Custom Header**:
+   ```swift
+   VStack(spacing: 0) {
+       HStack(alignment: .center) {
+           Text("Workouts").font(.largeTitle).fontWeight(.bold)
+           Spacer()
+           Button { } label: { Image(systemName: "plus.circle") }
+       }
+       .padding(.horizontal).padding(.top, 8).padding(.bottom, 12)
+   }
+   ```
+
+2. **Applied to all Main Views**: Home, Übungen, Fortschritt - same style, same padding
+
+3. **Why not navigationTitle ViewBuilder?** iOS 18 feature exists but not stable yet, used toolbar workaround first, then custom VStack header
+
+### **Part 3: Create Workout**
+
+**Implementation:**
+
+1. **CreateWorkoutUseCase**: Validate name, validate rest time, create workout, save to repository
+
+2. **CreateWorkoutView**: 
+   - Form with name TextField + rest time Picker
+   - iOS HIG: Auto-focus on name field, validation, loading states
+   - Rest time options: 30s, 60s, 90s, 2min, 3min
+   - Callback: `onWorkoutCreated: (Workout) -> Void`
+
+3. **WorkoutStore Integration**:
+   - `createWorkout(name:defaultRestTime:)` method
+   - Add to local array, set as selected workout
+
+4. **Auto-Navigation Flow**:
+   - Create → Dismiss sheet → Navigate to WorkoutDetailView → Auto-open ExercisePicker
+   - Used `navigationDestination(item: $navigateToNewWorkout)`
+   - Required `Hashable` conformance on `Workout` and `WorkoutExercise`
+
+5. **Bug Fix**: Hashable conformance missing → added to both entities
+
+### **Part 4: Delete & Update Workouts**
+
+**Implementation:**
+
+1. **DeleteWorkoutUseCase**: Validate workout exists, delete from repository
+
+2. **UpdateWorkoutUseCase**: 
+   - Validate name (not empty)
+   - Validate rest time (> 0)
+   - Update `updatedAt` timestamp
+
+3. **EditWorkoutView**: Same design as CreateWorkoutView, pre-filled with current values
+
+4. **UI - WorkoutDetailView Toolbar**:
+   - Initially: 3-dot menu with Edit and Delete options
+   - **User Feedback:** "Buttons MÜSSEN Icons aus SF-Symbols sein. EDIT IMMER pencil.circle"
+   - Final: Direct icon buttons (no menu):
+     - `plus.circle` (orange) - Add Exercise
+     - `star` / `star.fill` (yellow) - Favorite
+     - `pencil.circle` (primary) - Edit
+     - `trash.circle` (red) - Delete
+
+5. **Confirmation Dialog**: "Workout löschen?" with destructive button
+
+### **Part 5: The HomeView Refresh Bug** 🐛
+
+**Problem:** After updating workout name, HomeView showed old name until app restart.
+
+**Debug Journey (10+ commits!):**
+
+1. **Attempt 1**: Force array refresh with `let temp = workouts; workouts = temp`
+   - ❌ Didn't work
+
+2. **Attempt 2**: Create brand new array with for-loop
+   - ❌ Didn't work
+
+3. **Attempt 3**: Explicit `workoutStore.refresh()` after update
+   - ❌ Didn't work
+
+4. **Attempt 4**: Remove `hasLoadedInitialData` flag, reload on every appear
+   - ❌ Didn't work
+
+5. **Attempt 5**: Inject WorkoutStore via `.environment()` to share between views
+   - Changed from `@State` to `@Environment` in WorkoutDetailView
+   - Removed local `makeWorkoutStore()` creation
+   - ❌ Didn't work
+
+6. **Attempt 6**: Local `@State private var workouts: [Workout]` in HomeView
+   - Copy from store on `.onAppear`: `workouts = store.workouts`
+   - ❌ Didn't work
+
+**Root Cause Discovery:**
+
+Console logs showed:
+```
+🔄 HomeView: OLD workouts: ["Test Update 12", ...]
+🔄 HomeView: NEW workouts: ["Test Update 13", ...]
+```
+
+**Data was different, but UI didn't update!** → SwiftUI List Bug
+
+**The Solution (Attempt 7):** ✅
+```swift
+List { ... }
+    .id(workouts.map { $0.name }.joined())
+```
+
+**Why it works:**
+- SwiftUI List uses item IDs for identity
+- When only properties change (not IDs), List doesn't detect changes
+- `.id()` modifier with concatenated names creates new identity when names change
+- List is recreated → UI updates!
+
+**Result:** HomeView now updates immediately after workout edit! 🎉
+
+### **Technical Improvements**
+
+**Use Cases:**
+- `CreateWorkoutUseCase`: Business logic for workout creation
+- `DeleteWorkoutUseCase`: Business logic for workout deletion
+- `UpdateWorkoutUseCase`: Business logic for workout updates
+
+**Dependency Injection:**
+- `makeCreateWorkoutUseCase()`, `makeDeleteWorkoutUseCase()`, `makeUpdateWorkoutUseCase()`
+- Wired into WorkoutStore
+
+**WorkoutStore Methods:**
+- `createWorkout(name:defaultRestTime:)`: Create and add to array
+- `deleteWorkout(workoutId:)`: Delete and remove from array
+- `updateWorkout(workoutId:name:defaultRestTime:)`: Update in place (with new array creation)
+
+**Files Created:**
+- `Domain/UseCases/Workout/CreateWorkoutUseCase.swift`
+- `Domain/UseCases/Workout/DeleteWorkoutUseCase.swift`
+- `Domain/UseCases/Workout/UpdateWorkoutUseCase.swift`
+- `Presentation/Views/WorkoutDetail/CreateWorkoutView.swift`
+- `Presentation/Views/WorkoutDetail/EditWorkoutView.swift`
+
+**Files Modified:**
+- `GymBo.xcodeproj/project.pbxproj` (iOS 18.0 target)
+- `Presentation/Views/WorkoutDetail/ExercisePickerView.swift` (multi-select)
+- `Presentation/Views/WorkoutDetail/WorkoutDetailView.swift` (delete, edit, environment)
+- `Presentation/Views/Home/HomeViewPlaceholder.swift` (custom header, local state, .id() fix)
+- `Presentation/Stores/WorkoutStore.swift` (create, delete, update methods)
+- `Infrastructure/DI/DependencyContainer.swift` (new use cases)
+- `Domain/Entities/Workout.swift` (Hashable)
+- `Domain/Entities/WorkoutExercise.swift` (Hashable)
+
+### **Bug Fixes**
+
+1. **Hashable Conformance**: Added to `Workout` and `WorkoutExercise` for `navigationDestination(item:)`
+2. **Optional Chaining**: Removed `?` from `workoutStore` after changing to `@Environment`
+3. **SF Symbol Icons**: Fixed all buttons to use correct symbols (plus.circle, pencil.circle, trash.circle)
+4. **HomeView Refresh**: Fixed with `.id()` modifier on List to force recreation
+
+### **Git Commits (Session 8):**
+
+**iOS 18 + Multi-Select (8 commits):**
+1. `c123083` - iOS Deployment Target 18.0
+2. `1766af7` - Restore inline button with navigationTitle ViewBuilder
+3. `a3084cb` - iOS 18 upgrade + multi-select ExercisePicker
+4. `7a23d92` - Fix toolbar placement (iOS 17 compatibility)
+5. `5613b2c` - Fix compilation errors
+6. `9237e70` - Custom header for Workouts title + button
+7. `73694d9` - Standardize headers across all main views
+
+**Phase 2: Delete & Update (19 commits!):**
+1. `078214c` - feat: Phase 2 - Delete & Update Workouts
+2. `f50034b` - fix: Use correct SF Symbols + debug logging
+3. `8430737` - fix: Inject WorkoutStore to WorkoutDetailView
+4. `41f5edc` - fix: Remove optional chaining
+5. `0471bb3` - debug: Add logging and force array refresh
+6. `5849b62` - fix: Remove loadData() after update (race condition)
+7. `80658fb` - fix: Only load workouts once on first appear
+8. `a0ac077` - fix: Reload workouts on appear
+9. `8294a13` - fix: Force @Observable detection with new array
+10. `1d35407` - fix: Force explicit refresh after update
+11. `b7085ff` - fix: Use local @State for workouts list
+12. `f027bd3` - debug: Add logging to compare arrays
+13. `a631793` - fix: Force List recreation with .id() ✅
+
+**Total Lines Changed:** ~600+
+
+### **Key Learnings**
+
+1. **iOS 18 Features**: navigationTitle ViewBuilder exists but requires explicit iOS 18 availability
+2. **SF Symbol Consistency**: Always use SF Symbols for buttons, never text or custom icons
+3. **SwiftUI @Observable Bug**: Doesn't reliably trigger view updates for nested properties in NavigationStack
+4. **SwiftUI List Bug**: List doesn't detect changes to item properties when IDs stay the same
+5. **The .id() Solution**: Force view recreation by changing identity when content changes
+6. **Persistence Debugging**: Always check if database fields actually exist in SwiftData schema
+7. **User Feedback**: Direct icon buttons better than hidden menu items
+8. **Debug Logging**: Essential for diagnosing state management issues
+9. **Multiple Attempts**: Sometimes the solution requires trying 7+ different approaches
+10. **Local @State**: More reliable than @Observable Environment for list data in NavigationStack
+
+---
+
+*This document reflects the current state as of Session 8 (2025-10-24)*
