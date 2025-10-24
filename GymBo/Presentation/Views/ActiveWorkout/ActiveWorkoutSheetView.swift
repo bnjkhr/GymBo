@@ -305,8 +305,11 @@ struct ActiveWorkoutSheetView: View {
                 }
             },
             onMarkAllComplete: {
-                Task {
+                print("🔴 onMarkAllComplete callback triggered for exercise: \(exercise.id)")
+                Task { @MainActor in
+                    print("🔴 Task started for finishExercise")
                     await sessionStore.finishExercise(exerciseId: exercise.id)
+                    print("🔴 finishExercise completed")
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                 }
             },
@@ -328,12 +331,9 @@ struct ActiveWorkoutSheetView: View {
             showAllExercises.toggle()
             UISelectionFeedbackGenerator().selectionChanged()
         } label: {
-            Image(
-                systemName: showAllExercises
-                    ? "checkmark.circle.fill" : "checkmark.circle"
-            )
-            .font(.callout)
-            .foregroundStyle(.secondary)
+            Image(systemName: "memories")
+                .font(.callout)
+                .foregroundStyle(.secondary)
         }
     }
 
