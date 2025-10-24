@@ -13,7 +13,7 @@ import Foundation
 /// **Difference from SessionExercise:**
 /// - `WorkoutExercise` = Template (planned exercise with target values)
 /// - `SessionExercise` = Active execution (actual sets with completed status)
-struct WorkoutExercise: Identifiable, Equatable {
+struct WorkoutExercise: Identifiable, Equatable, Hashable {
 
     // MARK: - Properties
 

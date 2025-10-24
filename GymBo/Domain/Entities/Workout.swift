@@ -9,7 +9,7 @@
 import Foundation
 
 /// Domain Entity representing a workout template
-struct Workout: Identifiable, Equatable {
+struct Workout: Identifiable, Equatable, Hashable {
     let id: UUID
     var name: String
     var exercises: [WorkoutExercise]
@@ -18,15 +18,15 @@ struct Workout: Identifiable, Equatable {
     let createdAt: Date
     var updatedAt: Date
     var isFavorite: Bool
-    
+
     var exerciseCount: Int {
         exercises.count
     }
-    
+
     var totalSets: Int {
         exercises.reduce(0) { $0 + $1.targetSets }
     }
-    
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -46,7 +46,7 @@ struct Workout: Identifiable, Equatable {
         self.updatedAt = updatedAt
         self.isFavorite = isFavorite
     }
-    
+
     static func == (lhs: Workout, rhs: Workout) -> Bool {
         lhs.id == rhs.id
     }
