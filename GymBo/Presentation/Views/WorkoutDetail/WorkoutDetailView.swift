@@ -87,6 +87,7 @@ struct WorkoutDetailView: View {
                         Image(systemName: "plus.circle.fill")
                             .foregroundStyle(.orange)
                     }
+                    .accessibilityLabel("Übung hinzufügen")
 
                     // Favorite Button
                     Button {
@@ -97,6 +98,8 @@ struct WorkoutDetailView: View {
                         Image(systemName: isFavorite ? "star.fill" : "star")
                             .foregroundStyle(isFavorite ? .yellow : .primary)
                     }
+                    .accessibilityLabel(
+                        isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")
                 }
             }
         }

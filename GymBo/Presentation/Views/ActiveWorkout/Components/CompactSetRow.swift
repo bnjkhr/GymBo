@@ -40,9 +40,12 @@ struct CompactSetRow: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.gray)
                 }
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
             }
-
             .buttonStyle(.plain)
+            .accessibilityLabel("\(formatNumber(set.weight)) Kilogramm")
+            .accessibilityHint("Zum Bearbeiten antippen")
 
             // Reps (Tappable)
             Button {
@@ -62,9 +65,12 @@ struct CompactSetRow: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.gray)
                 }
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
             }
-
             .buttonStyle(.plain)
+            .accessibilityLabel("\(set.reps) Wiederholungen")
+            .accessibilityHint("Zum Bearbeiten antippen")
 
             Spacer()
 
@@ -95,6 +101,8 @@ struct CompactSetRow: View {
                 .contentShape(Rectangle())  // Expand touch area
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(set.completed ? "Satz abgeschlossen" : "Satz offen")
+            .accessibilityHint("Zum Umschalten antippen")
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 4)

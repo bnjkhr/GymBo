@@ -203,7 +203,7 @@ private struct WorkoutRowContent: View {
 
             Spacer()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)  // iOS HIG: Ensure minimum 44pt touch target height
     }
 }
 

@@ -151,7 +151,10 @@ struct TimerSection: View {
                 Image(systemName: "minus.circle")
                     .font(.title2)
                     .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            .accessibilityLabel("15 Sekunden abziehen")
 
             // Skip (forward arrows)
             Button {
@@ -162,7 +165,10 @@ struct TimerSection: View {
                 Image(systemName: "forward.fill")
                     .font(.title2)
                     .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            .accessibilityLabel("Pause überspringen")
 
             // +15 seconds
             Button {
@@ -171,7 +177,10 @@ struct TimerSection: View {
                 Image(systemName: "plus.circle")
                     .font(.title2)
                     .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            .accessibilityLabel("15 Sekunden hinzufügen")
         }
     }
 

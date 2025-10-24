@@ -174,10 +174,13 @@ struct CompactExerciseCard: View {
                 handleMarkAllComplete()
             } label: {
                 Image(systemName: "checkmark.circle")
-                    .font(.title3)
+                    .font(.title2)
                     .foregroundStyle(Color.gray)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Alle Sätze als fertig markieren")
 
             Spacer()
 
@@ -186,10 +189,13 @@ struct CompactExerciseCard: View {
                 handleAddSet()
             } label: {
                 Image(systemName: "plus.circle")
-                    .font(.title3)
+                    .font(.title2)
                     .foregroundStyle(Color.gray)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Satz hinzufügen")
 
             Spacer()
 
@@ -198,10 +204,13 @@ struct CompactExerciseCard: View {
                 handleReorder()
             } label: {
                 Image(systemName: "arrow.up.arrow.down.circle")
-                    .font(.title3)
+                    .font(.title2)
                     .foregroundStyle(Color.gray)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Sätze neu sortieren")
         }
     }
 

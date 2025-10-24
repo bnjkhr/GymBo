@@ -318,6 +318,8 @@ struct ActiveWorkoutSheetView: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
+        .accessibilityLabel(
+            showAllExercises ? "Verstecke abgeschlossene Übungen" : "Zeige alle Übungen")
     }
 
     /// Reorder button to open reorder sheet
@@ -329,7 +331,10 @@ struct ActiveWorkoutSheetView: View {
             Image(systemName: "arrow.up.arrow.down")
                 .font(.title3)
                 .foregroundStyle(.primary)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
+        .accessibilityLabel("Übungen neu sortieren")
     }
 
     /// Add exercise button
@@ -342,6 +347,7 @@ struct ActiveWorkoutSheetView: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
+        .accessibilityLabel("Übung hinzufügen")
     }
 
     /// Exercise counter (e.g., "1 / 14")
