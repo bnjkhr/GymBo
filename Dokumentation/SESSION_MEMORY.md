@@ -27,12 +27,31 @@
 - ✅ Custom Exercise Management (Create/Delete mit Business Rules)
 - ✅ Workout Detail & Exercise Management (Multi-Select Picker, Reorder)
 - ✅ Active Workout Session (vollständig)
-- ✅ UI/UX (Modern Dark Theme, iOS 26 Design)
+- ✅ UI/UX (Modern Dark Theme, iOS 26 Design, TabBar Auto-Hide)
 - ✅ Architecture (Clean Architecture, 19 Use Cases, 3 Repositories)
 
 **Dokumentation aktualisiert:**
 - README.md → 2.1.0, Production Ready Status
 - TODO.md → Alle erledigten Features markiert, neue Features aus notes.md hinzugefügt
+
+---
+
+## ✅ Session 2025-10-24 (Session 10) - TabBar Auto-Hide
+
+### TabBar Auto-Hide Feature
+**Status:** ✅ Implementiert
+
+**Implementation:**
+- Added `.tabBarMinimizeBehavior(.onScrollDown)` to MainTabView
+- TabBar verschwindet automatisch beim Runterscrollen
+- TabBar erscheint wieder beim Hochscrollen
+- Gibt mehr Platz für Content
+- Modernes iOS-Pattern
+
+**Modified Files:**
+- `Presentation/Views/Main/MainTabView.swift` - Added modifier to TabView
+
+**Build Status:** ✅ Erfolgreich
 
 ---
 

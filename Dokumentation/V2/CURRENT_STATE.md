@@ -7,7 +7,15 @@
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-24 - Session 9 - CUSTOM EXERCISE MANAGEMENT):**
+**Letzte Session (2025-10-24 - Session 10 - TABBAR AUTO-HIDE):**
+- ✅ TabBar Auto-Hide Feature
+  - .tabBarMinimizeBehavior(.onScrollDown) in MainTabView
+  - TabBar verschwindet automatisch beim Runterscrollen
+  - TabBar erscheint wieder beim Hochscrollen
+  - Mehr Platz für Content
+  - Modernes iOS-Pattern
+
+**Session 9 (2025-10-24 - CUSTOM EXERCISE MANAGEMENT):**
 - ✅ Create Custom Exercises Feature (CreateExerciseView)
   - Multi-select muscle groups (FlowLayout chips)
   - Equipment & Difficulty picker

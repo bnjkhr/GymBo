@@ -39,6 +39,7 @@ struct MainTabView: View {
                 }
                 .tag(2)
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 }
 
