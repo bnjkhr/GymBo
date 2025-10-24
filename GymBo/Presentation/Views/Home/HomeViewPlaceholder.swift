@@ -27,44 +27,51 @@ struct HomeViewPlaceholder: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                Group {
-                    if sessionStore.hasActiveSession {
-                        // Show continue session button
-                        continueSessionView
-                    } else if let store = workoutStore {
-                        // Show workout list
-                        workoutListView(store: store)
-                    } else {
-                        // Loading state
-                        ProgressView("Loading...")
+            VStack(spacing: 0) {
+                // Custom Header: Workouts + Button
+                HStack(alignment: .center) {
+                    Text("Workouts")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+
+                    Spacer()
+
+                    Button {
+                        showCreateWorkout = true
+                    } label: {
+                        Image(systemName: "plus.circle")
+                            .font(.title2)
+                            .foregroundStyle(.primary)
                     }
+                    .accessibilityLabel("Neues Workout erstellen")
                 }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .background(Color(.systemBackground))
 
-                // Success Pill Overlay
-                if let store = workoutStore, store.showSuccessPill,
-                    let message = store.successMessage
-                {
-                    SuccessPill(message: message)
-                        .padding(.top, 8)
-                        .zIndex(1000)
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) {
-                        Text("Workouts")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-
-                        Button {
-                            showCreateWorkout = true
-                        } label: {
-                            Image(systemName: "plus.circle")
-                                .font(.title2)
-                                .foregroundStyle(.primary)
+                // Content
+                ZStack(alignment: .top) {
+                    Group {
+                        if sessionStore.hasActiveSession {
+                            // Show continue session button
+                            continueSessionView
+                        } else if let store = workoutStore {
+                            // Show workout list
+                            workoutListView(store: store)
+                        } else {
+                            // Loading state
+                            ProgressView("Loading...")
                         }
-                        .accessibilityLabel("Neues Workout erstellen")
+                    }
+
+                    // Success Pill Overlay
+                    if let store = workoutStore, store.showSuccessPill,
+                        let message = store.successMessage
+                    {
+                        SuccessPill(message: message)
+                            .padding(.top, 8)
+                            .zIndex(1000)
                     }
                 }
             }
