@@ -466,14 +466,23 @@ final class SessionStore {
         }
 
         do {
+            let startTime = Date()
+            print("⏱️ Starting finishExercise...")
+
             // Execute and get updated session directly (no refresh needed!)
             let updatedSession = try await finishExerciseUseCase.execute(
                 sessionId: sessionId,
                 exerciseId: exerciseId
             )
 
+            let useCaseTime = Date().timeIntervalSince(startTime)
+            print("⏱️ UseCase completed in \(String(format: "%.3f", useCaseTime))s")
+
             // Update UI immediately
             currentSession = updatedSession
+
+            let uiUpdateTime = Date().timeIntervalSince(startTime)
+            print("⏱️ UI update completed in \(String(format: "%.3f", uiUpdateTime))s")
 
             print("✅ Exercise finished: \(exerciseId)")
 
