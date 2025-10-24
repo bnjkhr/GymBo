@@ -1,8 +1,8 @@
 # GymBo V2 - Dokumentation
 
 **Stand:** 2025-10-24
-**Version:** 2.1.0
-**Status:** ✅ MVP COMPLETE - Production Ready
+**Version:** 2.1.1
+**Status:** ✅ MVP COMPLETE - Production Ready with Sample Workouts
 
 ---
 
@@ -53,6 +53,9 @@
 - ✅ Workout List mit Favoriten-Sektion
 - ✅ Pull-to-refresh
 - ✅ WorkoutStore mit allen Use Cases
+- ✅ 6 Comprehensive Sample Workouts (2x Maschinen, 2x Freie Gewichte, 2x Gemischt)
+- ✅ Difficulty Levels (Anfänger 🍃, Fortgeschritten 🔥, Profi ⚡)
+- ✅ Equipment Type Labels (Maschine, Freie Gewichte, Gemischt)
 
 **Exercise Library:**
 
@@ -83,6 +86,7 @@
 - ✅ Exercise Notes inline editing
 - ✅ Auto-Finish Exercise
 - ✅ Reorder Exercises (session-only oder permanent)
+- ✅ Add Exercise to Active Session (Plus-Button mit permanent save toggle)
 - ✅ Rest Timer (90s mit ±15s adjust)
 - ✅ Show/Hide completed exercises
 - ✅ Exercise Counter (2/7)
@@ -97,24 +101,28 @@
 - ✅ Success Pills (auto-dismiss 3s)
 - ✅ Profile Button (HomeView rechts oben)
 - ✅ iOS 26 Modern Card Design
+- ✅ TabBar Auto-Hide (.tabBarMinimizeBehavior(.onScrollDown))
+- ✅ Difficulty Badges (Colored pills mit Icons: 🍃🔥⚡)
+- ✅ Equipment Type Labels (Under workout name in gray)
+- ✅ HomeView Redesign (Greeting, Locker Number, Workout Calendar Strip)
 
 **Architecture:**
 
 - ✅ Clean Architecture (4 Layers)
-- ✅ 19 Use Cases (Domain Layer)
+- ✅ 20+ Use Cases (Domain Layer)
 - ✅ 3 Repositories + Mappers (Data Layer)
-- ✅ 2 Stores @Observable (Presentation)
+- ✅ 2 Stores @Observable (Presentation) - SessionStore, WorkoutStore
 - ✅ DI Container (Infrastructure)
 - ✅ SwiftData Migration Plan
+- ✅ Refresh Trigger Pattern (reaktive UI updates)
 
 ### 🟡 Nice-to-Have (Später)
 
 - Session History View
 - Statistics & Charts
-- Localization Support
+- Localization Support (Deutsch/Englisch)
 - Exercise Swap Feature (long-press → suggest alternatives)
 - Profile Page (Button ist da, View noch Placeholder)
-- HomeView Redesign (Begrüßung, Calendar-Strip, Sprintnummer)
 
 ---
 
