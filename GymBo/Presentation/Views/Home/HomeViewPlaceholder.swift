@@ -126,8 +126,12 @@ struct HomeViewPlaceholder: View {
                         print("🔄 HomeView: Reloading workouts on appear")
                         await store.refresh()
                         // Copy to local @State to force SwiftUI update
+                        let oldWorkouts = workouts
                         workouts = store.workouts
                         print("🔄 HomeView: Updated local workouts array, count=\(workouts.count)")
+                        // Debug: Print all workout names
+                        print("🔄 HomeView: OLD workouts: \(oldWorkouts.map { $0.name })")
+                        print("🔄 HomeView: NEW workouts: \(workouts.map { $0.name })")
                     }
                 }
             }
