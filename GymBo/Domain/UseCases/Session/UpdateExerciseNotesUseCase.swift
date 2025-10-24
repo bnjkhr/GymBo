@@ -45,11 +45,16 @@ final class DefaultUpdateExerciseNotesUseCase: UpdateExerciseNotesUseCase {
     // MARK: - Properties
 
     private let sessionRepository: SessionRepositoryProtocol
+    private let workoutRepository: WorkoutRepositoryProtocol
 
     // MARK: - Initialization
 
-    init(sessionRepository: SessionRepositoryProtocol) {
+    init(
+        sessionRepository: SessionRepositoryProtocol,
+        workoutRepository: WorkoutRepositoryProtocol
+    ) {
         self.sessionRepository = sessionRepository
+        self.workoutRepository = workoutRepository
     }
 
     // MARK: - Execute
@@ -66,19 +71,45 @@ final class DefaultUpdateExerciseNotesUseCase: UpdateExerciseNotesUseCase {
             throw UseCaseError.exerciseNotFound(exerciseId)
         }
 
+        // Get the catalog exercise ID from session exercise
+        let catalogExerciseId = session.exercises[exerciseIndex].exerciseId
+
         // Trim and enforce max length
         let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         let finalNotes = String(trimmedNotes.prefix(DomainSessionExercise.maxNotesLength))
 
-        // Update notes (empty string = clear notes)
+        // Update notes in session (for immediate display)
         session.exercises[exerciseIndex].notes = finalNotes.isEmpty ? nil : finalNotes
 
-        // Persist changes
+        // Persist to session
         do {
             try await sessionRepository.update(session)
-            print("📝 Notes updated for exercise \(exerciseId): \"\(finalNotes)\"")
+            print("📝 Notes updated in session for exercise \(exerciseId): \"\(finalNotes)\"")
         } catch {
             throw UseCaseError.updateFailed(error)
+        }
+
+        // Also persist to workout template (for future sessions)
+        do {
+            guard var workout = try await workoutRepository.fetch(id: session.workoutId) else {
+                print("⚠️ Workout not found, skipping template update")
+                return
+            }
+
+            // Find the workout exercise by catalog exercise ID
+            if let workoutExerciseIndex = workout.exercises.firstIndex(where: {
+                $0.exerciseId == catalogExerciseId
+            }) {
+                workout.exercises[workoutExerciseIndex].notes =
+                    finalNotes.isEmpty ? nil : finalNotes
+                try await workoutRepository.update(workout)
+                print("📝 Notes persisted to workout template for future sessions")
+            } else {
+                print("⚠️ Exercise not found in workout template")
+            }
+        } catch {
+            print("⚠️ Failed to update workout template (session notes still saved): \(error)")
+            // Don't throw - session notes are already saved
         }
     }
 }

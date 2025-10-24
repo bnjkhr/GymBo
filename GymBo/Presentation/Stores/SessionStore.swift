@@ -866,7 +866,8 @@ extension SessionStore {
                     exerciseRepository: exerciseRepository
                 ),
                 updateExerciseNotesUseCase: DefaultUpdateExerciseNotesUseCase(
-                    sessionRepository: repository
+                    sessionRepository: repository,
+                    workoutRepository: workoutRepository
                 ),
                 addSetUseCase: DefaultAddSetUseCase(
                     repository: repository,

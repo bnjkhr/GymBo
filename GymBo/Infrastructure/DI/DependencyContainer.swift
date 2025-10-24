@@ -184,7 +184,8 @@ final class DependencyContainer {
     /// - Returns: Use case for updating exercise notes
     func makeUpdateExerciseNotesUseCase() -> UpdateExerciseNotesUseCase {
         return DefaultUpdateExerciseNotesUseCase(
-            sessionRepository: makeSessionRepository()
+            sessionRepository: makeSessionRepository(),
+            workoutRepository: makeWorkoutRepository()
         )
     }
 
