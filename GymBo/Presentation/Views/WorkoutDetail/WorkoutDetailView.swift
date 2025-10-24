@@ -205,7 +205,8 @@ struct WorkoutDetailView: View {
             ),
             message: workoutStore.successMessage ?? ""
         )
-        .task {
+        .task(id: workoutStore.refreshTrigger) {
+            // Reload when refreshTrigger changes (e.g., after adding exercises during session)
             await loadData()
         }
         .onAppear {

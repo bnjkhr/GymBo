@@ -61,6 +61,10 @@ final class WorkoutStore {
     var successMessage: String?
     var showSuccessPill: Bool = false
 
+    /// Refresh trigger - increment to force views to reload data
+    /// Used when workouts are modified outside normal flows (e.g., during active session)
+    var refreshTrigger: Int = 0
+
     // MARK: - Dependencies (Injected)
 
     private let getAllWorkoutsUseCase: GetAllWorkoutsUseCase
@@ -142,6 +146,15 @@ final class WorkoutStore {
     /// Refresh workouts list
     func refresh() async {
         await loadWorkouts()
+    }
+
+    /// Trigger a refresh in observing views (e.g., WorkoutDetailView)
+    /// Call this when workouts are modified outside normal Store operations
+    func triggerRefresh() {
+        refreshTrigger += 1
+        Task {
+            await loadWorkouts()
+        }
     }
 
     /// Create a new workout template

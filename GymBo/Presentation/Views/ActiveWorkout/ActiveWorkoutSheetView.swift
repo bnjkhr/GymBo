@@ -27,6 +27,7 @@ struct ActiveWorkoutSheetView: View {
     // MARK: - Properties
 
     @Environment(SessionStore.self) private var sessionStore
+    @Environment(WorkoutStore.self) private var workoutStore
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var restTimerManager = RestTimerStateManager()
@@ -121,6 +122,12 @@ struct ActiveWorkoutSheetView: View {
                         )
                         // Reload exercise names after adding
                         await loadExerciseNames()
+
+                        // If saved permanently, trigger WorkoutStore refresh
+                        // so WorkoutDetailView updates immediately
+                        if savePermanently {
+                            workoutStore.triggerRefresh()
+                        }
                     }
                 }
             }
