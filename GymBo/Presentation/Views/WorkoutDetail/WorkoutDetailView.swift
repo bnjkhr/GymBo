@@ -193,10 +193,10 @@ struct WorkoutDetailView: View {
         }
         .successPill(
             isPresented: Binding(
-                get: { workoutStore?.showSuccessPill ?? false },
-                set: { newValue in workoutStore?.showSuccessPill = newValue }
+                get: { workoutStore.showSuccessPill },
+                set: { newValue in workoutStore.showSuccessPill = newValue }
             ),
-            message: workoutStore?.successMessage ?? ""
+            message: workoutStore.successMessage ?? ""
         )
         .task {
             await loadData()
