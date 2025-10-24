@@ -110,7 +110,7 @@ struct ActiveWorkoutSheetView: View {
                     )
                 }
             }
-            .interactiveDismissDisabled(showSummary)  // Prevent swipe-to-dismiss while summary shown
+            .interactiveDismissDisabled(false)
             .task(id: sessionStore.currentSession?.id) {
                 await loadExerciseNames()
             }
@@ -437,20 +437,8 @@ struct ActiveWorkoutSheetView: View {
             // Finish Workout Button
             Button {
                 Task {
-                    // Save session before ending (for summary display)
-                    completedSession = sessionStore.currentSession
-                    print(
-                        "🔍 Button: completedSession saved: \(completedSession?.id.uuidString ?? "nil")"
-                    )
-
                     await sessionStore.endSession()
-                    print("🔍 Button: endSession completed")
-                    print(
-                        "🔍 Button: currentSession is now: \(sessionStore.currentSession?.id.uuidString ?? "nil")"
-                    )
-
-                    showSummary = true
-                    print("🔍 Button: showSummary set to true")
+                    // Sheet will dismiss automatically, HomeView will show summary
                 }
             } label: {
                 Text("Workout beenden")
