@@ -83,6 +83,9 @@ struct TimerSection: View {
             // Update timer every second
             Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
                 currentTime = Date()
+
+                // Check if rest timer has expired
+                restTimerManager?.checkExpiration()
             }
         }
     }
@@ -228,6 +231,12 @@ extension RestTimerStateManager {
         // Update current state
         currentState = adjustedState
         saveState()
+
+        // Reschedule notification with new duration
+        let newDuration = newEndDate.timeIntervalSinceNow
+        if newDuration > 0 {
+            scheduleNotification(for: newDuration)
+        }
     }
 }
 
