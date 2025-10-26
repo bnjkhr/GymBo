@@ -8,6 +8,7 @@
 
 import Combine
 import Foundation
+import UserNotifications
 
 /// State representing an active rest timer
 struct RestTimerState: Codable {
@@ -42,11 +43,14 @@ class RestTimerStateManager: ObservableObject {
 
     private let userDefaults = UserDefaults.standard
     private let stateKey = "restTimerState"
+    private let notificationCenter = UNUserNotificationCenter.current()
+    private let notificationId = "gymbo.restTimer"
 
     // MARK: - Initialization
 
     init() {
         loadState()
+        requestNotificationPermissions()
     }
 
     // MARK: - Public Methods
@@ -57,12 +61,14 @@ class RestTimerStateManager: ObservableObject {
         let endDate = Date().addingTimeInterval(duration)
         currentState = RestTimerState(duration: duration, endDate: endDate)
         saveState()
+        scheduleNotification(for: duration)
     }
 
     /// Cancel the current rest timer
     func cancelRest() {
         currentState = nil
         clearState()
+        cancelNotification()
     }
 
     /// Check if timer has expired and auto-clear
@@ -103,5 +109,61 @@ class RestTimerStateManager: ObservableObject {
 
     private func clearState() {
         userDefaults.removeObject(forKey: stateKey)
+    }
+
+    // MARK: - Notifications
+
+    /// Request notification permissions (silent, once)
+    private func requestNotificationPermissions() {
+        Task {
+            do {
+                _ = try await notificationCenter.requestAuthorization(options: [
+                    .alert, .sound, .badge,
+                ])
+            } catch {
+                print("⚠️ Failed to request notification permissions: \(error)")
+            }
+        }
+    }
+
+    /// Schedule notification for when timer expires
+    private func scheduleNotification(for duration: TimeInterval) {
+        // Cancel any existing notification first
+        cancelNotification()
+
+        // Create notification content
+        let content = UNMutableNotificationContent()
+        content.title = "Pause vorbei! ⏰"
+        content.body = "Zeit für den nächsten Satz"
+        content.sound = .default
+        content.categoryIdentifier = "restTimer"
+
+        // Create trigger (time interval from now)
+        let trigger = UNTimeIntervalNotificationTrigger(
+            timeInterval: duration,
+            repeats: false
+        )
+
+        // Create request
+        let request = UNNotificationRequest(
+            identifier: notificationId,
+            content: content,
+            trigger: trigger
+        )
+
+        // Schedule notification
+        Task {
+            do {
+                try await notificationCenter.add(request)
+                print("✅ Rest timer notification scheduled for \(Int(duration))s")
+            } catch {
+                print("⚠️ Failed to schedule notification: \(error)")
+            }
+        }
+    }
+
+    /// Cancel pending notification
+    private func cancelNotification() {
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: [notificationId])
     }
 }
