@@ -7,7 +7,25 @@
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-26 - Session 19 - PER-SET REST TIMES):**
+**Letzte Session (2025-10-26 - Session 20 - QUICK-SETUP WORKOUT CREATION):**
+- ✅ Quick-Setup Feature (MAJOR FEATURE - Schnelles Workout-Erstellen für Hotels/fremde Gyms)
+  - WorkoutCreationModeSheet mit 3 Modi: Leeres Workout, Quick-Setup, Wizard (coming soon)
+  - 3-Schritt Wizard: Equipment-Kategorien → Dauer → Trainingsziel
+  - QuickSetupWorkoutUseCase generiert AI-basierte Workouts
+    - Filtert Übungen nach Equipment (Maschinen/Freie Gewichte/Körpergewicht)
+    - Filtert nach Muskelgruppen basierend auf Ziel
+    - Verteilt Übungen gleichmäßig über Ziel-Muskelgruppen
+    - Wendet zielspezifische Satz/Wiederholungs-Schemata an
+  - QuickSetupPreviewView für Workout-Anpassung
+    - Preview der generierten Übungen
+    - Übungen austauschen/löschen/hinzufügen
+    - Workout-Namen bearbeiten
+  - Item-based sheet presentation für zuverlässiges State Management
+- ✅ UI Fixes
+  - Spintnummer Lock Icon: Blau → Orange (GreetingHeaderView + LockerNumberInputSheet)
+  - HomeView Workout-Liste lädt nach Session-Abbruch korrekt neu
+
+**Session 19 (2025-10-26 - PER-SET REST TIMES):**
 - ✅ Brand Color Update (#F77E2D)
   - Systemweites Orange zu #F77E2D geändert (GymBo Brand Color)
   - Neue Datei: Color+AppColors.swift mit hex initializer
@@ -760,15 +778,21 @@ GymBo/
 │   ├── Entities/
 │   │   ├── WorkoutSession.swift
 │   │   ├── SessionExercise.swift
-│   │   └── SessionSet.swift
-│   ├── UseCases/Session/
-│   │   ├── StartSessionUseCase.swift
-│   │   ├── CompleteSetUseCase.swift
-│   │   ├── EndSessionUseCase.swift
-│   │   ├── UpdateSetUseCase.swift
-│   │   ├── UpdateAllSetsUseCase.swift
-│   │   ├── AddSetUseCase.swift             # ← NEU (Session 4)
-│   │   └── RemoveSetUseCase.swift          # ← NEU (Session 4)
+│   │   ├── SessionSet.swift
+│   │   ├── Workout.swift
+│   │   ├── WorkoutExercise.swift
+│   │   └── QuickSetupConfig.swift          # ← NEU (Session 20)
+│   ├── UseCases/
+│   │   ├── Session/
+│   │   │   ├── StartSessionUseCase.swift
+│   │   │   ├── CompleteSetUseCase.swift
+│   │   │   ├── EndSessionUseCase.swift
+│   │   │   ├── UpdateSetUseCase.swift
+│   │   │   ├── UpdateAllSetsUseCase.swift
+│   │   │   ├── AddSetUseCase.swift
+│   │   │   └── RemoveSetUseCase.swift
+│   │   └── Workout/
+│   │       └── QuickSetupWorkoutUseCase.swift  # ← NEU (Session 20)
 │   └── RepositoryProtocols/
 │       ├── SessionRepositoryProtocol.swift
 │       └── ExerciseRepositoryProtocol.swift
@@ -783,11 +807,22 @@ GymBo/
 │
 ├── Presentation/
 │   ├── Stores/
-│   │   └── SessionStore.swift               # addSet(), removeSet() added
-│   └── Views/ActiveWorkout/Components/
-│       ├── CompactSetRow.swift              # ← Sheet-based editing
-│       ├── CompactExerciseCard.swift        # ← Quick-Add + Context Menu
-│       └── EditSetSheet.swift               # ← in CompactSetRow.swift
+│   │   ├── SessionStore.swift
+│   │   └── WorkoutStore.swift
+│   └── Views/
+│       ├── Home/
+│       │   ├── HomeViewPlaceholder.swift    # ← Quick-Setup Integration
+│       │   └── Components/
+│       │       ├── GreetingHeaderView.swift # ← Orange Lock Icon
+│       │       └── LockerNumberInputSheet.swift # ← Orange Lock Icon
+│       ├── WorkoutCreation/
+│       │   ├── WorkoutCreationModeSheet.swift   # ← NEU (Session 20)
+│       │   ├── QuickSetupView.swift             # ← NEU (Session 20)
+│       │   └── QuickSetupPreviewView.swift      # ← NEU (Session 20)
+│       └── ActiveWorkout/Components/
+│           ├── CompactSetRow.swift
+│           ├── CompactExerciseCard.swift
+│           └── EditSetSheet.swift
 │
 ├── Infrastructure/
 │   ├── DI/
@@ -1199,25 +1234,41 @@ final class ExerciseEntity {
 
 **Was jetzt funktioniert (End-to-End):**
 
-1. ✅ **App Start** → Seeds 3 Exercises + 4 Workouts (first launch)
-2. ✅ **Workout Picker** → Liste mit Favoriten (Push/Pull/Legs/TEST)
-3. ✅ **Start Workout** → Lädt echtes Workout Template aus DB
-4. ✅ **Exercise Names** → Echte Namen aus Workout
-5. ✅ **Progressive Overload** → Sets starten mit letzten Werten
-6. ✅ **Exercise Reordering** → Drag & Drop mit permanentem Speichern
-   - Reorder-Button in Toolbar öffnet Sheet
-   - Toggle "Reihenfolge dauerhaft speichern"
-   - Session-only ODER Workout Template Update
-7. ✅ **Tap Weight/Reps** → Sheet öffnet sich
-8. ✅ **Edit Values** → Große, gut bedienbare TextFields
-9. ✅ **Update All Sets** → Toggle für alle incomplete Sets
-10. ✅ **Add Set** → Quick-Add Field ("100 x 8") + Plus Button
-11. ✅ **Delete Set** → Long-Press Context Menu
-12. ✅ **Auto-Finish Exercise** → Automatisch ausgeblendet nach letztem Satz
-13. ✅ **Mark All Complete** → Alle Sets auf einmal abhaken (FinishExerciseUseCase)
-14. ✅ **Workout Complete** → Summary Sheet mit Statistiken
-15. ✅ **Exercise History** → lastUsedWeight/Reps/Date persistiert
-16. ✅ **Nächstes Training** → Selbes Workout, neue Progressive Overload Values!
+1. ✅ **App Start** → Seeds 145 Exercises + 3 Workouts (first launch)
+2. ✅ **Workout Creation** → 3 Modi zur Auswahl
+   - Leeres Workout (manuell aufbauen)
+   - **Quick-Setup** (schnelles generieren für Hotels/fremde Gyms)
+   - Workout Wizard (coming soon)
+3. ✅ **Quick-Setup Wizard** → 3-Schritt Prozess
+   - Schritt 1: Equipment-Kategorien auswählen (Maschinen/Freie Gewichte/Körpergewicht)
+   - Schritt 2: Dauer wählen (20/30/45/60 Min)
+   - Schritt 3: Trainingsziel (Ganzkörper/Oberkörper/Unterkörper/Push/Pull/Cardio)
+4. ✅ **AI Workout Generation** → Intelligente Übungsauswahl
+   - Filtert nach Equipment-Verfügbarkeit
+   - Filtert nach Ziel-Muskelgruppen
+   - Verteilt Übungen gleichmäßig
+   - Wendet zielspezifische Satz/Wiederholungs-Schemata an
+5. ✅ **Workout Preview & Customization** → Anpassung vor dem Speichern
+   - Übungen austauschen (Exercise Picker)
+   - Übungen löschen
+   - Übungen hinzufügen
+   - Workout-Namen bearbeiten
+6. ✅ **Workout Picker** → Liste mit Favoriten
+7. ✅ **Start Workout** → Lädt echtes Workout Template aus DB
+8. ✅ **Exercise Names** → Echte Namen aus Workout
+9. ✅ **Progressive Overload** → Sets starten mit letzten Werten
+10. ✅ **Exercise Reordering** → Drag & Drop mit permanentem Speichern
+11. ✅ **Tap Weight/Reps** → Sheet öffnet sich
+12. ✅ **Edit Values** → Große, gut bedienbare TextFields
+13. ✅ **Update All Sets** → Toggle für alle incomplete Sets
+14. ✅ **Add Set** → Quick-Add Field ("100 x 8") + Plus Button
+15. ✅ **Delete Set** → Long-Press Context Menu
+16. ✅ **Auto-Finish Exercise** → Automatisch ausgeblendet nach letztem Satz
+17. ✅ **Mark All Complete** → Alle Sets auf einmal abhaken
+18. ✅ **Workout Complete** → Summary Sheet mit Statistiken
+19. ✅ **Exercise History** → lastUsedWeight/Reps/Date persistiert
+20. ✅ **Nächstes Training** → Progressive Overload Values automatisch!
+21. ✅ **UI Polish** → Orange Lock Icons, Workout-Liste refresh nach Session-Abbruch
 
 **Komplettes Set Management:**
 - ✅ Edit Set (Sheet-based UI)
@@ -1255,6 +1306,6 @@ final class ExerciseEntity {
 
 ---
 
-**Letzte Aktualisierung:** 2025-10-23 (Session 5 Ende)
-**Status:** ✅ WORKOUT REPOSITORY KOMPLETT! Real Workouts + Progressive Overload + Complete Set Management!
-**Nächste Session:** Reordering, Progression Features (Phase 2), oder Workout History & Statistics
+**Letzte Aktualisierung:** 2025-10-26 (Session 20 Ende)
+**Status:** ✅ QUICK-SETUP FEATURE KOMPLETT! AI-basierte Workout-Generierung für Hotels/fremde Gyms!
+**Nächste Session:** Workout-Editor UI, Progression Features (Phase 2), oder Workout History & Statistics
