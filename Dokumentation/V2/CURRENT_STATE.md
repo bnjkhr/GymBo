@@ -18,12 +18,15 @@
     - Wendet zielspezifische Satz/Wiederholungs-Schemata an
   - QuickSetupPreviewView für Workout-Anpassung
     - Preview der generierten Übungen
-    - Übungen austauschen/löschen/hinzufügen
+    - **Smart Exercise Swap**: Übungen mit gleichen Muskelgruppen zuerst angezeigt
+    - Orange Checkmark-Indicator für passende Übungen
+    - Übungen löschen/hinzufügen
     - Workout-Namen bearbeiten
   - Item-based sheet presentation für zuverlässiges State Management
-- ✅ UI Fixes
+- ✅ UI Improvements
   - Spintnummer Lock Icon: Blau → Orange (GreetingHeaderView + LockerNumberInputSheet)
   - HomeView Workout-Liste lädt nach Session-Abbruch korrekt neu
+  - "Neues Workout erstellen" Button → Plus-Icon neben "Workouts" Header (konsistent mit ExercisesView)
 
 **Session 19 (2025-10-26 - PER-SET REST TIMES):**
 - ✅ Brand Color Update (#F77E2D)
