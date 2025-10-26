@@ -338,11 +338,6 @@ private struct ExerciseCard: View {
 
                 Spacer()
 
-                // Difficulty Badge (Right) - Same style as HomeView
-                if !exercise.difficultyLevelRaw.isEmpty {
-                    difficultyBadge(for: exercise.difficultyLevelRaw)
-                }
-
                 // Chevron
                 Image(systemName: "chevron.right")
                     .font(.caption)
@@ -353,39 +348,6 @@ private struct ExerciseCard: View {
             .cornerRadius(12)
         }
         .buttonStyle(.plain)
-    }
-
-    // MARK: - Difficulty Badge (Same as HomeView)
-
-    @ViewBuilder
-    private func difficultyBadge(for level: String) -> some View {
-        let (color, icon) = difficultyStyle(for: level)
-
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.caption2)
-            Text(level)
-                .font(.caption)
-                .fontWeight(.medium)
-        }
-        .foregroundColor(color)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(color.opacity(0.15))
-        .cornerRadius(8)
-    }
-
-    private func difficultyStyle(for level: String) -> (Color, String) {
-        switch level {
-        case "Anfänger":
-            return (Color(.systemGray2), "leaf.fill")
-        case "Fortgeschritten":
-            return (Color(.systemGray), "flame.fill")
-        case "Profi":
-            return (Color(.darkGray), "bolt.fill")
-        default:
-            return (.gray, "circle.fill")
-        }
     }
 
     // MARK: - Equipment Icon Helper
