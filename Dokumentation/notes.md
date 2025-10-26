@@ -16,7 +16,6 @@ Profil:
     -> Ziel (Fitness, Gewichtsverlust, Muskelgewinnung)
 Trainingsstatistiken kann raus, haben wir eigenen Tab dafür
 Einstellungen:
------> Workout importieren von CSV, Strong-App oder Hevy-App
     -> Apple Health aktivieren
     -> Auslesen: Alter, Gewicht, Trainings, Aktivität
     -> Speichern: Alter, Gewicht, Trainings, Aktivität
@@ -24,3 +23,6 @@ Einstellungen:
 Benachrichtigungen:
     -> Aktivieren
     -> Live Activiy ja / nein
+---
+Jetzt brauche ich die Anbindung an Apple Heath.
+Checke das Konzept, da haben wir schon alles beschrieben.

@@ -17,9 +17,11 @@ struct ManageFoldersSheet: View {
     @State private var editingFolder: WorkoutFolder?
 
     var body: some View {
+        @Bindable var store = workoutStore
+
         NavigationStack {
             List {
-                ForEach(workoutStore.folders) { folder in
+                ForEach(store.folders) { folder in
                     HStack {
                         // Color indicator
                         Circle()
@@ -32,7 +34,7 @@ struct ManageFoldersSheet: View {
                         Spacer()
 
                         // Workout count
-                        let count = workoutStore.workouts.filter { $0.folderId == folder.id }.count
+                        let count = store.workouts.filter { $0.folderId == folder.id }.count
                         if count > 0 {
                             Text("\(count)")
                                 .font(.caption)
@@ -49,9 +51,9 @@ struct ManageFoldersSheet: View {
                 }
                 .onDelete { indexSet in
                     for index in indexSet {
-                        let folder = workoutStore.folders[index]
+                        let folder = store.folders[index]
                         Task {
-                            await workoutStore.deleteFolder(id: folder.id)
+                            await store.deleteFolder(id: folder.id)
                         }
                     }
                 }
@@ -60,7 +62,7 @@ struct ManageFoldersSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 // Load folders when sheet appears
-                await workoutStore.loadFolders()
+                await store.loadFolders()
                 print("🔄 ManageFoldersSheet: Folders loaded on appear")
             }
             .toolbar {
@@ -85,7 +87,7 @@ struct ManageFoldersSheet: View {
                 // Reload folders when create sheet is dismissed
                 if !newValue && oldValue {
                     Task {
-                        await workoutStore.loadFolders()
+                        await store.loadFolders()
                         print("🔄 ManageFoldersSheet: Folders reloaded after create sheet dismissed")
                     }
                 }
@@ -97,7 +99,7 @@ struct ManageFoldersSheet: View {
                 // Reload folders when edit sheet is dismissed
                 if newValue == nil && oldValue != nil {
                     Task {
-                        await workoutStore.loadFolders()
+                        await store.loadFolders()
                         print("🔄 ManageFoldersSheet: Folders reloaded after edit sheet dismissed")
                     }
                 }

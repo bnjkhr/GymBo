@@ -32,6 +32,7 @@ struct HomeViewPlaceholder: View {
     @Environment(\.dependencyContainer) private var dependencyContainer
     @State private var workoutStore: WorkoutStore?
     @State private var workouts: [Workout] = []  // LOCAL state instead of store
+    @State private var folders: [WorkoutFolder] = []  // LOCAL state for folders
     @State private var showActiveWorkout = false
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
@@ -48,6 +49,7 @@ struct HomeViewPlaceholder: View {
     @State private var isAllWorkoutsExpanded = true  // Collapsible Alle Workouts section
     @State private var folderExpandedState: [UUID: Bool] = [:]  // Track expansion for each folder
     @State private var showManageFolders = false  // Sheet for managing folders
+    @State private var foldersUpdateTrigger = 0  // Force view update when folders change
 
     var body: some View {
         NavigationStack {
@@ -230,6 +232,7 @@ struct HomeViewPlaceholder: View {
                 // Copy to local state
                 if let store = workoutStore {
                     workouts = store.workouts
+                    folders = store.folders
                     updateWorkoutsHash()
                 }
             }
@@ -381,7 +384,7 @@ struct HomeViewPlaceholder: View {
                         }
 
                         // Folder sections
-                        ForEach(store.folders) { folder in
+                        ForEach(folders) { folder in
                             let folderWorkouts = workouts.filter { $0.folderId == folder.id }
                             if !folderWorkouts.isEmpty {
                                 let isExpanded = folderExpandedState[folder.id] ?? true
@@ -453,7 +456,11 @@ struct HomeViewPlaceholder: View {
             if !newValue && oldValue {
                 Task {
                     await store.loadFolders()
-                    print("🔄 HomeView: Folders reloaded after ManageFolders sheet dismissed")
+                    folders = store.folders  // Copy to local state
+                    foldersUpdateTrigger += 1  // Force view update
+                    print(
+                        "🔄 HomeView: Folders reloaded after ManageFolders sheet dismissed, trigger=\(foldersUpdateTrigger), count=\(folders.count)"
+                    )
                 }
             }
         }
@@ -577,7 +584,7 @@ struct HomeViewPlaceholder: View {
                 Label("Ohne Kategorie", systemImage: "folder.badge.minus")
             }
 
-            ForEach(workoutStore?.folders ?? []) { folder in
+            ForEach(folders) { folder in
                 Button {
                     Task {
                         await workoutStore?.moveWorkoutToFolder(
@@ -610,6 +617,7 @@ struct HomeViewPlaceholder: View {
         if !sessionStore.hasActiveSession, let store = workoutStore {
             await store.loadWorkouts()
             await store.loadFolders()
+            folders = store.folders  // Copy to local state
         }
     }
 
