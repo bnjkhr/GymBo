@@ -9,6 +9,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import UserNotifications
 
 /// GymBo V2.0 - Clean Architecture App Entry Point
 ///
@@ -170,6 +171,10 @@ struct GymBoApp: App {
     @MainActor
     private func performStartupTasks() async {
         AppLogger.app.info("✅ App gestartet")
+
+        // Register notification delegate for foreground notifications
+        UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+        print("📬 Notification delegate registered")
 
         // Seed test exercises if database is empty
         ExerciseSeedData.seedIfNeeded(context: container.mainContext)
