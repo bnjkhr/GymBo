@@ -32,7 +32,7 @@ struct WorkoutCalendarStripView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "flame.fill")
                             .font(.subheadline)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(.appOrange)
 
                         Text("\(currentStreak)")
                             .font(.subheadline)
@@ -47,11 +47,11 @@ struct WorkoutCalendarStripView: View {
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(Color.orange.opacity(0.12))
+                            .fill(Color.appOrange.opacity(0.12))
                     )
                     .overlay(
                         Capsule()
-                            .strokeBorder(Color.orange.opacity(0.3), lineWidth: 1)
+                            .strokeBorder(Color.appOrange.opacity(0.3), lineWidth: 1)
                     )
 
                     Spacer()
@@ -115,8 +115,10 @@ struct WorkoutCalendarStripView: View {
 
             // Fetch sessions from last 14 days
             let startDate = calendar.startOfDay(for: last14Days.first ?? Date())
-            let endDate = calendar.date(
-                byAdding: .day, value: 1, to: calendar.startOfDay(for: last14Days.last ?? Date()))
+            let endDate =
+                calendar.date(
+                    byAdding: .day, value: 1,
+                    to: calendar.startOfDay(for: last14Days.last ?? Date()))
                 ?? Date()
 
             let sessions = try await repository.fetchCompletedSessions(

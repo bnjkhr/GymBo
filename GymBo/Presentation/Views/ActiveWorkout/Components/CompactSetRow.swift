@@ -218,7 +218,7 @@ struct EditSetSheet: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .tint(.orange)
+                .tint(.appOrange)
                 .padding(.top, 8)
 
                 Spacer()

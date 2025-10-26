@@ -490,7 +490,7 @@ private struct WorkoutCard: View {
         case "Anfänger":
             return (.green, "leaf.fill")
         case "Fortgeschritten":
-            return (.orange, "flame.fill")
+            return (.appOrange, "flame.fill")
         case "Profi":
             return (.red, "bolt.fill")
         default:

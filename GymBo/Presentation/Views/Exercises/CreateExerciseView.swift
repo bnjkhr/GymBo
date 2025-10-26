@@ -187,7 +187,7 @@ struct CreateExerciseView: View {
                             if selectedEquipment == equipment {
                                 Image(systemName: "checkmark")
                                     .font(.subheadline)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.appOrange)
                             }
                         }
                         .padding()
@@ -221,7 +221,7 @@ struct CreateExerciseView: View {
                             .padding(.vertical, 10)
                             .background(
                                 selectedDifficulty == difficulty
-                                    ? Color.orange
+                                    ? Color.appOrange
                                     : Color(
                                         .secondarySystemGroupedBackground)
                             )
@@ -370,7 +370,7 @@ private struct MuscleGroupChip: View {
                 .foregroundColor(isSelected ? .white : .primary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(isSelected ? Color.orange : Color(.secondarySystemGroupedBackground))
+                .background(isSelected ? Color.appOrange : Color(.secondarySystemGroupedBackground))
                 .cornerRadius(20)
         }
     }

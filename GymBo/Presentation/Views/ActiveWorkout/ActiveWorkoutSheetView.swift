@@ -336,7 +336,7 @@ struct ActiveWorkoutSheetView: View {
         } label: {
             Image(systemName: "memories")
                 .font(.callout)
-                .foregroundStyle(showAllExercises ? .orange : .secondary)  // Orange when active, gray when inactive
+                .foregroundStyle(showAllExercises ? .appOrange : .secondary)  // Orange when active, gray when inactive
         }
         .accessibilityLabel(
             showAllExercises ? "Verstecke abgeschlossene Übungen" : "Zeige alle Übungen")
@@ -400,7 +400,7 @@ struct ActiveWorkoutSheetView: View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 60))
-                .foregroundColor(.orange)
+                .foregroundColor(.appOrange)
 
             Text("Keine aktive Session")
                 .font(.title2)
@@ -660,7 +660,7 @@ struct ReorderExercisesSheet: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    .tint(.orange)
+                    .tint(.appOrange)
                 }
                 .padding()
                 .background(Color(.systemGroupedBackground))

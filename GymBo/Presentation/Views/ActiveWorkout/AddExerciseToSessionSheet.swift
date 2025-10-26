@@ -105,7 +105,7 @@ struct AddExerciseToSessionSheet: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .tint(.orange)
+            .tint(.appOrange)
             .padding()
         }
         .background(Color(.systemGroupedBackground))
@@ -196,7 +196,7 @@ private struct ExerciseRowButton: View {
                 // Plus Icon
                 Image(systemName: "plus.circle.fill")
                     .font(.title3)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(.appOrange)
             }
             .padding(.vertical, 8)
         }
