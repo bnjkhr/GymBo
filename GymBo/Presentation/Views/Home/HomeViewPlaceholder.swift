@@ -44,6 +44,8 @@ struct HomeViewPlaceholder: View {
     @State private var navigateToNewWorkout: Workout?  // For newly created workouts (opens ExercisePicker)
     @State private var navigateToExistingWorkout: Workout?  // For existing workouts (no auto-open)
     @State private var workoutsHash: Int = 0  // Performance: Cache workout list hash
+    @State private var isFavoritesExpanded = true  // Collapsible Favoriten section
+    @State private var isAllWorkoutsExpanded = true  // Collapsible Alle Workouts section
 
     var body: some View {
         NavigationStack {
@@ -346,28 +348,38 @@ struct HomeViewPlaceholder: View {
 
                         // Favorites section
                         if !favoriteWorkouts.isEmpty {
-                            sectionHeader(title: "Favoriten")
-                                .padding(.top, 8)
+                            collapsibleSectionHeader(
+                                title: "Favoriten",
+                                isExpanded: $isFavoritesExpanded
+                            )
+                            .padding(.top, 8)
 
-                            ForEach(favoriteWorkouts) { workout in
-                                WorkoutCard(workout: workout, store: store) {
-                                    navigateToWorkout(workout, store: store)
-                                } onStart: {
-                                    startWorkout(workout)
+                            if isFavoritesExpanded {
+                                ForEach(favoriteWorkouts) { workout in
+                                    WorkoutCard(workout: workout, store: store) {
+                                        navigateToWorkout(workout, store: store)
+                                    } onStart: {
+                                        startWorkout(workout)
+                                    }
                                 }
                             }
                         }
 
                         // Regular workouts
                         if !regularWorkouts.isEmpty {
-                            sectionHeader(title: "Alle Workouts")
-                                .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
+                            collapsibleSectionHeader(
+                                title: "Alle Workouts",
+                                isExpanded: $isAllWorkoutsExpanded
+                            )
+                            .padding(.top, favoriteWorkouts.isEmpty ? 8 : 8)
 
-                            ForEach(regularWorkouts) { workout in
-                                WorkoutCard(workout: workout, store: store) {
-                                    navigateToWorkout(workout, store: store)
-                                } onStart: {
-                                    startWorkout(workout)
+                            if isAllWorkoutsExpanded {
+                                ForEach(regularWorkouts) { workout in
+                                    WorkoutCard(workout: workout, store: store) {
+                                        navigateToWorkout(workout, store: store)
+                                    } onStart: {
+                                        startWorkout(workout)
+                                    }
                                 }
                             }
                         }
@@ -395,6 +407,34 @@ struct HomeViewPlaceholder: View {
         }
         .padding(.horizontal, 4)
         .padding(.bottom, 4)
+    }
+
+    private func collapsibleSectionHeader(title: String, isExpanded: Binding<Bool>) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isExpanded.wrappedValue.toggle()
+            }
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } label: {
+            HStack {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .rotationEffect(.degrees(isExpanded.wrappedValue ? 90 : 0))
+
+                Spacer()
+            }
+            .padding(.horizontal, 4)
+            .padding(.bottom, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var createWorkoutButton: some View {
