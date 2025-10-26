@@ -588,8 +588,18 @@ private struct ExerciseCard: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    // Rest time
-                    if let restTime = exercise.restTime {
+                    // Rest time (either single or per-set)
+                    if let perSetRestTimes = exercise.perSetRestTimes, !perSetRestTimes.isEmpty {
+                        // Show per-set rest times: "180s, 180s, 60s"
+                        Text("•")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(perSetRestTimes.map { "\(Int($0))s" }.joined(separator: ", "))
+                            .font(.subheadline)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    } else if let restTime = exercise.restTime {
+                        // Show single rest time: "180s"
                         Text("•")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
