@@ -259,6 +259,14 @@ final class DependencyContainer {
         )
     }
 
+    /// Creates QuickSetupWorkoutUseCase
+    /// - Returns: Use case for generating Quick-Setup workouts
+    func makeQuickSetupWorkoutUseCase() -> QuickSetupWorkoutUseCase {
+        return DefaultQuickSetupWorkoutUseCase(
+            exerciseRepository: makeExerciseRepository()
+        )
+    }
+
     func makeDeleteWorkoutUseCase() -> DeleteWorkoutUseCase {
         return DefaultDeleteWorkoutUseCase(
             workoutRepository: makeWorkoutRepository()

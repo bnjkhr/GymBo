@@ -119,7 +119,7 @@ private struct LockerNumberButton: View {
             } label: {
                 Image(systemName: "lock.fill")
                     .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.appOrange)
             }
             .buttonStyle(ScaleButtonStyle())
         }

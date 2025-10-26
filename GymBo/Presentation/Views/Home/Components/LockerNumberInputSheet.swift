@@ -22,7 +22,7 @@ struct LockerNumberInputSheet: View {
                 // Icon
                 Image(systemName: "lock.fill")
                     .font(.system(size: 60))
-                    .foregroundStyle(.blue)
+                    .foregroundColor(.appOrange)
                     .padding(.top, 40)
 
                 // Title & Description

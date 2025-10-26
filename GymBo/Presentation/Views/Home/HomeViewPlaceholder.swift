@@ -9,6 +9,17 @@
 
 import SwiftUI
 
+// MARK: - Quick-Setup Preview Data
+
+struct QuickSetupPreviewData: Identifiable {
+    let id = UUID()
+    let config: QuickSetupConfig
+    let exercises: [WorkoutExercise]
+    let allExercises: [ExerciseEntity]
+}
+
+// MARK: - Home View
+
 /// Home view with workout selection
 ///
 /// **Features:**
@@ -24,6 +35,10 @@ struct HomeViewPlaceholder: View {
     @State private var showActiveWorkout = false
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
+    @State private var showCreateWorkoutDirect = false
+    @State private var showQuickSetup = false
+    @State private var quickSetupPreviewData: QuickSetupPreviewData? = nil
+    @State private var allExercises: [ExerciseEntity] = []
     @State private var showProfile = false
     @State private var showLockerInput = false
     @State private var navigateToNewWorkout: Workout?  // For newly created workouts (opens ExercisePicker)
@@ -66,11 +81,50 @@ struct HomeViewPlaceholder: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showCreateWorkout) {
+                WorkoutCreationModeSheet(
+                    onSelectEmpty: {
+                        showCreateWorkoutDirect = true
+                    },
+                    onSelectQuickSetup: {
+                        showQuickSetup = true
+                    },
+                    onSelectWizard: {
+                        // Coming soon
+                    }
+                )
+            }
+            .sheet(isPresented: $showCreateWorkoutDirect) {
                 if let store = workoutStore {
                     CreateWorkoutView { createdWorkout in
                         // Navigate to the created workout's detail view
                         navigateToNewWorkout = createdWorkout
                     }
+                    .environment(store)
+                }
+            }
+            .sheet(isPresented: $showQuickSetup) {
+                QuickSetupView { config in
+                    // Dismiss this sheet first
+                    showQuickSetup = false
+
+                    // Generate workout exercises from config
+                    Task {
+                        await handleQuickSetupGeneration(config: config)
+                    }
+                }
+            }
+            .sheet(item: $quickSetupPreviewData) { previewData in
+                if let store = workoutStore {
+                    QuickSetupPreviewView(
+                        config: previewData.config,
+                        generatedExercises: previewData.exercises,
+                        allExercises: previewData.allExercises,
+                        onSave: { name, exercises in
+                            Task {
+                                await saveQuickSetupWorkout(name: name, exercises: exercises)
+                            }
+                        }
+                    )
                     .environment(store)
                 }
             }
@@ -130,6 +184,20 @@ struct HomeViewPlaceholder: View {
             .onChange(of: sessionStore.completedSession) { oldValue, newValue in
                 // Show summary sheet when a session is completed
                 showWorkoutSummary = (newValue != nil)
+            }
+            .onChange(of: showActiveWorkout) { oldValue, newValue in
+                // When Active Workout sheet is dismissed, reload workouts
+                if !newValue && oldValue {
+                    print("🔄 HomeView: Active workout sheet dismissed, reloading workouts")
+                    Task {
+                        if let store = workoutStore {
+                            await store.refresh()
+                            workouts = store.workouts
+                            updateWorkoutsHash()
+                            print("✅ HomeView: Workouts reloaded, count=\(workouts.count)")
+                        }
+                    }
+                }
             }
             .onChange(of: workoutStore?.workouts) { oldValue, newValue in
                 // Sync local workouts array when store changes (e.g., favorite toggle)
@@ -387,6 +455,58 @@ struct HomeViewPlaceholder: View {
             hasher.combine(workout.isFavorite)
         }
         workoutsHash = hasher.finalize()
+    }
+
+    // MARK: - Quick-Setup Helpers
+
+    /// Generate workout exercises from Quick-Setup config
+    private func handleQuickSetupGeneration(config: QuickSetupConfig) async {
+        guard let container = dependencyContainer else { return }
+
+        do {
+            // Load all exercises for picker
+            let exerciseRepo = container.makeExerciseRepository()
+            allExercises = try await exerciseRepo.fetchAll()
+
+            // Generate workout exercises
+            let useCase = container.makeQuickSetupWorkoutUseCase()
+            let generatedExercises = try await useCase.generateWorkoutExercises(config: config)
+
+            // Create preview data and show sheet (ensure on main thread)
+            await MainActor.run {
+                quickSetupPreviewData = QuickSetupPreviewData(
+                    config: config,
+                    exercises: generatedExercises,
+                    allExercises: allExercises
+                )
+            }
+        } catch {
+            print("❌ Quick-Setup generation error: \(error)")
+        }
+    }
+
+    /// Save Quick-Setup workout
+    private func saveQuickSetupWorkout(name: String, exercises: [WorkoutExercise]) async {
+        guard let store = workoutStore else { return }
+
+        do {
+            // 1. Create empty workout
+            let workout = try await store.createWorkout(name: name)
+
+            // 2. Add all exercises to the workout
+            for exercise in exercises {
+                await store.addExercise(exerciseId: exercise.exerciseId, to: workout.id)
+            }
+
+            // 3. Refresh workout list
+            await store.refresh()
+            workouts = store.workouts
+            updateWorkoutsHash()
+
+            print("✅ Quick-Setup workout saved: \(name) with \(exercises.count) exercises")
+        } catch {
+            print("❌ Failed to save Quick-Setup workout: \(error)")
+        }
     }
 }
 
