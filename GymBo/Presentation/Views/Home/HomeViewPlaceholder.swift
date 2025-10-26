@@ -321,20 +321,26 @@ struct HomeViewPlaceholder: View {
             VStack(spacing: 0) {
                 // Workouts Section
                 VStack(spacing: 0) {
-                    // Section Header
+                    // Section Header with Plus Button
                     HStack {
                         Text("Workouts")
                             .font(.title3)
                             .fontWeight(.bold)
+
                         Spacer()
+
+                        Button {
+                            showCreateWorkout = true
+                        } label: {
+                            Image(systemName: "plus.circle")
+                                .font(.title2)
+                                .foregroundColor(.primary)
+                        }
+                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
-
-                    // Create New Workout Button (below header, left aligned)
-                    createWorkoutButton
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
+                    .padding(.bottom, 16)
 
                     LazyVStack(spacing: 12) {
 
