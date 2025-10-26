@@ -54,6 +54,9 @@ struct ManageFoldersSheet: View {
                         let folder = store.folders[index]
                         Task {
                             await store.deleteFolder(id: folder.id)
+                            // Reload folders to update the list immediately
+                            await store.loadFolders()
+                            print("🔄 ManageFoldersSheet: Folders reloaded after deletion")
                         }
                     }
                 }

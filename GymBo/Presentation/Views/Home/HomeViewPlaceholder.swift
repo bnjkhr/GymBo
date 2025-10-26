@@ -206,11 +206,23 @@ struct HomeViewPlaceholder: View {
                 }
             }
             .onChange(of: workoutStore?.workouts) { oldValue, newValue in
-                // Sync local workouts array when store changes (e.g., favorite toggle)
+                // Sync local workouts array when store changes (e.g., favorite toggle, folder deletion)
                 if let updatedWorkouts = newValue {
-                    print("🔄 HomeView: WorkoutStore changed, syncing local array")
+                    print(
+                        "🔄 HomeView: WorkoutStore.workouts changed, syncing local array, count=\(updatedWorkouts.count)"
+                    )
                     workouts = updatedWorkouts
                     updateWorkoutsHash()
+                }
+            }
+            .onChange(of: workoutStore?.folders) { oldValue, newValue in
+                // Sync local folders array when store changes (e.g., folder deletion)
+                if let updatedFolders = newValue {
+                    print(
+                        "🔄 HomeView: WorkoutStore.folders changed, syncing local array, count=\(updatedFolders.count)"
+                    )
+                    folders = updatedFolders
+                    foldersUpdateTrigger += 1
                 }
             }
             .onAppear {
