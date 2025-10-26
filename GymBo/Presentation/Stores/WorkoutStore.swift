@@ -236,6 +236,25 @@ final class WorkoutStore {
         }
     }
 
+    // MARK: - Private Helpers
+
+    /// Show success message with auto-dismiss
+    private func showSuccessMessage(_ message: String) {
+        successMessage = message
+        showSuccessPill = true
+
+        // Cancel previous task
+        successMessageTask?.cancel()
+
+        // Auto-clear after 3 seconds
+        successMessageTask = Task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled else { return }
+            successMessage = nil
+            showSuccessPill = false
+        }
+    }
+
     /// Create a new workout template
     /// - Parameters:
     ///   - name: Workout name
@@ -545,7 +564,8 @@ final class WorkoutStore {
                 addExerciseToWorkoutUseCase: MockAddExerciseToWorkoutUseCase(),
                 removeExerciseFromWorkoutUseCase: MockRemoveExerciseFromWorkoutUseCase(),
                 reorderWorkoutExercisesUseCase: MockReorderWorkoutExercisesUseCase(),
-                updateWorkoutExerciseUseCase: MockUpdateWorkoutExerciseUseCase()
+                updateWorkoutExerciseUseCase: MockUpdateWorkoutExerciseUseCase(),
+                workoutRepository: MockWorkoutRepository()
             )
 
             // Populate with sample data
