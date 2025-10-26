@@ -19,21 +19,112 @@
 
 ## 📊 Projekt-Status (Stand: 2025-10-26)
 
-### Version: 2.2.0 - Per-Set Rest Times Feature
+### Version: 2.3.0 - Workout Folders Feature
 
 **Alle Core Features implementiert:**
 - ✅ Workout Management (Create/Edit/Delete/Favorite)
+- ✅ **Workout Folders/Categories** (NEU) - Workouts in Ordnern organisieren
 - ✅ Exercise Library (145+ Übungen, Search, Filter, Create, Delete)
 - ✅ Custom Exercise Management (Create/Delete mit Business Rules)
 - ✅ Workout Detail & Exercise Management (Multi-Select Picker, Reorder)
 - ✅ Active Workout Session (vollständig)
-- ✅ **Per-Set Rest Times** (NEU) - Individuelle Pausenzeiten pro Satz
+- ✅ Per-Set Rest Times - Individuelle Pausenzeiten pro Satz
+- ✅ Quick-Setup Workout Creation - Schnelles Workout-Erstellen
 - ✅ UI/UX (Brand Color #F77E2D, iOS 26 Design, TabBar Auto-Hide)
-- ✅ Architecture (Clean Architecture, 20 Use Cases, 3 Repositories)
+- ✅ Architecture (Clean Architecture, 25+ Use Cases, 3 Repositories)
 
 **Dokumentation aktualisiert:**
-- README.md → 2.2.0, Per-Set Rest Times Feature
-- SESSION_MEMORY.md → Session 19 dokumentiert
+- CURRENT_STATE.md → Session 21 dokumentiert
+- SESSION_MEMORY.md → Session 21 dokumentiert
+
+---
+
+## ✅ Session 2025-10-26 (Session 21) - Workout Folders Implementation
+
+### Workout Folders/Categories Feature
+**Status:** ✅ Komplett implementiert und getestet
+
+**Implementierte Features:**
+1. **Domain Layer:**
+   - WorkoutFolder Entity (id, name, color, order, createdDate)
+   - Workout.folderId: UUID? für Zuordnung
+   - Workout.orderInFolder: Int für Sortierung innerhalb Folder
+
+2. **Data Layer:**
+   - WorkoutFolderEntity (SwiftData @Model)
+   - WorkoutFolderMapper (Domain ↔ Data)
+   - Repository Methods:
+     - fetchAllFolders() - Alle Ordner laden
+     - createFolder() - Ordner erstellen
+     - updateFolder() - Ordner bearbeiten
+     - deleteFolder() - Ordner löschen (setzt Workouts auf nil)
+     - moveWorkoutToFolder() - Workout verschieben
+
+3. **Presentation Layer:**
+   - ManageFoldersSheet - Ordner-Verwaltung (Liste, Delete, Edit)
+   - CreateFolderSheet - Ordner erstellen/bearbeiten
+     - Name-Input
+     - Farb-Picker (8 vordefinierte Farben)
+   - HomeView Integration:
+     - Folder Icon Button in Toolbar
+     - Collapsible Folder Sections mit Farb-Indikator
+     - Context Menu zum Verschieben
+   - WorkoutStore Methods:
+     - loadFolders()
+     - createFolder()
+     - updateFolder()
+     - deleteFolder()
+     - moveWorkoutToFolder()
+
+4. **UI/UX Features:**
+   - 8 vordefinierte Folder-Farben (#8B5CF6, #EF4444, #F59E0B, #10B981, #3B82F6, #EC4899, #6366F1, #14B8A6)
+   - Collapsible Sections für Folders
+   - Farb-Indikator (Circle) bei Folder-Namen
+   - Context Menu: "Verschieben nach..." mit Folder-Liste
+   - "Ohne Kategorie" Sektion für uncategorized Workouts
+   - Swipe-to-Delete in ManageFoldersSheet
+   - Workout-Count Badge in Folder-Liste
+
+5. **Bug Fixes während Implementation:**
+   - Duplicate Color+hex extension entfernt (3x → 1x in Color+AppColors.swift)
+   - Predicate Syntax Fix (lokale Variable statt closure-capture)
+   - UI Reactivity Fix: @Bindable + lokale @State Kopien + onChange Listener
+   - Sofortige UI-Updates nach Folder-Deletion
+   - Rest Timer Notification-Bug behoben (cancelRest() nach Workout-Ende)
+   - Difficulty Labels aus Exercise List entfernt
+   - Collapsible Sections für "Favoriten" + "Alle Workouts"
+
+**Technische Details:**
+- Clean Architecture konsequent eingehalten
+- SwiftData Relationship: WorkoutFolderEntity ↔ WorkoutEntity (deleteRule: .nullify)
+- @Observable Store mit @Bindable in Views
+- Lokale @State Kopien für Performance + Reactivity
+- onChange Listener für automatische UI-Updates
+- Extensive Debug-Logging für Troubleshooting
+
+**Commits:**
+- fix: Remove duplicate Color+hex extension declarations
+- fix: Reload folders when ManageFolders sheet is dismissed
+- fix: Add reload triggers for folders in ManageFoldersSheet
+- fix: Correct Predicate syntax for folder verification
+- debug: Add extensive logging for folder creation and loading
+- fix: Use @Bindable and local state for folders to fix UI reactivity
+- fix: Reload workouts in HomeView after moving to folder
+- feat: Add debug logging for folder deletion and reload workouts in HomeView
+- fix: Add onChange listener for folders to update HomeView immediately after deletion
+
+---
+
+## ✅ Session 2025-10-26 (Session 20) - Quick-Setup Workout Creation
+
+### Quick-Setup Feature
+**Status:** ✅ Komplett implementiert
+
+**Features:**
+- WorkoutCreationModeSheet mit 3 Modi
+- 3-Schritt Wizard (Equipment → Dauer → Ziel)
+- QuickSetupWorkoutUseCase (AI-basierte Workout-Generierung)
+- QuickSetupPreviewView mit Smart Exercise Swap
 
 ---
 

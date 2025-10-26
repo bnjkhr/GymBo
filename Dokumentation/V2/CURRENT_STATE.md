@@ -1,13 +1,42 @@
 # GymBo V2 - Aktueller Stand (2025-10-26)
 
-**Status:** ✅ MVP PRODUCTION-READY! Per-Set Rest Times Feature Complete
+**Status:** ✅ MVP PRODUCTION-READY! Workout Folders Feature Complete
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
 **Design:** Modern iOS 26 mit Brand Color #F77E2D
 
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-26 - Session 20 - QUICK-SETUP WORKOUT CREATION):**
+**Letzte Session (2025-10-26 - Session 21 - WORKOUT FOLDERS/CATEGORIES):**
+- ✅ Workout Folders/Categories Feature (MAJOR FEATURE)
+  - WorkoutFolder Domain Entity (id, name, color, order, createdDate)
+  - WorkoutFolderEntity SwiftData persistence
+  - WorkoutFolderMapper for domain ↔ data conversion
+  - Repository Methods: fetchAllFolders, createFolder, updateFolder, deleteFolder, moveWorkoutToFolder
+  - Workout.folderId: UUID? + orderInFolder: Int für Folder-Zuordnung
+- ✅ Folder Management UI
+  - ManageFoldersSheet: Ordner verwalten (erstellen, bearbeiten, löschen)
+  - CreateFolderSheet: Ordner-Editor mit Farb-Picker (8 Farben)
+  - Folder Icon Button in HomeView Toolbar
+  - Collapsible Folder Sections in HomeView mit Farb-Indikator
+  - Context Menu: Workouts zwischen Ordnern verschieben
+- ✅ Folder Deletion Logic
+  - Workouts automatisch zu "Ohne Kategorie" verschoben bei Folder-Löschung
+  - SwiftData Relationship: deleteRule .nullify
+  - Sofortige UI-Aktualisierung nach Löschung
+- ✅ UI Reactivity Fixes
+  - @Bindable für WorkoutStore in ManageFoldersSheet
+  - Lokale @State Kopien für folders + workouts in HomeView
+  - onChange Listener für workoutStore?.folders + workouts
+  - Automatische View-Updates bei Folder-Änderungen
+- ✅ Bug Fixes
+  - Duplicate Color+hex extension entfernt (3 Definitionen → 1 in Color+AppColors.swift)
+  - Predicate Syntax Fix für Folder-Verifikation
+  - Rest Timer Notifications nach Workout-Ende korrekt abgebrochen
+  - Difficulty Labels aus Exercise List entfernt (nur in Detail View)
+  - Collapsible Sections für "Favoriten" und "Alle Workouts"
+
+**Session 20 (2025-10-26 - QUICK-SETUP WORKOUT CREATION):**
 - ✅ Quick-Setup Feature (MAJOR FEATURE - Schnelles Workout-Erstellen für Hotels/fremde Gyms)
   - WorkoutCreationModeSheet mit 3 Modi: Leeres Workout, Quick-Setup, Wizard (coming soon)
   - 3-Schritt Wizard: Equipment-Kategorien → Dauer → Trainingsziel
