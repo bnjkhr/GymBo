@@ -116,46 +116,74 @@ class RestTimerStateManager: ObservableObject {
     /// Request notification permissions (silent, once)
     private func requestNotificationPermissions() {
         Task {
-            do {
-                _ = try await notificationCenter.requestAuthorization(options: [
-                    .alert, .sound, .badge,
-                ])
-            } catch {
-                print("⚠️ Failed to request notification permissions: \(error)")
+            // Check current status first
+            let settings = await notificationCenter.notificationSettings()
+            print("📱 Current notification status: \(settings.authorizationStatus.rawValue)")
+
+            // If not determined, request
+            if settings.authorizationStatus == .notDetermined {
+                do {
+                    let granted = try await notificationCenter.requestAuthorization(options: [
+                        .alert, .sound, .badge,
+                    ])
+                    print(
+                        granted
+                            ? "✅ Notification permission GRANTED"
+                            : "❌ Notification permission DENIED")
+                } catch {
+                    print("⚠️ Failed to request notification permissions: \(error)")
+                }
+            } else if settings.authorizationStatus == .denied {
+                print("⚠️ Notifications are DENIED. User needs to enable in Settings.")
+            } else if settings.authorizationStatus == .authorized {
+                print("✅ Notifications already AUTHORIZED")
             }
         }
     }
 
     /// Schedule notification for when timer expires
     private func scheduleNotification(for duration: TimeInterval) {
-        // Cancel any existing notification first
-        cancelNotification()
-
-        // Create notification content
-        let content = UNMutableNotificationContent()
-        content.title = "Pause vorbei! ⏰"
-        content.body = "Zeit für den nächsten Satz"
-        content.sound = .default
-        content.categoryIdentifier = "restTimer"
-
-        // Create trigger (time interval from now)
-        let trigger = UNTimeIntervalNotificationTrigger(
-            timeInterval: duration,
-            repeats: false
-        )
-
-        // Create request
-        let request = UNNotificationRequest(
-            identifier: notificationId,
-            content: content,
-            trigger: trigger
-        )
-
-        // Schedule notification
         Task {
+            // Check permission status first
+            let settings = await notificationCenter.notificationSettings()
+            guard settings.authorizationStatus == .authorized else {
+                print(
+                    "⚠️ Cannot schedule notification - permission status: \(settings.authorizationStatus.rawValue)"
+                )
+                return
+            }
+
+            // Cancel any existing notification first
+            cancelNotification()
+
+            // Create notification content
+            let content = UNMutableNotificationContent()
+            content.title = "Pause vorbei! ⏰"
+            content.body = "Zeit für den nächsten Satz"
+            content.sound = .default
+            content.categoryIdentifier = "restTimer"
+
+            // Create trigger (time interval from now)
+            let trigger = UNTimeIntervalNotificationTrigger(
+                timeInterval: duration,
+                repeats: false
+            )
+
+            // Create request
+            let request = UNNotificationRequest(
+                identifier: notificationId,
+                content: content,
+                trigger: trigger
+            )
+
+            // Schedule notification
             do {
                 try await notificationCenter.add(request)
                 print("✅ Rest timer notification scheduled for \(Int(duration))s")
+
+                // Verify it was added
+                let pending = await notificationCenter.pendingNotificationRequests()
+                print("📋 Pending notifications: \(pending.count)")
             } catch {
                 print("⚠️ Failed to schedule notification: \(error)")
             }
