@@ -22,18 +22,27 @@
 
 ## 📱 Notification Types & Use Cases
 
-### 1. Rest Timer Notifications (IMPLEMENTED via AlarmKit)
-**Status:** ✅ Bereits implementiert via AlarmKit
+### 1. Rest Timer Notifications (IMPLEMENTED ✅)
+**Status:** ✅ Implementiert via UserNotifications (Local Notifications)
 
 **Beschreibung:**
-- Timer läuft ab → Notification "Pause vorbei"
-- AlarmKit managed automatisch:
-  - Local Notifications
-  - Live Activities
-  - Dynamic Island
-  - Background persistence
+- Timer läuft ab → Notification "Pause vorbei! ⏰"
+- Funktioniert mit:
+  - Standard Rest Times (z.B. 90s)
+  - Per-Set Rest Times (z.B. 180s, 180s, 60s)
+  - Manuell angepasste Zeiten (+15s/-15s Buttons)
+  - Background & Force Quit Support
 
-**Keine zusätzliche Implementation nötig** - AlarmKit übernimmt alles!
+**Features:**
+- ✅ Notification scheduled beim Timer-Start
+- ✅ Notification rescheduled bei Timer-Anpassung (+/-15s)
+- ✅ Auto-cancel bei manuellem Timer-Stop
+- ✅ Auto-clear Timer nach Ablauf → UI zeigt Workout-Timer
+
+**Implementation:**
+- `RestTimerStateManager` mit `UNUserNotificationCenter`
+- Permissions automatisch requested beim ersten Timer
+- Debug-Logging für Permission-Status
 
 ---
 
