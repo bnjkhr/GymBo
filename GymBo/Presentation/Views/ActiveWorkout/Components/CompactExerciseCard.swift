@@ -127,14 +127,6 @@ struct CompactExerciseCard: View {
     /// Exercise header with name, equipment, and notes
     private var exerciseHeader: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Equipment Icon
-            if let equipment = equipment {
-                Image(systemName: equipmentIcon(for: equipment))
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 32)
-            }
-
             // Name, equipment, and notes
             VStack(alignment: .leading, spacing: 4) {
                 Text(exerciseName)
@@ -157,6 +149,13 @@ struct CompactExerciseCard: View {
             }
 
             Spacer()
+
+            // Equipment Icon (top-right, aligned with name)
+            if let equipment = equipment {
+                Image(systemName: equipmentIcon(for: equipment))
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
