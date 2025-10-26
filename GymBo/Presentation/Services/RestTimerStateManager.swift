@@ -142,7 +142,7 @@ class RestTimerStateManager: ObservableObject {
     }
 
     /// Schedule notification for when timer expires
-    private func scheduleNotification(for duration: TimeInterval) {
+    func scheduleNotification(for duration: TimeInterval) {
         Task {
             // Check permission status first
             let settings = await notificationCenter.notificationSettings()
