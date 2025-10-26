@@ -517,6 +517,72 @@ struct HomeViewPlaceholder: View {
         navigateToExistingWorkout = workout  // Use existing workout navigation (no auto-open)
     }
 
+    // MARK: - Folder Header
+
+    private func collapsibleFolderHeader(folder: WorkoutFolder, isExpanded: Binding<Bool>) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isExpanded.wrappedValue.toggle()
+            }
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } label: {
+            HStack {
+                // Color indicator
+                Circle()
+                    .fill(Color(hex: folder.color) ?? .purple)
+                    .frame(width: 12, height: 12)
+
+                Text(folder.name)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .rotationEffect(.degrees(isExpanded.wrappedValue ? 90 : 0))
+
+                Spacer()
+            }
+            .padding(.horizontal, 4)
+            .padding(.bottom, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Context Menu
+
+    @ViewBuilder
+    private func workoutContextMenu(workout: Workout) -> some View {
+        // Move to folder submenu
+        Menu("Verschieben nach...") {
+            Button {
+                Task {
+                    await workoutStore?.moveWorkoutToFolder(workoutId: workout.id, folderId: nil)
+                }
+            } label: {
+                Label("Ohne Kategorie", systemImage: "folder.badge.minus")
+            }
+
+            ForEach(workoutStore?.folders ?? []) { folder in
+                Button {
+                    Task {
+                        await workoutStore?.moveWorkoutToFolder(workoutId: workout.id, folderId: folder.id)
+                    }
+                } label: {
+                    HStack {
+                        Circle()
+                            .fill(Color(hex: folder.color) ?? .purple)
+                            .frame(width: 12, height: 12)
+                        Text(folder.name)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Actions
 
     private func loadData() async {
@@ -708,139 +774,6 @@ private struct WorkoutCard: View {
 
     private func difficultyStyle(for level: String) -> (Color, String) {
         switch level {
-        case "Anfänger":
-            return (Color(.systemGray2), "leaf.fill")
-        case "Fortgeschritten":
-            return (Color(.systemGray), "flame.fill")
-        case "Profi":
-            return (Color(.darkGray), "bolt.fill")
-        default:
-            return (.gray, "circle.fill")
-        }
-    }
-
-    // MARK: - Equipment Icons
-
-    @ViewBuilder
-    private func equipmentIcons(for equipmentType: String) -> some View {
-        HStack(spacing: 4) {
-            if equipmentType.lowercased() == "gemischt" {
-                // For mixed workouts, show all equipment types present
-                // For now, show all icons as we don't have exercise details here
-                Image(systemName: "figure.strengthtraining.traditional")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Image(systemName: "figure.hand.cycling")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                // Single equipment type
-                Image(systemName: equipmentIcon(for: equipmentType))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private func equipmentIcon(for equipmentType: String) -> String {
-        switch equipmentType.lowercased() {
-        case "maschine":
-            return "figure.hand.cycling"
-        case "körpergewicht":
-            return "figure.core.training"
-        case "freie gewichte":
-            return "figure.strengthtraining.traditional"
-        case "cardio":
-            return "figure.run.treadmill"
-        default:
-            return "figure.mixed.cardio"
-        }
-    }
-}
-
-// MARK: - Card Button Style (iOS 26 Press Effect)
-
-private struct CardButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
-    }
-}
-
-// MARK: - Preview
-
-#Preview {
-    HomeViewPlaceholder()
-        .environment(SessionStore.preview)
-}
-
-    // MARK: - Folder Header
-
-    private func collapsibleFolderHeader(folder: WorkoutFolder, isExpanded: Binding<Bool>) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isExpanded.wrappedValue.toggle()
-            }
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        } label: {
-            HStack {
-                // Color indicator
-                Circle()
-                    .fill(Color(hex: folder.color) ?? .purple)
-                    .frame(width: 12, height: 12)
-
-                Text(folder.name)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .rotationEffect(.degrees(isExpanded.wrappedValue ? 90 : 0))
-
-                Spacer()
-            }
-            .padding(.horizontal, 4)
-            .padding(.bottom, 4)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - Context Menu
-
-    @ViewBuilder
-    private func workoutContextMenu(workout: Workout) -> some View {
-        // Move to folder submenu
-        Menu("Verschieben nach...") {
-            Button {
-                Task {
-                    await workoutStore?.moveWorkoutToFolder(workoutId: workout.id, folderId: nil)
-                }
-            } label: {
-                Label("Ohne Kategorie", systemImage: "folder.badge.minus")
-            }
-
-            ForEach(workoutStore?.folders ?? []) { folder in
-                Button {
-                    Task {
-                        await workoutStore?.moveWorkoutToFolder(workoutId: workout.id, folderId: folder.id)
-                    }
-                } label: {
-                    HStack {
-                        Circle()
-                            .fill(Color(hex: folder.color) ?? .purple)
-                            .frame(width: 12, height: 12)
-                        Text(folder.name)
-                    }
-                }
-            }
-        }
-    }
-}
 
 // MARK: - Color Extension (for hex colors)
 
