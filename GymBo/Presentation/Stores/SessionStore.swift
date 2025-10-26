@@ -78,6 +78,7 @@ final class SessionStore {
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
     private let workoutRepository: WorkoutRepositoryProtocol
+    private weak var restTimerManager: RestTimerStateManager?
 
     // MARK: - Private State
 
@@ -102,7 +103,8 @@ final class SessionStore {
         addExerciseToSessionUseCase: AddExerciseToSessionUseCase,
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol,
-        workoutRepository: WorkoutRepositoryProtocol
+        workoutRepository: WorkoutRepositoryProtocol,
+        restTimerManager: RestTimerStateManager? = nil
     ) {
         self.startSessionUseCase = startSessionUseCase
         self.completeSetUseCase = completeSetUseCase
@@ -121,9 +123,15 @@ final class SessionStore {
         self.workoutRepository = workoutRepository
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
+        self.restTimerManager = restTimerManager
     }
 
     // MARK: - Public Actions
+
+    /// Set the rest timer manager (called from ActiveWorkoutSheetView)
+    func setRestTimerManager(_ manager: RestTimerStateManager) {
+        self.restTimerManager = manager
+    }
 
     /// Start a new workout session
     /// - Parameter workoutId: ID of the workout template to start
@@ -212,6 +220,10 @@ final class SessionStore {
         do {
             let finishedSession = try await endSessionUseCase.execute(sessionId: sessionId)
 
+            // Cancel any pending rest timer notifications
+            restTimerManager?.cancelRest()
+            print("🔕 Rest timer notification cancelled on workout end")
+
             // Save completed session for summary display
             completedSession = finishedSession
 
@@ -242,6 +254,10 @@ final class SessionStore {
 
         do {
             try await cancelSessionUseCase.execute(sessionId: sessionId)
+
+            // Cancel any pending rest timer notifications
+            restTimerManager?.cancelRest()
+            print("🔕 Rest timer notification cancelled on workout cancel")
 
             // Clear active session immediately (no completedSession, no summary)
             currentSession = nil

@@ -138,6 +138,9 @@ struct ActiveWorkoutSheetView: View {
             .onAppear {
                 // Clear any leftover rest timer from previous workout
                 restTimerManager.cancelRest()
+
+                // Pass restTimerManager to SessionStore so it can cancel notifications on workout end
+                sessionStore.setRestTimerManager(restTimerManager)
             }
             .overlay(alignment: .top) {
                 // Success Pill for notifications (e.g., "Nächste Übung")

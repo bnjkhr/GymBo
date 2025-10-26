@@ -37,12 +37,15 @@
 - ✅ Notification scheduled beim Timer-Start
 - ✅ Notification rescheduled bei Timer-Anpassung (+/-15s)
 - ✅ Auto-cancel bei manuellem Timer-Stop
+- ✅ Auto-cancel bei Workout-Ende (endSession/cancelSession)
 - ✅ Auto-clear Timer nach Ablauf → UI zeigt Workout-Timer
+- ✅ Foreground notifications via NotificationDelegate
 
 **Implementation:**
 - `RestTimerStateManager` mit `UNUserNotificationCenter`
 - Permissions automatisch requested beim ersten Timer
 - Debug-Logging für Permission-Status
+- SessionStore cancels notifications on workout end/cancel
 
 ---
 
