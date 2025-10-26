@@ -80,6 +80,36 @@ protocol WorkoutRepositoryProtocol {
     /// Delete all workouts (use with caution!)
     /// - Throws: WorkoutRepositoryError if delete fails
     func deleteAll() async throws
+
+    // MARK: - Folder Management
+
+    /// Fetch all workout folders
+    /// - Returns: Array of all folders, sorted by order
+    /// - Throws: WorkoutRepositoryError if fetch fails
+    func fetchAllFolders() async throws -> [WorkoutFolder]
+
+    /// Create a new workout folder
+    /// - Parameter folder: The folder to create
+    /// - Throws: WorkoutRepositoryError if save fails
+    func createFolder(_ folder: WorkoutFolder) async throws
+
+    /// Update an existing folder
+    /// - Parameter folder: The folder with updated data
+    /// - Throws: WorkoutRepositoryError if update fails
+    func updateFolder(_ folder: WorkoutFolder) async throws
+
+    /// Delete a folder
+    /// - Parameter folderId: ID of the folder to delete
+    /// - Throws: WorkoutRepositoryError if delete fails
+    /// - Note: Workouts in the folder will have their folder reference set to nil
+    func deleteFolder(id: UUID) async throws
+
+    /// Move workout to a folder
+    /// - Parameters:
+    ///   - workoutId: ID of the workout to move
+    ///   - folderId: ID of the target folder (nil to remove from folder)
+    /// - Throws: WorkoutRepositoryError if update fails
+    func moveWorkoutToFolder(workoutId: UUID, folderId: UUID?) async throws
 }
 
 // MARK: - Repository Errors
@@ -130,6 +160,7 @@ enum WorkoutRepositoryError: Error, LocalizedError {
 
         /// In-memory storage
         private var workouts: [UUID: Workout] = [:]
+        private var folders: [UUID: WorkoutFolder] = [:]
 
         /// Flag to simulate errors (for testing error handling)
         var shouldThrowError: Bool = false
@@ -201,9 +232,49 @@ enum WorkoutRepositoryError: Error, LocalizedError {
             workouts[workoutId] = workout
         }
 
+        // MARK: - Folder Methods
+
+        func fetchAllFolders() async throws -> [WorkoutFolder] {
+            if shouldThrowError { throw errorToThrow }
+            return folders.values.sorted { $0.order < $1.order }
+        }
+
+        func createFolder(_ folder: WorkoutFolder) async throws {
+            if shouldThrowError { throw errorToThrow }
+            folders[folder.id] = folder
+        }
+
+        func updateFolder(_ folder: WorkoutFolder) async throws {
+            if shouldThrowError { throw errorToThrow }
+            guard folders[folder.id] != nil else {
+                throw WorkoutRepositoryError.workoutNotFound(folder.id)
+            }
+            folders[folder.id] = folder
+        }
+
+        func deleteFolder(id: UUID) async throws {
+            if shouldThrowError { throw errorToThrow }
+            // Remove folder reference from workouts
+            for (workoutId, var workout) in workouts where workout.folderId == id {
+                workout.folderId = nil
+                workouts[workoutId] = workout
+            }
+            folders.removeValue(forKey: id)
+        }
+
+        func moveWorkoutToFolder(workoutId: UUID, folderId: UUID?) async throws {
+            if shouldThrowError { throw errorToThrow }
+            guard var workout = workouts[workoutId] else {
+                throw WorkoutRepositoryError.workoutNotFound(workoutId)
+            }
+            workout.folderId = folderId
+            workouts[workoutId] = workout
+        }
+
         /// Reset the mock repository (useful between tests)
         func reset() {
             workouts.removeAll()
+            folders.removeAll()
             shouldThrowError = false
         }
 

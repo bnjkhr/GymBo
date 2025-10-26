@@ -20,6 +20,8 @@ struct Workout: Identifiable, Equatable, Hashable {
     var isFavorite: Bool
     var difficultyLevel: String?  // "Anfänger", "Fortgeschritten", "Profi"
     var equipmentType: String?  // "Maschine", "Freie Gewichte", "Gemischt"
+    var folderId: UUID?  // Reference to WorkoutFolder
+    var orderInFolder: Int
 
     var exerciseCount: Int {
         exercises.count
@@ -39,7 +41,9 @@ struct Workout: Identifiable, Equatable, Hashable {
         updatedAt: Date = Date(),
         isFavorite: Bool = false,
         difficultyLevel: String? = nil,
-        equipmentType: String? = nil
+        equipmentType: String? = nil,
+        folderId: UUID? = nil,
+        orderInFolder: Int = 0
     ) {
         self.id = id
         self.name = name
@@ -51,6 +55,8 @@ struct Workout: Identifiable, Equatable, Hashable {
         self.isFavorite = isFavorite
         self.difficultyLevel = difficultyLevel
         self.equipmentType = equipmentType
+        self.folderId = folderId
+        self.orderInFolder = orderInFolder
     }
 
     static func == (lhs: Workout, rhs: Workout) -> Bool {

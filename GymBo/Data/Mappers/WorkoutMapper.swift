@@ -47,7 +47,9 @@ struct WorkoutMapper {
             isFavorite: domain.isFavorite,
             isSampleWorkout: nil,
             difficultyLevel: domain.difficultyLevel,
-            equipmentType: domain.equipmentType
+            equipmentType: domain.equipmentType,
+            folder: nil,  // Will be set by repository when folder relationship is needed
+            orderInFolder: domain.orderInFolder
         )
 
         // Map exercises
@@ -79,7 +81,9 @@ struct WorkoutMapper {
             updatedAt: entity.date,
             isFavorite: entity.isFavorite,
             difficultyLevel: entity.difficultyLevel,
-            equipmentType: entity.equipmentType
+            equipmentType: entity.equipmentType,
+            folderId: entity.folder?.id,
+            orderInFolder: entity.orderInFolder
         )
     }
 
@@ -94,7 +98,9 @@ struct WorkoutMapper {
         entity.isFavorite = domain.isFavorite
         entity.difficultyLevel = domain.difficultyLevel
         entity.equipmentType = domain.equipmentType
+        entity.orderInFolder = domain.orderInFolder
         entity.date = domain.updatedAt
+        // Note: folder relationship is updated separately by repository
 
         // Update exercises IN-PLACE to preserve SwiftData relationships
         // Match by ID and update existing entities

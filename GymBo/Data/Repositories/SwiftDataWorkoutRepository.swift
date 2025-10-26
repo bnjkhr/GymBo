@@ -35,12 +35,17 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
 
     private let modelContext: ModelContext
     private let mapper: WorkoutMapper
+    private let folderMapper: WorkoutFolderMapper
 
     // MARK: - Initialization
 
-    init(modelContext: ModelContext, mapper: WorkoutMapper = WorkoutMapper()) {
+    init(
+        modelContext: ModelContext, mapper: WorkoutMapper = WorkoutMapper(),
+        folderMapper: WorkoutFolderMapper = WorkoutFolderMapper()
+    ) {
         self.modelContext = modelContext
         self.mapper = mapper
+        self.folderMapper = folderMapper
     }
 
     // MARK: - Create & Update
@@ -221,10 +226,100 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
         }
     }
 
+    // MARK: - Folder Management
+
+    func fetchAllFolders() async throws -> [WorkoutFolder] {
+        do {
+            let descriptor = FetchDescriptor<WorkoutFolderEntity>(
+                sortBy: [SortDescriptor(\.order, order: .forward)]
+            )
+            let entities = try modelContext.fetch(descriptor)
+            return folderMapper.toDomain(entities)
+        } catch {
+            throw WorkoutRepositoryError.fetchFailed(error)
+        }
+    }
+
+    func createFolder(_ folder: WorkoutFolder) async throws {
+        do {
+            let entity = folderMapper.toEntity(folder)
+            modelContext.insert(entity)
+            try modelContext.save()
+        } catch {
+            throw WorkoutRepositoryError.saveFailed(error)
+        }
+    }
+
+    func updateFolder(_ folder: WorkoutFolder) async throws {
+        do {
+            guard let entity = try await fetchFolderEntity(id: folder.id) else {
+                throw WorkoutRepositoryError.workoutNotFound(folder.id)
+            }
+            folderMapper.updateEntity(entity, from: folder)
+            try modelContext.save()
+        } catch let error as WorkoutRepositoryError {
+            throw error
+        } catch {
+            throw WorkoutRepositoryError.updateFailed(error)
+        }
+    }
+
+    func deleteFolder(id: UUID) async throws {
+        do {
+            guard let entity = try await fetchFolderEntity(id: id) else {
+                throw WorkoutRepositoryError.workoutNotFound(id)
+            }
+
+            // Remove folder reference from all workouts in this folder
+            for workout in entity.workouts {
+                workout.folder = nil
+            }
+
+            modelContext.delete(entity)
+            try modelContext.save()
+        } catch let error as WorkoutRepositoryError {
+            throw error
+        } catch {
+            throw WorkoutRepositoryError.deleteFailed(error)
+        }
+    }
+
+    func moveWorkoutToFolder(workoutId: UUID, folderId: UUID?) async throws {
+        do {
+            guard let workoutEntity = try await fetchEntity(id: workoutId) else {
+                throw WorkoutRepositoryError.workoutNotFound(workoutId)
+            }
+
+            if let folderId = folderId {
+                // Move to folder
+                guard let folderEntity = try await fetchFolderEntity(id: folderId) else {
+                    throw WorkoutRepositoryError.workoutNotFound(folderId)
+                }
+                workoutEntity.folder = folderEntity
+            } else {
+                // Remove from folder
+                workoutEntity.folder = nil
+            }
+
+            try modelContext.save()
+        } catch let error as WorkoutRepositoryError {
+            throw error
+        } catch {
+            throw WorkoutRepositoryError.updateFailed(error)
+        }
+    }
+
     // MARK: - Private Helpers
 
     private func fetchEntity(id: UUID) async throws -> WorkoutEntity? {
         let descriptor = FetchDescriptor<WorkoutEntity>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try modelContext.fetch(descriptor).first
+    }
+
+    private func fetchFolderEntity(id: UUID) async throws -> WorkoutFolderEntity? {
+        let descriptor = FetchDescriptor<WorkoutFolderEntity>(
             predicate: #Predicate { $0.id == id }
         )
         return try modelContext.fetch(descriptor).first
