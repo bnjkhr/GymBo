@@ -48,6 +48,9 @@ final class WorkoutStore {
     /// List of all workout templates
     var workouts: [Workout] = []
 
+    /// List of all workout folders
+    var folders: [WorkoutFolder] = []
+
     /// Currently selected workout (for detail view)
     var selectedWorkout: Workout?
 
@@ -77,6 +80,7 @@ final class WorkoutStore {
     private let removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
     private let reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase
     private let updateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase
+    private let workoutRepository: WorkoutRepositoryProtocol  // For direct folder access
 
     // MARK: - Private State
 
@@ -94,7 +98,8 @@ final class WorkoutStore {
         addExerciseToWorkoutUseCase: AddExerciseToWorkoutUseCase,
         removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase,
         reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase,
-        updateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase
+        updateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase,
+        workoutRepository: WorkoutRepositoryProtocol
     ) {
         self.getAllWorkoutsUseCase = getAllWorkoutsUseCase
         self.getWorkoutByIdUseCase = getWorkoutByIdUseCase
@@ -106,6 +111,7 @@ final class WorkoutStore {
         self.removeExerciseFromWorkoutUseCase = removeExerciseFromWorkoutUseCase
         self.reorderWorkoutExercisesUseCase = reorderWorkoutExercisesUseCase
         self.updateWorkoutExerciseUseCase = updateWorkoutExerciseUseCase
+        self.workoutRepository = workoutRepository
     }
 
     // MARK: - Public Methods
@@ -146,6 +152,79 @@ final class WorkoutStore {
     /// Refresh workouts list
     func refresh() async {
         await loadWorkouts()
+        await loadFolders()
+    }
+
+    // MARK: - Folder Management
+
+    /// Load all workout folders
+    func loadFolders() async {
+        do {
+            folders = try await workoutRepository.fetchAllFolders()
+            print("✅ Loaded \(folders.count) folders")
+        } catch {
+            self.error = error
+            print("❌ Failed to load folders: \(error.localizedDescription)")
+        }
+    }
+
+    /// Create a new workout folder
+    func createFolder(name: String, color: String) async {
+        do {
+            let maxOrder = folders.map { $0.order }.max() ?? -1
+            let folder = WorkoutFolder(
+                name: name,
+                color: color,
+                order: maxOrder + 1
+            )
+            try await workoutRepository.createFolder(folder)
+            await loadFolders()
+            showSuccessMessage("Kategorie erstellt")
+            print("✅ Created folder: \(name)")
+        } catch {
+            self.error = error
+            print("❌ Failed to create folder: \(error)")
+        }
+    }
+
+    /// Update a folder
+    func updateFolder(_ folder: WorkoutFolder) async {
+        do {
+            try await workoutRepository.updateFolder(folder)
+            await loadFolders()
+            showSuccessMessage("Kategorie aktualisiert")
+            print("✅ Updated folder: \(folder.name)")
+        } catch {
+            self.error = error
+            print("❌ Failed to update folder: \(error)")
+        }
+    }
+
+    /// Delete a folder
+    func deleteFolder(id: UUID) async {
+        do {
+            try await workoutRepository.deleteFolder(id: id)
+            await loadFolders()
+            await loadWorkouts()  // Reload workouts to update their folder references
+            showSuccessMessage("Kategorie gelöscht")
+            print("✅ Deleted folder")
+        } catch {
+            self.error = error
+            print("❌ Failed to delete folder: \(error)")
+        }
+    }
+
+    /// Move workout to a folder
+    func moveWorkoutToFolder(workoutId: UUID, folderId: UUID?) async {
+        do {
+            try await workoutRepository.moveWorkoutToFolder(
+                workoutId: workoutId, folderId: folderId)
+            await loadWorkouts()
+            print("✅ Moved workout to folder")
+        } catch {
+            self.error = error
+            print("❌ Failed to move workout: \(error)")
+        }
     }
 
     /// Trigger a refresh in observing views (e.g., WorkoutDetailView)

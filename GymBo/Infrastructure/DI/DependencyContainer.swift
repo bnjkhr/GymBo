@@ -71,7 +71,8 @@ final class DependencyContainer {
             addExerciseToWorkoutUseCase: makeAddExerciseToWorkoutUseCase(),
             removeExerciseFromWorkoutUseCase: makeRemoveExerciseFromWorkoutUseCase(),
             reorderWorkoutExercisesUseCase: makeReorderWorkoutExercisesUseCase(),
-            updateWorkoutExerciseUseCase: makeUpdateWorkoutExerciseUseCase()
+            updateWorkoutExerciseUseCase: makeUpdateWorkoutExerciseUseCase(),
+            workoutRepository: makeWorkoutRepository()
         )
     }()
 
