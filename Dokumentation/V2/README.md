@@ -1,8 +1,8 @@
 # GymBo V2 - Dokumentation
 
-**Stand:** 2025-10-24
-**Version:** 2.1.1
-**Status:** ✅ MVP COMPLETE - Production Ready with Sample Workouts
+**Stand:** 2025-10-26
+**Version:** 2.3.0
+**Status:** ✅ MVP COMPLETE - Production Ready with Workout Folders
 
 ---
 
@@ -51,11 +51,22 @@
 - ✅ Create/Edit/Delete Workouts
 - ✅ Toggle Favorite (Stern-Icon)
 - ✅ Workout List mit Favoriten-Sektion
+- ✅ **Workout Folders/Categories** (NEU - organize workouts in colored folders)
+  - Create/Edit/Delete Folders
+  - 8 predefined colors
+  - Move workouts between folders (context menu)
+  - Collapsible folder sections
+  - Auto-move to "Ohne Kategorie" on folder deletion
 - ✅ Pull-to-refresh
 - ✅ WorkoutStore mit allen Use Cases
 - ✅ 6 Comprehensive Sample Workouts (2x Maschinen, 2x Freie Gewichte, 2x Gemischt)
 - ✅ Difficulty Levels (Anfänger 🍃, Fortgeschritten 🔥, Profi ⚡)
 - ✅ Equipment Type Labels (Maschine, Freie Gewichte, Gemischt)
+- ✅ **Quick-Setup Workout Creation** (NEU - wizard for fast workout creation)
+  - Equipment category selection
+  - Duration & goal selection
+  - AI-based exercise generation
+  - Preview & customize before saving
 
 **Exercise Library:**
 
@@ -83,18 +94,22 @@
 - ✅ Add/Remove Sets dynamisch
 - ✅ Update Set Weight/Reps
 - ✅ Update All Sets in bulk
+- ✅ **Per-Set Rest Times** (NEU - individual rest times for each set)
 - ✅ Exercise Notes inline editing
 - ✅ Auto-Finish Exercise
 - ✅ Reorder Exercises (session-only oder permanent)
 - ✅ Add Exercise to Active Session (Plus-Button mit permanent save toggle)
-- ✅ Rest Timer (90s mit ±15s adjust)
+- ✅ Rest Timer with UserNotifications (background support)
+- ✅ Rest Timer cancellation on workout end/cancel
 - ✅ Show/Hide completed exercises
 - ✅ Exercise Counter (2/7)
 - ✅ Session Persistence & Restoration
+- ✅ Pause/Resume Session
 
 **UI/UX:**
 
 - ✅ Modern Dark Theme (schwarz + weiße Cards)
+- ✅ **Brand Color** #F77E2D (custom GymBo orange)
 - ✅ 39pt Corner Radius (iPhone display radius)
 - ✅ Inverted Checkboxes
 - ✅ Haptic Feedback
@@ -102,19 +117,30 @@
 - ✅ Profile Button (HomeView rechts oben)
 - ✅ iOS 26 Modern Card Design
 - ✅ TabBar Auto-Hide (.tabBarMinimizeBehavior(.onScrollDown))
-- ✅ Difficulty Badges (Colored pills mit Icons: 🍃🔥⚡)
+- ✅ Difficulty Badges (Grayscale: light/medium/dark gray mit Icons 🍃🔥⚡)
 - ✅ Equipment Type Labels (Under workout name in gray)
 - ✅ HomeView Redesign (Greeting, Locker Number, Workout Calendar Strip)
+- ✅ Collapsible Sections (Favoriten, Folders, Ohne Kategorie)
+- ✅ Difficulty labels removed from Exercise List (kept in Detail View)
 
 **Architecture:**
 
 - ✅ Clean Architecture (4 Layers)
-- ✅ 20+ Use Cases (Domain Layer)
-- ✅ 3 Repositories + Mappers (Data Layer)
+- ✅ **25 Use Cases** (Domain Layer)
+  - 12 Session Use Cases (Start, End, Cancel, Pause, Resume, etc.)
+  - 11 Workout Use Cases (Create, Update, Delete, QuickSetup, etc.)
+  - 2 Exercise Use Cases (Create, Delete)
+- ✅ **3 Repositories + Mappers** (Data Layer)
+  - SwiftDataWorkoutRepository (with folder support)
+  - SwiftDataSessionRepository
+  - SwiftDataExerciseRepository
+- ✅ **11 SwiftData Entities** (@Model classes)
+- ✅ **7 Domain Entities** (Pure Swift structs)
 - ✅ 2 Stores @Observable (Presentation) - SessionStore, WorkoutStore
 - ✅ DI Container (Infrastructure)
-- ✅ SwiftData Migration Plan
+- ✅ SwiftData Migration Plan (V1 → V2)
 - ✅ Refresh Trigger Pattern (reaktive UI updates)
+- ✅ @Bindable + local @State for UI reactivity
 
 ### 🟡 Nice-to-Have (Später)
 

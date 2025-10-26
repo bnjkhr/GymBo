@@ -1,9 +1,9 @@
 # GymBo V2 - TODO Liste
 
-**Stand:** 2025-10-24
-**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented
+**Stand:** 2025-10-26
+**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.3.0)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 8+ complete, Dokumentation aktualisiert
+**Letzte Änderungen:** Session 21 - Workout Folders Feature Complete
 
 ---
 
@@ -14,6 +14,9 @@
 **1. Workout Management** ✅
 - Create/Edit/Delete Workouts
 - Toggle Favorite
+- **Workout Folders/Categories** (organize in colored folders)
+- Move workouts between folders
+- Quick-Setup Workout Creation (wizard)
 - WorkoutStore mit allen Use Cases
 - Pull-to-refresh
 
@@ -31,35 +34,43 @@
 - Exercise Names werden geladen & angezeigt
 
 **4. Active Workout Session** ✅
-- Start/End/Cancel Session
+- Start/End/Cancel/Pause/Resume Session
 - Complete/Uncomplete Sets
 - Add/Remove Sets
 - Update Set Weight/Reps
 - Update All Sets
+- **Per-Set Rest Times** (individual rest for each set)
 - Exercise Notes
 - Auto-Finish Exercise
 - Reorder Exercises (session-only oder permanent)
-- Rest Timer (90s mit ±15s)
+- Rest Timer with UserNotifications (background support)
+- Rest Timer cancellation on workout end/cancel
 - Show/Hide completed
 - Exercise Counter
 - Session Persistence & Restoration
 
 **5. UI/UX** ✅
 - Modern Dark Theme
+- **Brand Color #F77E2D** (custom GymBo orange)
 - 39pt Corner Radius
 - Inverted Checkboxes
 - Haptic Feedback
 - Success Pills
 - Profile Button (HomeView)
 - iOS 26 Modern Card Design
+- Collapsible Sections (Favoriten, Folders, Ohne Kategorie)
+- HomeView Redesign (Greeting, Locker Number, Workout Calendar)
+- Difficulty badges (grayscale) removed from Exercise List
 
 **6. Architecture** ✅
 - Clean Architecture (4 Layers)
-- 17 Use Cases
-- 3 Repositories + Mappers
-- 2 Stores @Observable
+- **25 Use Cases** (12 Session + 11 Workout + 2 Exercise)
+- **3 Repositories** (Workout with folder support, Session, Exercise)
+- **11 SwiftData Entities** + **7 Domain Entities**
+- 2 Stores @Observable (SessionStore, WorkoutStore)
 - DI Container
-- SwiftData Migration Plan (SchemaV1, SchemaV2, GymBoMigrationPlan)
+- SwiftData Migration Plan (V1 → V2)
+- @Bindable + local @State for UI reactivity
 
 ---
 
@@ -152,18 +163,64 @@
 
 ## 🎯 Nächste Features (Nice-to-Have)
 
-### ✅ ERLEDIGT: Exercise Names, Equipment, Workout Repository
+### ✅ ERLEDIGT in Sessions 19-21 (2025-10-26)
 
-Die folgenden Punkte wurden bereits implementiert:
+**Session 19 - Brand Color & Per-Set Rest Times:**
+- ✅ Brand Color #F77E2D systemweit implementiert
+- ✅ Per-Set Rest Times (individuelle Pausenzeiten pro Satz)
+- ✅ Difficulty Badges zu Graustufen geändert
+- ✅ Color+AppColors.swift mit hex initializer
+
+**Session 20 - Quick-Setup Workout Creation:**
+- ✅ WorkoutCreationModeSheet mit 3 Modi
+- ✅ 3-Schritt Quick-Setup Wizard (Equipment → Dauer → Ziel)
+- ✅ QuickSetupWorkoutUseCase (AI-basierte Generierung)
+- ✅ QuickSetupPreviewView mit Smart Exercise Swap
+- ✅ Plus-Icon Button für Create Workout
+
+**Session 21 - Workout Folders/Categories:**
+- ✅ WorkoutFolder Domain Entity + SwiftData persistence
+- ✅ ManageFoldersSheet + CreateFolderSheet
+- ✅ 8 vordefinierte Farben für Folders
+- ✅ Context Menu zum Verschieben von Workouts
+- ✅ Collapsible Folder Sections in HomeView
+- ✅ Auto-move zu "Ohne Kategorie" bei Folder-Deletion
+- ✅ UI Reactivity Fixes (@Bindable + onChange Listener)
+- ✅ Rest Timer Notification Bugs behoben
+- ✅ Difficulty Labels aus Exercise List entfernt
+- ✅ Collapsible Sections für Favoriten & Alle Workouts
+
+**Bereits früher erledigt:**
 - ✅ Exercise Names werden angezeigt (aus ExerciseRepository)
 - ✅ Equipment wird angezeigt (Icons in WorkoutDetailView)
 - ✅ Workout Repository ist fertig (SwiftDataWorkoutRepository)
 - ✅ Exercise Repository ist fertig (SwiftDataExerciseRepository)
 - ✅ ExercisesView mit Search & Filter
+- ✅ HomeView Redesign (Greeting, Locker Number, Calendar)
 
 ---
 
-## 🚀 Neue Features (aus notes.md)
+## 🚀 Neue Features (Priorisiert nach Code-Review 2025-10-26)
+
+### 0. Code-Review Findings (Optional Improvements)
+
+**High Priority:**
+- [ ] **Folder Reordering** (ManageFoldersSheet.swift) - Drag & drop reordering
+- [ ] **Debug Logging entfernen** - Extensive debug logs aus Production Code entfernen
+
+**Medium Priority:**
+- [ ] **Unit Tests auslagern** - Tests aus inline zu separate Test target verschieben
+  - CompleteSetUseCase.swift, EndSessionUseCase.swift, StartSessionUseCase.swift
+  - SwiftDataSessionRepository.swift, SessionMapper.swift
+- [ ] **Legacy Code Cleanup** - Item.swift (V1) komplett entfernen
+- [ ] **Structured Logging** - print() → AppLogger mit strukturierten Metadaten
+
+**Low Priority (Nice-to-Have):**
+- [ ] **Profile Placeholders** - ProfileView.swift & ExerciseDetailView.swift komplettieren
+- [ ] **ProgressView implementieren** - Aktuell nur Placeholder
+- [ ] **CompactExerciseCard verbessern** - Exercise names/equipment aus Repository laden (aktuell hardcoded)
+
+---
 
 ### 1. Exercise Swap Feature (Medium Effort - 4-6 Std)
 **Ziel:** Lange auf Übung drücken → Alternative Übungen vorschlagen
