@@ -225,13 +225,22 @@ final class WorkoutStore {
     /// Move workout to a folder
     func moveWorkoutToFolder(workoutId: UUID, folderId: UUID?) async {
         do {
+            print(
+                "📦 [WorkoutStore] Moving workout \(workoutId) to folder \(folderId?.uuidString ?? "none")"
+            )
             try await workoutRepository.moveWorkoutToFolder(
                 workoutId: workoutId, folderId: folderId)
             await loadWorkouts()
-            print("✅ Moved workout to folder")
+            print("✅ [WorkoutStore] Moved workout to folder, reloaded workouts")
+            // Debug: Print workout folder assignments
+            for workout in workouts {
+                print(
+                    "  - Workout '\(workout.name)': folderId=\(workout.folderId?.uuidString ?? "nil")"
+                )
+            }
         } catch {
             self.error = error
-            print("❌ Failed to move workout: \(error)")
+            print("❌ [WorkoutStore] Failed to move workout: \(error)")
         }
     }
 

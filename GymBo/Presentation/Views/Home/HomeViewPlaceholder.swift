@@ -579,6 +579,12 @@ struct HomeViewPlaceholder: View {
             Button {
                 Task {
                     await workoutStore?.moveWorkoutToFolder(workoutId: workout.id, folderId: nil)
+                    // Reload local workouts after move
+                    if let store = workoutStore {
+                        workouts = store.workouts
+                        updateWorkoutsHash()
+                        print("🔄 HomeView: Workouts reloaded after moving to 'Ohne Kategorie'")
+                    }
                 }
             } label: {
                 Label("Ohne Kategorie", systemImage: "folder.badge.minus")
@@ -589,6 +595,14 @@ struct HomeViewPlaceholder: View {
                     Task {
                         await workoutStore?.moveWorkoutToFolder(
                             workoutId: workout.id, folderId: folder.id)
+                        // Reload local workouts after move
+                        if let store = workoutStore {
+                            workouts = store.workouts
+                            updateWorkoutsHash()
+                            print(
+                                "🔄 HomeView: Workouts reloaded after moving to folder '\(folder.name)'"
+                            )
+                        }
                     }
                 } label: {
                     HStack {
