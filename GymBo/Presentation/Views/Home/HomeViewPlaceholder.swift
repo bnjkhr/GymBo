@@ -448,6 +448,15 @@ struct HomeViewPlaceholder: View {
             ManageFoldersSheet()
                 .environment(store)
         }
+        .onChange(of: showManageFolders) { oldValue, newValue in
+            // Reload folders when ManageFolders sheet is dismissed
+            if !newValue && oldValue {
+                Task {
+                    await store.loadFolders()
+                    print("🔄 HomeView: Folders reloaded after ManageFolders sheet dismissed")
+                }
+            }
+        }
     }
 
     private func sectionHeader(title: String) -> some View {
