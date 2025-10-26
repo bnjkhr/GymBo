@@ -98,6 +98,7 @@ struct QuickSetupPreviewView: View {
             .sheet(isPresented: $showExercisePicker) {
                 ExercisePickerSheet(
                     exercises: filteredExercisesForPicker(),
+                    currentExerciseMuscleGroups: currentExerciseMuscleGroups(),
                     onSelect: { selectedExercise in
                         handleExerciseSelection(selectedExercise)
                     }
@@ -201,6 +202,11 @@ struct QuickSetupPreviewView: View {
 
     private func exerciseName(for exerciseId: UUID) -> String {
         allExercises.first { $0.id == exerciseId }?.name ?? "Unbekannt"
+    }
+
+    private func currentExerciseMuscleGroups() -> [String] {
+        guard let exerciseToReplace = exerciseToReplace else { return [] }
+        return allExercises.first { $0.id == exerciseToReplace.exerciseId }?.muscleGroupsRaw ?? []
     }
 
     private func filteredExercisesForPicker() -> [ExerciseEntity] {
@@ -388,32 +394,63 @@ private struct ExercisePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let exercises: [ExerciseEntity]
+    let currentExerciseMuscleGroups: [String]
     let onSelect: (ExerciseEntity) -> Void
 
     @State private var searchText = ""
 
     var filteredExercises: [ExerciseEntity] {
-        if searchText.isEmpty {
-            return exercises
+        let filtered =
+            searchText.isEmpty
+            ? exercises
+            : exercises.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+
+        // Sort: Same muscle groups first, then others
+        return filtered.sorted { exercise1, exercise2 in
+            let hasMatchingMuscles1 = !Set(exercise1.muscleGroupsRaw).isDisjoint(
+                with: currentExerciseMuscleGroups)
+            let hasMatchingMuscles2 = !Set(exercise2.muscleGroupsRaw).isDisjoint(
+                with: currentExerciseMuscleGroups)
+
+            if hasMatchingMuscles1 && !hasMatchingMuscles2 {
+                return true  // exercise1 comes first
+            } else if !hasMatchingMuscles1 && hasMatchingMuscles2 {
+                return false  // exercise2 comes first
+            } else {
+                // Both have or don't have matching muscles - sort alphabetically
+                return exercise1.name < exercise2.name
+            }
         }
-        return exercises.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
     }
 
     var body: some View {
         NavigationStack {
-            List(filteredExercises) { exercise in
-                Button {
-                    onSelect(exercise)
-                    dismiss()
-                } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(exercise.name)
-                            .font(.body)
-                            .foregroundColor(.primary)
+            List {
+                ForEach(filteredExercises) { exercise in
+                    Button {
+                        onSelect(exercise)
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(exercise.name)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
 
-                        Text(exercise.muscleGroupsRaw.joined(separator: ", "))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                                Text(exercise.muscleGroupsRaw.joined(separator: ", "))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Spacer()
+
+                            // Show indicator for matching muscle groups
+                            if !Set(exercise.muscleGroupsRaw).isDisjoint(with: currentExerciseMuscleGroups) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.appOrange)
+                                    .font(.caption)
+                            }
+                        }
                     }
                 }
             }
