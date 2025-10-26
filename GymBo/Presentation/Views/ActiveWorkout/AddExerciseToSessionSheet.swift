@@ -171,10 +171,10 @@ private struct ExerciseRowButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                // Icon
-                Image(systemName: "figure.run")
+                // Equipment Icon
+                Image(systemName: equipmentIcon(for: exercise.equipmentTypeRaw))
                     .font(.title2)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.secondary)
                     .frame(width: 32)
 
                 // Exercise Info
@@ -193,7 +193,7 @@ private struct ExerciseRowButton: View {
 
                 Spacer()
 
-                // Chevron
+                // Plus Icon
                 Image(systemName: "plus.circle.fill")
                     .font(.title3)
                     .foregroundStyle(.orange)
@@ -201,6 +201,23 @@ private struct ExerciseRowButton: View {
             .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Equipment Icon Helper
+
+    private func equipmentIcon(for equipmentType: String) -> String {
+        switch equipmentType.lowercased() {
+        case "maschine":
+            return "figure.hand.cycling"
+        case "körpergewicht":
+            return "figure.core.training"
+        case "freie gewichte":
+            return "figure.strengthtraining.traditional"
+        case "cardio":
+            return "figure.run.treadmill"
+        default:
+            return "figure.mixed.cardio"
+        }
     }
 }
 

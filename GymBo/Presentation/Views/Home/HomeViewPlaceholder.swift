@@ -411,11 +411,9 @@ private struct WorkoutCard: View {
                             .foregroundColor(.primary)
                             .lineLimit(1)
 
-                        // Equipment Type
+                        // Equipment Type Icons
                         if let equipmentType = workout.equipmentType {
-                            Text(equipmentType)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                            equipmentIcons(for: equipmentType)
                         }
                     }
 
@@ -497,6 +495,44 @@ private struct WorkoutCard: View {
             return (.red, "bolt.fill")
         default:
             return (.gray, "circle.fill")
+        }
+    }
+
+    // MARK: - Equipment Icons
+
+    @ViewBuilder
+    private func equipmentIcons(for equipmentType: String) -> some View {
+        HStack(spacing: 4) {
+            if equipmentType.lowercased() == "gemischt" {
+                // For mixed workouts, show all equipment types present
+                // For now, show all icons as we don't have exercise details here
+                Image(systemName: "figure.strengthtraining.traditional")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Image(systemName: "figure.hand.cycling")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                // Single equipment type
+                Image(systemName: equipmentIcon(for: equipmentType))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func equipmentIcon(for equipmentType: String) -> String {
+        switch equipmentType.lowercased() {
+        case "maschine":
+            return "figure.hand.cycling"
+        case "körpergewicht":
+            return "figure.core.training"
+        case "freie gewichte":
+            return "figure.strengthtraining.traditional"
+        case "cardio":
+            return "figure.run.treadmill"
+        default:
+            return "figure.mixed.cardio"
         }
     }
 }

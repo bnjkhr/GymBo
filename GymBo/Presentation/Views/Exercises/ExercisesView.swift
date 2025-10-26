@@ -312,7 +312,13 @@ private struct ExerciseCard: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
-                // Exercise Info (Left) - 3 lines
+                // Equipment Icon (Left)
+                Image(systemName: equipmentIcon(for: exercise.equipmentTypeRaw))
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 32)
+
+                // Exercise Info - 3 lines
                 VStack(alignment: .leading, spacing: 4) {
                     // Line 1: Exercise Name
                     Text(exercise.name)
@@ -387,6 +393,23 @@ private struct ExerciseCard: View {
             return (.red, "bolt.fill")
         default:
             return (.gray, "circle.fill")
+        }
+    }
+
+    // MARK: - Equipment Icon Helper
+
+    private func equipmentIcon(for equipmentType: String) -> String {
+        switch equipmentType.lowercased() {
+        case "maschine":
+            return "figure.hand.cycling"
+        case "körpergewicht":
+            return "figure.core.training"
+        case "freie gewichte":
+            return "figure.strengthtraining.traditional"
+        case "cardio":
+            return "figure.run.treadmill"
+        default:
+            return "figure.mixed.cardio"
         }
     }
 }

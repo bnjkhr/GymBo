@@ -127,6 +127,14 @@ struct CompactExerciseCard: View {
     /// Exercise header with name, equipment, and notes
     private var exerciseHeader: some View {
         HStack(alignment: .top, spacing: 12) {
+            // Equipment Icon
+            if let equipment = equipment {
+                Image(systemName: equipmentIcon(for: equipment))
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 32)
+            }
+
             // Name, equipment, and notes
             VStack(alignment: .leading, spacing: 4) {
                 Text(exerciseName)
@@ -149,6 +157,23 @@ struct CompactExerciseCard: View {
             }
 
             Spacer()
+        }
+    }
+
+    // MARK: - Equipment Icon Helper
+
+    private func equipmentIcon(for equipmentType: String) -> String {
+        switch equipmentType.lowercased() {
+        case "maschine":
+            return "figure.hand.cycling"
+        case "körpergewicht":
+            return "figure.core.training"
+        case "freie gewichte":
+            return "figure.strengthtraining.traditional"
+        case "cardio":
+            return "figure.run.treadmill"
+        default:
+            return "figure.mixed.cardio"
         }
     }
 
