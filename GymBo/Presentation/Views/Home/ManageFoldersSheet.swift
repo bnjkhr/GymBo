@@ -9,13 +9,13 @@ import SwiftUI
 
 /// Sheet for managing workout folders/categories
 struct ManageFoldersSheet: View {
-    
+
     @Environment(\.dismiss) private var dismiss
     @Environment(WorkoutStore.self) private var workoutStore
-    
+
     @State private var showCreateFolder = false
     @State private var editingFolder: WorkoutFolder?
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -25,12 +25,12 @@ struct ManageFoldersSheet: View {
                         Circle()
                             .fill(Color(hex: folder.color) ?? .purple)
                             .frame(width: 24, height: 24)
-                        
+
                         Text(folder.name)
                             .font(.body)
-                        
+
                         Spacer()
-                        
+
                         // Workout count
                         let count = workoutStore.workouts.filter { $0.folderId == folder.id }.count
                         if count > 0 {
@@ -64,7 +64,7 @@ struct ManageFoldersSheet: View {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         showCreateFolder = true
@@ -85,20 +85,20 @@ struct ManageFoldersSheet: View {
 
 /// Sheet for creating or editing a folder
 struct CreateFolderSheet: View {
-    
+
     enum Mode {
         case create
         case edit(WorkoutFolder)
     }
-    
+
     let mode: Mode
-    
+
     @Environment(\.dismiss) private var dismiss
     @Environment(WorkoutStore.self) private var workoutStore
-    
+
     @State private var name: String = ""
     @State private var selectedColor: String = "#8B5CF6"  // Default purple
-    
+
     // Available colors
     private let availableColors = [
         "#8B5CF6",  // Purple
@@ -110,14 +110,14 @@ struct CreateFolderSheet: View {
         "#6366F1",  // Indigo
         "#14B8A6",  // Teal
     ]
-    
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("Name") {
                     TextField("Kategoriename", text: $name)
                 }
-                
+
                 Section("Farbe") {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 50))], spacing: 16) {
                         ForEach(availableColors, id: \.self) { colorHex in
@@ -149,7 +149,7 @@ struct CreateFolderSheet: View {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button(mode.isEdit ? "Speichern" : "Erstellen") {
                         Task {
@@ -168,7 +168,7 @@ struct CreateFolderSheet: View {
             }
         }
     }
-    
+
     private func saveFolder() async {
         switch mode {
         case .create:
@@ -188,35 +188,6 @@ extension CreateFolderSheet.Mode {
     var isEdit: Bool {
         if case .edit = self { return true }
         return false
-    }
-}
-
-// MARK: - Color Extension
-
-extension Color {
-    init?(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            return nil
-        }
-
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
-        )
     }
 }
 
