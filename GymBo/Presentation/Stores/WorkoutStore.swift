@@ -160,30 +160,38 @@ final class WorkoutStore {
     /// Load all workout folders
     func loadFolders() async {
         do {
+            print("🔄 [WorkoutStore] Loading folders...")
             folders = try await workoutRepository.fetchAllFolders()
-            print("✅ Loaded \(folders.count) folders")
+            print("✅ [WorkoutStore] Loaded \(folders.count) folders")
+            for folder in folders {
+                print("  - \(folder.name) (id: \(folder.id), color: \(folder.color))")
+            }
         } catch {
             self.error = error
-            print("❌ Failed to load folders: \(error.localizedDescription)")
+            print("❌ [WorkoutStore] Failed to load folders: \(error.localizedDescription)")
         }
     }
 
     /// Create a new workout folder
     func createFolder(name: String, color: String) async {
         do {
+            print("📝 [WorkoutStore] Creating folder: name=\(name), color=\(color)")
             let maxOrder = folders.map { $0.order }.max() ?? -1
+            print("📝 [WorkoutStore] Current max order: \(maxOrder), new order: \(maxOrder + 1)")
             let folder = WorkoutFolder(
                 name: name,
                 color: color,
                 order: maxOrder + 1
             )
+            print("📝 [WorkoutStore] Folder object created: \(folder)")
             try await workoutRepository.createFolder(folder)
+            print("✅ [WorkoutStore] Folder created in repository, reloading folders...")
             await loadFolders()
             showSuccessMessage("Kategorie erstellt")
-            print("✅ Created folder: \(name)")
+            print("✅ [WorkoutStore] Create folder complete")
         } catch {
             self.error = error
-            print("❌ Failed to create folder: \(error)")
+            print("❌ [WorkoutStore] Failed to create folder: \(error)")
         }
     }
 

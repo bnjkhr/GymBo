@@ -230,22 +230,48 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
 
     func fetchAllFolders() async throws -> [WorkoutFolder] {
         do {
+            print("🔍 [Repository] Fetching all folders from database...")
             let descriptor = FetchDescriptor<WorkoutFolderEntity>(
                 sortBy: [SortDescriptor(\.order, order: .forward)]
             )
             let entities = try modelContext.fetch(descriptor)
-            return folderMapper.toDomain(entities)
+            print("🔍 [Repository] Found \(entities.count) folder entities in database")
+            for entity in entities {
+                print(
+                    "  - Folder: id=\(entity.id), name=\(entity.name), color=\(entity.color), order=\(entity.order)"
+                )
+            }
+            let domains = folderMapper.toDomain(entities)
+            print("✅ [Repository] Converted to \(domains.count) domain folders")
+            return domains
         } catch {
+            print("❌ [Repository] Failed to fetch folders: \(error)")
             throw WorkoutRepositoryError.fetchFailed(error)
         }
     }
 
     func createFolder(_ folder: WorkoutFolder) async throws {
         do {
+            print(
+                "💾 [Repository] Creating folder: id=\(folder.id), name=\(folder.name), color=\(folder.color)"
+            )
             let entity = folderMapper.toEntity(folder)
+            print("💾 [Repository] Created entity: id=\(entity.id), name=\(entity.name)")
             modelContext.insert(entity)
+            print("💾 [Repository] Entity inserted into context")
             try modelContext.save()
+            print("✅ [Repository] ModelContext saved successfully")
+
+            // Verify the save worked
+            let descriptor = FetchDescriptor<WorkoutFolderEntity>(
+                predicate: #Predicate { $0.id == folder.id }
+            )
+            let savedEntities = try modelContext.fetch(descriptor)
+            print(
+                "🔍 [Repository] Verification: Found \(savedEntities.count) entities with id \(folder.id)"
+            )
         } catch {
+            print("❌ [Repository] Failed to create folder: \(error)")
             throw WorkoutRepositoryError.saveFailed(error)
         }
     }
