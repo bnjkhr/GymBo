@@ -452,14 +452,17 @@ struct HomeViewPlaceholder: View {
                 .environment(store)
         }
         .onChange(of: showManageFolders) { oldValue, newValue in
-            // Reload folders when ManageFolders sheet is dismissed
+            // Reload folders and workouts when ManageFolders sheet is dismissed
             if !newValue && oldValue {
                 Task {
                     await store.loadFolders()
+                    await store.loadWorkouts()  // Also reload workouts in case folder was deleted
                     folders = store.folders  // Copy to local state
+                    workouts = store.workouts  // Copy to local state
                     foldersUpdateTrigger += 1  // Force view update
+                    updateWorkoutsHash()
                     print(
-                        "🔄 HomeView: Folders reloaded after ManageFolders sheet dismissed, trigger=\(foldersUpdateTrigger), count=\(folders.count)"
+                        "🔄 HomeView: Folders and workouts reloaded after ManageFolders sheet dismissed, trigger=\(foldersUpdateTrigger), folders=\(folders.count), workouts=\(workouts.count)"
                     )
                 }
             }

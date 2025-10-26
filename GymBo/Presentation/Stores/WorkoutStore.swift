@@ -211,14 +211,22 @@ final class WorkoutStore {
     /// Delete a folder
     func deleteFolder(id: UUID) async {
         do {
+            print("🗑️ [WorkoutStore] Deleting folder \(id)")
             try await workoutRepository.deleteFolder(id: id)
+            print("✅ [WorkoutStore] Folder deleted from repository")
             await loadFolders()
             await loadWorkouts()  // Reload workouts to update their folder references
+            print("✅ [WorkoutStore] Reloaded folders and workouts after deletion")
+            // Debug: Print workout folder assignments
+            for workout in workouts {
+                print(
+                    "  - Workout '\(workout.name)': folderId=\(workout.folderId?.uuidString ?? "nil")"
+                )
+            }
             showSuccessMessage("Kategorie gelöscht")
-            print("✅ Deleted folder")
         } catch {
             self.error = error
-            print("❌ Failed to delete folder: \(error)")
+            print("❌ [WorkoutStore] Failed to delete folder: \(error)")
         }
     }
 

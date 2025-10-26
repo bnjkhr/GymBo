@@ -293,17 +293,23 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
 
     func deleteFolder(id: UUID) async throws {
         do {
+            print("🗑️ [Repository] Deleting folder \(id)")
             guard let entity = try await fetchFolderEntity(id: id) else {
                 throw WorkoutRepositoryError.workoutNotFound(id)
             }
 
+            print(
+                "🗑️ [Repository] Found folder entity, removing from \(entity.workouts.count) workouts"
+            )
             // Remove folder reference from all workouts in this folder
             for workout in entity.workouts {
+                print("  - Removing folder from workout: \(workout.name)")
                 workout.folder = nil
             }
 
             modelContext.delete(entity)
             try modelContext.save()
+            print("✅ [Repository] Folder deleted and changes saved")
         } catch let error as WorkoutRepositoryError {
             throw error
         } catch {
