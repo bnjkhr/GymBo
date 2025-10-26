@@ -263,12 +263,13 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
             print("✅ [Repository] ModelContext saved successfully")
 
             // Verify the save worked
+            let folderId = folder.id
             let descriptor = FetchDescriptor<WorkoutFolderEntity>(
-                predicate: #Predicate { $0.id == folder.id }
+                predicate: #Predicate { $0.id == folderId }
             )
             let savedEntities = try modelContext.fetch(descriptor)
             print(
-                "🔍 [Repository] Verification: Found \(savedEntities.count) entities with id \(folder.id)"
+                "🔍 [Repository] Verification: Found \(savedEntities.count) entities with id \(folderId)"
             )
         } catch {
             print("❌ [Repository] Failed to create folder: \(error)")
