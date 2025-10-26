@@ -519,7 +519,9 @@ struct HomeViewPlaceholder: View {
 
     // MARK: - Folder Header
 
-    private func collapsibleFolderHeader(folder: WorkoutFolder, isExpanded: Binding<Bool>) -> some View {
+    private func collapsibleFolderHeader(folder: WorkoutFolder, isExpanded: Binding<Bool>)
+        -> some View
+    {
         Button {
             withAnimation(.easeInOut(duration: 0.2)) {
                 isExpanded.wrappedValue.toggle()
@@ -569,7 +571,8 @@ struct HomeViewPlaceholder: View {
             ForEach(workoutStore?.folders ?? []) { folder in
                 Button {
                     Task {
-                        await workoutStore?.moveWorkoutToFolder(workoutId: workout.id, folderId: folder.id)
+                        await workoutStore?.moveWorkoutToFolder(
+                            workoutId: workout.id, folderId: folder.id)
                     }
                 } label: {
                     HStack {
@@ -774,6 +777,72 @@ private struct WorkoutCard: View {
 
     private func difficultyStyle(for level: String) -> (Color, String) {
         switch level {
+        case "Anfänger":
+            return (Color(.systemGray2), "leaf.fill")
+        case "Fortgeschritten":
+            return (Color(.systemGray), "flame.fill")
+        case "Profi":
+            return (Color(.darkGray), "bolt.fill")
+        default:
+            return (.gray, "circle.fill")
+        }
+    }
+
+    // MARK: - Equipment Icons
+
+    @ViewBuilder
+    private func equipmentIcons(for equipmentType: String) -> some View {
+        HStack(spacing: 4) {
+            if equipmentType.lowercased() == "gemischt" {
+                // For mixed workouts, show all equipment types present
+                // For now, show all icons as we don't have exercise details here
+                Image(systemName: "figure.strengthtraining.traditional")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Image(systemName: "figure.hand.cycling")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                // Single equipment type
+                Image(systemName: equipmentIcon(for: equipmentType))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func equipmentIcon(for equipmentType: String) -> String {
+        switch equipmentType.lowercased() {
+        case "maschine":
+            return "figure.hand.cycling"
+        case "körpergewicht":
+            return "figure.core.training"
+        case "freie gewichte":
+            return "figure.strengthtraining.traditional"
+        case "cardio":
+            return "figure.run.treadmill"
+        default:
+            return "figure.mixed.cardio"
+        }
+    }
+}
+
+// MARK: - Card Button Style (iOS 26 Press Effect)
+
+private struct CardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Preview
+
+#Preview {
+    HomeViewPlaceholder()
+        .environment(SessionStore.preview)
+}
 
 // MARK: - Color Extension (for hex colors)
 
@@ -782,13 +851,16 @@ extension Color {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
+        let a: UInt64
+        let r: UInt64
+        let g: UInt64
+        let b: UInt64
         switch hex.count {
-        case 3: // RGB (12-bit)
+        case 3:  // RGB (12-bit)
             (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
+        case 6:  // RGB (24-bit)
             (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
+        case 8:  // ARGB (32-bit)
             (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
         default:
             return nil
@@ -798,7 +870,7 @@ extension Color {
             .sRGB,
             red: Double(r) / 255,
             green: Double(g) / 255,
-            blue:  Double(b) / 255,
+            blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
     }
