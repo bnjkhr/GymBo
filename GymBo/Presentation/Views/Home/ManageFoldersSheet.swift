@@ -58,6 +58,11 @@ struct ManageFoldersSheet: View {
             }
             .navigationTitle("Kategorien")
             .navigationBarTitleDisplayMode(.inline)
+            .task {
+                // Load folders when sheet appears
+                await workoutStore.loadFolders()
+                print("🔄 ManageFoldersSheet: Folders loaded on appear")
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fertig") {
@@ -76,8 +81,26 @@ struct ManageFoldersSheet: View {
             .sheet(isPresented: $showCreateFolder) {
                 CreateFolderSheet(mode: .create)
             }
+            .onChange(of: showCreateFolder) { oldValue, newValue in
+                // Reload folders when create sheet is dismissed
+                if !newValue && oldValue {
+                    Task {
+                        await workoutStore.loadFolders()
+                        print("🔄 ManageFoldersSheet: Folders reloaded after create sheet dismissed")
+                    }
+                }
+            }
             .sheet(item: $editingFolder) { folder in
                 CreateFolderSheet(mode: .edit(folder))
+            }
+            .onChange(of: editingFolder) { oldValue, newValue in
+                // Reload folders when edit sheet is dismissed
+                if newValue == nil && oldValue != nil {
+                    Task {
+                        await workoutStore.loadFolders()
+                        print("🔄 ManageFoldersSheet: Folders reloaded after edit sheet dismissed")
+                    }
+                }
             }
         }
     }
