@@ -167,7 +167,7 @@ struct ExercisesView: View {
                 ForEach(cachedMuscleGroups, id: \.self) { group in
                     FilterChip(
                         title: group,
-                        icon: muscleGroupIcon(for: group),
+                        icon: nil,
                         isSelected: selectedMuscleGroup == group
                     ) {
                         selectedMuscleGroup = (selectedMuscleGroup == group) ? nil : group
@@ -182,7 +182,7 @@ struct ExercisesView: View {
                 ForEach(cachedEquipment, id: \.self) { equipment in
                     FilterChip(
                         title: equipment,
-                        icon: equipmentIcon(for: equipment),
+                        icon: nil,
                         isSelected: selectedEquipment == equipment
                     ) {
                         selectedEquipment = (selectedEquipment == equipment) ? nil : equipment
@@ -318,7 +318,7 @@ private struct ExerciseCard: View {
                     .foregroundStyle(.secondary)
                     .frame(width: 32)
 
-                // Exercise Info - 3 lines
+                // Exercise Info - 2 lines
                 VStack(alignment: .leading, spacing: 4) {
                     // Line 1: Exercise Name
                     Text(exercise.name)
@@ -327,15 +327,7 @@ private struct ExerciseCard: View {
                         .foregroundColor(.primary)
                         .lineLimit(1)
 
-                    // Line 2: Equipment Type
-                    if !exercise.equipmentTypeRaw.isEmpty {
-                        Text(exercise.equipmentTypeRaw)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-
-                    // Line 3: Muscle Groups (comma-separated, no wrap)
+                    // Line 2: Muscle Groups (comma-separated, no wrap)
                     if !exercise.muscleGroupsRaw.isEmpty {
                         Text(exercise.muscleGroupsRaw.joined(separator: ", "))
                             .font(.caption)
