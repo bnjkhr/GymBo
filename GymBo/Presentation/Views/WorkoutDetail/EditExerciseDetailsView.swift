@@ -29,7 +29,7 @@ struct EditExerciseDetailsView: View {
     let workoutId: UUID
     let exercise: WorkoutExercise
     let exerciseName: String
-    let onSave: (Int, Int?, TimeInterval?, Double?, TimeInterval?, String?) -> Void
+    let onSave: (Int, Int?, TimeInterval?, Double?, TimeInterval?, [TimeInterval]?, String?) -> Void
 
     @Environment(\.dismiss) private var dismiss
 
@@ -40,12 +40,17 @@ struct EditExerciseDetailsView: View {
     @State private var targetTime: Int  // in seconds
     @State private var targetWeight: String
     @State private var restTime: Int
+    @State private var customRestTime: String
+    @State private var useCustomRestTime: Bool
+    @State private var usePerSetRestTimes: Bool
+    @State private var perSetRestTimes: [Int]
     @State private var notes: String
     @State private var useWeight: Bool
     @State private var useReps: Bool
     @State private var useTime: Bool
     @FocusState private var isWeightFieldFocused: Bool
     @FocusState private var isNotesFieldFocused: Bool
+    @FocusState private var isCustomRestTimeFocused: Bool
 
     // MARK: - Initialization
 
@@ -53,7 +58,9 @@ struct EditExerciseDetailsView: View {
         workoutId: UUID,
         exercise: WorkoutExercise,
         exerciseName: String,
-        onSave: @escaping (Int, Int?, TimeInterval?, Double?, TimeInterval?, String?) -> Void
+        onSave:
+            @escaping (Int, Int?, TimeInterval?, Double?, TimeInterval?, [TimeInterval]?, String?)
+            -> Void
     ) {
         self.workoutId = workoutId
         self.exercise = exercise
@@ -66,7 +73,26 @@ struct EditExerciseDetailsView: View {
         _targetTime = State(initialValue: Int(exercise.targetTime ?? 60))
         _targetWeight = State(
             initialValue: exercise.targetWeight.map { String(format: "%.1f", $0) } ?? "0")
-        _restTime = State(initialValue: Int(exercise.restTime ?? 90))
+
+        let initialRestTime = Int(exercise.restTime ?? 90)
+        _restTime = State(initialValue: initialRestTime)
+
+        // Check if rest time is a predefined value
+        let predefinedRestTimes = [30, 45, 60, 90, 120, 180]
+        let isCustom = !predefinedRestTimes.contains(initialRestTime)
+        _useCustomRestTime = State(initialValue: isCustom)
+        _customRestTime = State(initialValue: isCustom ? String(initialRestTime) : "")
+
+        // Initialize per-set rest times
+        if let perSetRestTimes = exercise.perSetRestTimes {
+            _usePerSetRestTimes = State(initialValue: true)
+            _perSetRestTimes = State(initialValue: perSetRestTimes.map { Int($0) })
+        } else {
+            _usePerSetRestTimes = State(initialValue: false)
+            _perSetRestTimes = State(
+                initialValue: Array(repeating: initialRestTime, count: exercise.targetSets))
+        }
+
         _notes = State(initialValue: exercise.notes ?? "")
         _useWeight = State(initialValue: exercise.targetWeight != nil && exercise.targetWeight! > 0)
         _useReps = State(initialValue: exercise.targetReps != nil)
@@ -124,6 +150,7 @@ struct EditExerciseDetailsView: View {
                     Button("Fertig") {
                         isWeightFieldFocused = false
                         isNotesFieldFocused = false
+                        isCustomRestTimeFocused = false
                     }
                 }
             }
@@ -317,12 +344,139 @@ struct EditExerciseDetailsView: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader("Pause zwischen Sätzen")
 
-            VStack(spacing: 8) {
-                ForEach([30, 45, 60, 90, 120, 180], id: \.self) { seconds in
-                    restTimeOptionButton(seconds: seconds)
+            // Toggle for per-set rest times
+            Toggle("Pausenzeit pro Satz", isOn: $usePerSetRestTimes)
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+                .onChange(of: usePerSetRestTimes) { _, isEnabled in
+                    if isEnabled {
+                        // Initialize array with current restTime for all sets
+                        perSetRestTimes = Array(repeating: restTime, count: targetSets)
+                    }
+                    HapticFeedback.impact(.light)
+                }
+
+            if usePerSetRestTimes {
+                // Per-set rest time controls
+                perSetRestTimesView
+            } else {
+                // Standard: One rest time for all sets
+                VStack(spacing: 8) {
+                    ForEach([30, 45, 60, 90, 120, 180], id: \.self) { seconds in
+                        restTimeOptionButton(seconds: seconds)
+                    }
+
+                    // Custom Rest Time Option
+                    Button {
+                        useCustomRestTime.toggle()
+                        if useCustomRestTime {
+                            isCustomRestTimeFocused = true
+                        }
+                        HapticFeedback.impact(.light)
+                    } label: {
+                        HStack {
+                            Text("Individuelle Pausenzeit")
+                                .font(.body)
+                                .foregroundColor(.primary)
+
+                            Spacer()
+
+                            if useCustomRestTime {
+                                Image(systemName: "checkmark")
+                                    .font(.subheadline)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .padding()
+                        .background(
+                            useCustomRestTime
+                                ? Color.primary.opacity(0.1)
+                                : Color(.secondarySystemGroupedBackground)
+                        )
+                        .cornerRadius(12)
+                    }
+
+                    // Custom Rest Time Input Field
+                    if useCustomRestTime {
+                        HStack {
+                            Text("Sekunden")
+                                .font(.body)
+
+                            Spacer()
+
+                            TextField("60", text: $customRestTime)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .monospacedDigit()
+                                .frame(maxWidth: 100)
+                                .focused($isCustomRestTimeFocused)
+                                .onChange(of: customRestTime) { _, newValue in
+                                    // Update restTime as user types
+                                    if let seconds = Int(newValue), seconds > 0 {
+                                        restTime = seconds
+                                    }
+                                }
+
+                            Text("Sek")
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(12)
+                    }
                 }
             }
         }
+    }
+
+    // MARK: - Per-Set Rest Times View
+
+    private var perSetRestTimesView: some View {
+        VStack(spacing: 8) {
+            ForEach(0..<targetSets, id: \.self) { setIndex in
+                perSetRestTimeRow(setIndex: setIndex)
+            }
+        }
+    }
+
+    private func perSetRestTimeRow(setIndex: Int) -> some View {
+        NavigationLink {
+            PerSetRestTimePickerView(
+                setNumber: setIndex + 1,
+                restTime: Binding(
+                    get: { perSetRestTimes[safe: setIndex] ?? 90 },
+                    set: { newValue in
+                        if setIndex < perSetRestTimes.count {
+                            perSetRestTimes[setIndex] = newValue
+                        }
+                    }
+                )
+            )
+        } label: {
+            HStack {
+                Text("Nach Satz \(setIndex + 1)")
+                    .font(.body)
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                Text("\(perSetRestTimes[safe: setIndex] ?? 90) Sek")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding()
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
     }
 
     private var notesSection: some View {
@@ -408,7 +562,9 @@ struct EditExerciseDetailsView: View {
     private func restTimeOptionButton(seconds: Int) -> some View {
         Button {
             restTime = seconds
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            useCustomRestTime = false
+            customRestTime = ""
+            HapticFeedback.impact(.light)
         } label: {
             HStack {
                 Text("\(seconds) Sekunden")
@@ -417,7 +573,7 @@ struct EditExerciseDetailsView: View {
 
                 Spacer()
 
-                if restTime == seconds {
+                if !useCustomRestTime && restTime == seconds {
                     Image(systemName: "checkmark")
                         .font(.subheadline)
                         .foregroundColor(.primary)
@@ -425,7 +581,7 @@ struct EditExerciseDetailsView: View {
             }
             .padding()
             .background(
-                restTime == seconds
+                !useCustomRestTime && restTime == seconds
                     ? Color.primary.opacity(0.1) : Color(.secondarySystemGroupedBackground)
             )
             .cornerRadius(12)
@@ -454,6 +610,21 @@ struct EditExerciseDetailsView: View {
     // MARK: - Actions
 
     private func saveChanges() {
+        // Determine final rest time values
+        let finalRestTime: TimeInterval?
+        let finalPerSetRestTimes: [TimeInterval]?
+
+        if usePerSetRestTimes {
+            // Use per-set rest times
+            finalPerSetRestTimes = perSetRestTimes.map { TimeInterval($0) }
+            finalRestTime = TimeInterval(perSetRestTimes.first ?? 90)
+        } else {
+            // Use single rest time for all sets
+            finalPerSetRestTimes = nil
+            finalRestTime = TimeInterval(restTime)
+        }
+
+        // Continue with existing save logic
         // Parse weight
         let weight: Double?
         if useWeight, !targetWeight.isEmpty {
@@ -472,11 +643,159 @@ struct EditExerciseDetailsView: View {
             useReps ? targetReps : nil,
             useTime ? TimeInterval(targetTime) : nil,
             weight,
-            TimeInterval(restTime),
+            finalRestTime,
+            finalPerSetRestTimes,
             notesToSave
         )
 
         dismiss()
+    }
+}
+
+// MARK: - Array Safe Subscript Extension
+
+extension Array {
+    subscript(safe index: Int) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
+
+// MARK: - Per-Set Rest Time Picker View
+
+private struct PerSetRestTimePickerView: View {
+    let setNumber: Int
+    @Binding var restTime: Int
+    @Environment(\.dismiss) private var dismiss
+
+    private let predefinedTimes = [30, 45, 60, 90, 120, 180]
+    @State private var useCustomTime = false
+    @State private var customTimeText = ""
+    @FocusState private var isCustomTimeFocused: Bool
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Pausenzeit nach Satz \(setNumber)")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                        .textCase(.uppercase)
+
+                    VStack(spacing: 8) {
+                        ForEach(predefinedTimes, id: \.self) { seconds in
+                            Button {
+                                restTime = seconds
+                                useCustomTime = false
+                                customTimeText = ""
+                                HapticFeedback.impact(.light)
+                            } label: {
+                                HStack {
+                                    Text("\(seconds) Sekunden")
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+
+                                    Spacer()
+
+                                    if !useCustomTime && restTime == seconds {
+                                        Image(systemName: "checkmark")
+                                            .font(.subheadline)
+                                            .foregroundColor(.primary)
+                                    }
+                                }
+                                .padding()
+                                .background(
+                                    !useCustomTime && restTime == seconds
+                                        ? Color.primary.opacity(0.1)
+                                        : Color(.secondarySystemGroupedBackground)
+                                )
+                                .cornerRadius(12)
+                            }
+                        }
+
+                        // Custom Time Option
+                        Button {
+                            useCustomTime.toggle()
+                            if useCustomTime {
+                                customTimeText = String(restTime)
+                                isCustomTimeFocused = true
+                            }
+                            HapticFeedback.impact(.light)
+                        } label: {
+                            HStack {
+                                Text("Individuelle Pausenzeit")
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+
+                                Spacer()
+
+                                if useCustomTime {
+                                    Image(systemName: "checkmark")
+                                        .font(.subheadline)
+                                        .foregroundColor(.primary)
+                                }
+                            }
+                            .padding()
+                            .background(
+                                useCustomTime
+                                    ? Color.primary.opacity(0.1)
+                                    : Color(.secondarySystemGroupedBackground)
+                            )
+                            .cornerRadius(12)
+                        }
+
+                        if useCustomTime {
+                            HStack {
+                                Text("Sekunden")
+                                    .font(.body)
+
+                                Spacer()
+
+                                TextField("60", text: $customTimeText)
+                                    .keyboardType(.numberPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                    .monospacedDigit()
+                                    .frame(maxWidth: 100)
+                                    .focused($isCustomTimeFocused)
+                                    .onChange(of: customTimeText) { _, newValue in
+                                        if let seconds = Int(newValue), seconds > 0 {
+                                            restTime = seconds
+                                        }
+                                    }
+
+                                Text("Sek")
+                                    .font(.body)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding()
+                            .background(Color(.secondarySystemGroupedBackground))
+                            .cornerRadius(12)
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle("Pausenzeit")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Fertig") {
+                    isCustomTimeFocused = false
+                }
+            }
+        }
+        .onAppear {
+            let predefined = predefinedTimes.contains(restTime)
+            useCustomTime = !predefined
+            if !predefined {
+                customTimeText = String(restTime)
+            }
+        }
     }
 }
 
@@ -495,9 +814,9 @@ struct EditExerciseDetailsView: View {
             notes: "Focus on form"
         ),
         exerciseName: "Bankdrücken",
-        onSave: { sets, reps, time, weight, rest, notes in
+        onSave: { sets, reps, time, weight, rest, perSetRestTimes, notes in
             print(
-                "Saved: \(sets) sets, \(reps.map { "\($0) reps" } ?? ""), \(time.map { "\($0)s" } ?? ""), \(weight ?? 0)kg, \(rest)s rest"
+                "Saved: \(sets) sets, \(reps.map { "\($0) reps" } ?? ""), \(time.map { "\($0)s" } ?? ""), \(weight ?? 0)kg, \(rest ?? 0)s rest, perSet: \(perSetRestTimes?.description ?? "nil")"
             )
         }
     )

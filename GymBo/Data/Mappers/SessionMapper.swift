@@ -188,7 +188,8 @@ struct SessionMapper {
             reps: domain.reps,
             completed: domain.completed,
             completedAt: domain.completedAt,
-            orderIndex: domain.orderIndex
+            orderIndex: domain.orderIndex,
+            restTime: domain.restTime
         )
     }
 
@@ -200,7 +201,8 @@ struct SessionMapper {
             reps: entity.reps,
             completed: entity.completed,
             completedAt: entity.completedAt,
-            orderIndex: entity.orderIndex
+            orderIndex: entity.orderIndex,
+            restTime: entity.restTime
         )
     }
 }

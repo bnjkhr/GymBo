@@ -423,7 +423,7 @@ private struct WorkoutCard: View {
                     if workout.isFavorite {
                         Image(systemName: "star.fill")
                             .font(.subheadline)
-                            .foregroundColor(.yellow)
+                            .foregroundColor(.appOrange)
                     }
                 }
 
@@ -488,11 +488,11 @@ private struct WorkoutCard: View {
     private func difficultyStyle(for level: String) -> (Color, String) {
         switch level {
         case "Anfänger":
-            return (.green, "leaf.fill")
+            return (Color(.systemGray2), "leaf.fill")
         case "Fortgeschritten":
-            return (.appOrange, "flame.fill")
+            return (Color(.systemGray), "flame.fill")
         case "Profi":
-            return (.red, "bolt.fill")
+            return (Color(.darkGray), "bolt.fill")
         default:
             return (.gray, "circle.fill")
         }

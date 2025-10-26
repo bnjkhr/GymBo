@@ -1,13 +1,33 @@
-# GymBo V2 - Aktueller Stand (2025-10-24)
+# GymBo V2 - Aktueller Stand (2025-10-26)
 
-**Status:** ✅ MVP PRODUCTION-READY! 6 Sample Workouts mit Difficulty Levels
+**Status:** ✅ MVP PRODUCTION-READY! Per-Set Rest Times Feature Complete
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
-**Design:** Modern iOS 26 mit Difficulty Badges
+**Design:** Modern iOS 26 mit Brand Color #F77E2D
 
 ⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
 🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
 
-**Letzte Session (2025-10-24 - Session 15 - EXERCISES VIEW REDESIGN):**
+**Letzte Session (2025-10-26 - Session 19 - PER-SET REST TIMES):**
+- ✅ Brand Color Update (#F77E2D)
+  - Systemweites Orange zu #F77E2D geändert (GymBo Brand Color)
+  - Neue Datei: Color+AppColors.swift mit hex initializer
+  - Favoriten-Stern: yellow → appOrange
+  - Difficulty Badges: Von Farbe zu Graustufen (Anfänger: light gray, Fortgeschritten: medium gray, Profi: dark gray)
+- ✅ Per-Set Rest Times Feature (MAJOR FEATURE)
+  - Toggle "Pausenzeit pro Satz" in EditExerciseDetailsView
+  - Individuelle Pausenzeiten für jeden Satz (z.B. Satz 1: 180s, Satz 2: 180s, Satz 3: 60s)
+  - Neue Komponente: PerSetRestTimePickerView
+  - Domain Model: WorkoutExercise.perSetRestTimes: [TimeInterval]?
+  - Session Sets: DomainSessionSet.restTime: TimeInterval?
+  - SwiftData: SessionSetEntity.restTime persisted
+  - Active Workout Timer nutzt set-spezifische restTime
+- ✅ Bug Fix: Rest Time Mapping
+  - WorkoutMapper: Korrekte per-set time Logik in updateExerciseEntity
+  - WorkoutMapper: .compactMap() statt .map() für nil-sichere Vergleiche
+  - StartSessionUseCase: Kopiert per-set times korrekt zu Session-Sets
+  - Testing: Alle drei Modi funktionieren (Standard, Custom, Per-Set)
+
+**Session 15 (2025-10-24 - EXERCISES VIEW REDESIGN):**
 - ✅ ExercisesView Exercise Cards Redesign
   - Removed equipment icon from exercise rows (cleaner look)
   - Equipment Type displayed below exercise name in gray (`.secondary`)

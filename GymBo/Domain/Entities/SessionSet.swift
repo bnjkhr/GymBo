@@ -48,6 +48,9 @@ struct DomainSessionSet: Identifiable, Equatable {
     /// SwiftData relationships have NO guaranteed order, so we MUST use explicit orderIndex
     var orderIndex: Int
 
+    /// Rest time after this set in seconds (from workout template)
+    var restTime: TimeInterval?
+
     // MARK: - Computed Properties
 
     /// Volume for this set (weight × reps)
@@ -99,7 +102,8 @@ struct DomainSessionSet: Identifiable, Equatable {
         reps: Int,
         completed: Bool = false,
         completedAt: Date? = nil,
-        orderIndex: Int = 0
+        orderIndex: Int = 0,
+        restTime: TimeInterval? = nil
     ) {
         self.id = id
         self.weight = weight
@@ -107,6 +111,7 @@ struct DomainSessionSet: Identifiable, Equatable {
         self.completed = completed
         self.completedAt = completedAt
         self.orderIndex = orderIndex
+        self.restTime = restTime
     }
 
     // MARK: - Mutating Methods

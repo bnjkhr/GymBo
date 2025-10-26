@@ -196,7 +196,7 @@ private struct ExerciseRowButton: View {
                 // Plus Icon
                 Image(systemName: "plus.circle.fill")
                     .font(.title3)
-                    .foregroundStyle(.appOrange)
+                    .foregroundColor(.appOrange)
             }
             .padding(.vertical, 8)
         }

@@ -42,6 +42,7 @@ protocol UpdateWorkoutExerciseUseCase {
         targetTime: TimeInterval?,
         targetWeight: Double?,
         restTime: TimeInterval?,
+        perSetRestTimes: [TimeInterval]?,
         notes: String?
     ) async throws -> Workout
 }
@@ -70,6 +71,7 @@ final class DefaultUpdateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase {
         targetTime: TimeInterval?,
         targetWeight: Double?,
         restTime: TimeInterval?,
+        perSetRestTimes: [TimeInterval]?,
         notes: String?
     ) async throws -> Workout {
         // Validate inputs
@@ -117,6 +119,7 @@ final class DefaultUpdateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase {
         workout.exercises[exerciseIndex].targetTime = targetTime
         workout.exercises[exerciseIndex].targetWeight = targetWeight
         workout.exercises[exerciseIndex].restTime = restTime
+        workout.exercises[exerciseIndex].perSetRestTimes = perSetRestTimes
         workout.exercises[exerciseIndex].notes = notes
 
         // Save changes

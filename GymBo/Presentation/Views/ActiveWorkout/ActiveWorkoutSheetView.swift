@@ -227,25 +227,18 @@ struct ActiveWorkoutSheetView: View {
             equipment: exerciseEquipment[exercise.exerciseId],
             onToggleCompletion: { setId in
                 Task {
-                    print(
-                        "🔵 Set completion tapped: exercise \(index), setId \(setId)"
-                    )
+                    // Find the set BEFORE completing it (to get restTime before state changes)
+                    let setRestTime = exercise.sets.first(where: { $0.id == setId })?.restTime
 
                     await sessionStore.completeSet(
                         exerciseId: exercise.id,
                         setId: setId
                     )
 
-                    print("✅ Set marked complete")
-
                     // Start rest timer after EVERY set completion
-                    // Use restTimeToNext from current exercise
-                    if let restTime = exercise.restTimeToNext {
-                        print("🔵 Starting rest timer: \(restTime) seconds")
+                    // Use the restTime we captured before completing
+                    if let restTime = setRestTime {
                         restTimerManager.startRest(duration: restTime)
-                        print("✅ Rest timer started successfully")
-                    } else {
-                        print("⚠️ No rest time configured for this exercise")
                     }
                 }
             },
@@ -336,7 +329,7 @@ struct ActiveWorkoutSheetView: View {
         } label: {
             Image(systemName: "memories")
                 .font(.callout)
-                .foregroundStyle(showAllExercises ? .appOrange : .secondary)  // Orange when active, gray when inactive
+                .foregroundColor(showAllExercises ? .appOrange : .secondary)  // Orange when active, gray when inactive
         }
         .accessibilityLabel(
             showAllExercises ? "Verstecke abgeschlossene Übungen" : "Zeige alle Übungen")

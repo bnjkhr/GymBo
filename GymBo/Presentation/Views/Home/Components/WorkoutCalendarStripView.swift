@@ -32,7 +32,7 @@ struct WorkoutCalendarStripView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "flame.fill")
                             .font(.subheadline)
-                            .foregroundStyle(.appOrange)
+                            .foregroundColor(.appOrange)
 
                         Text("\(currentStreak)")
                             .font(.subheadline)

@@ -128,18 +128,26 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
             // For time-based exercises (targetReps == nil), use 0 reps as placeholder
             let reps = exerciseEntity?.lastUsedReps ?? workoutExercise.targetReps ?? 0
 
-            print(
-                "📊 Exercise: ID=\(workoutExercise.exerciseId), orderIndex=\(workoutExercise.orderIndex)"
-            )
-            print("   - Weight: \(weight)kg, Reps: \(reps), Sets: \(workoutExercise.targetSets)")
-
             // Create sets based on target count
             var sets: [DomainSessionSet] = []
             for setIndex in 0..<workoutExercise.targetSets {
+                // Determine rest time for this set
+                let restTime: TimeInterval?
+                if let perSetRestTimes = workoutExercise.perSetRestTimes,
+                    setIndex < perSetRestTimes.count
+                {
+                    // Use individual rest time for this set
+                    restTime = perSetRestTimes[setIndex]
+                } else {
+                    // Use default rest time for all sets
+                    restTime = workoutExercise.restTime
+                }
+
                 let set = DomainSessionSet(
                     weight: weight,
                     reps: reps,
-                    orderIndex: setIndex
+                    orderIndex: setIndex,
+                    restTime: restTime
                 )
                 sets.append(set)
             }

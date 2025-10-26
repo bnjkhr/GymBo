@@ -54,7 +54,7 @@ struct BottomActionBar: View {
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: Layout.centerButtonSize))
-                    .foregroundStyle(.appOrange)
+                    .foregroundColor(.appOrange)
             }
             .frame(maxWidth: .infinity)
         }

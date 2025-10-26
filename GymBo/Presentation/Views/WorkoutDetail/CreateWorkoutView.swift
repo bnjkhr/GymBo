@@ -36,8 +36,11 @@ struct CreateWorkoutView: View {
 
     @State private var workoutName = ""
     @State private var defaultRestTime: Int = 90  // Default: 90 seconds
+    @State private var customRestTime: String = ""
+    @State private var useCustomRestTime: Bool = false
     @State private var isLoading = false
     @FocusState private var isNameFieldFocused: Bool
+    @FocusState private var isCustomRestTimeFocused: Bool
 
     // MARK: - Constants
 
@@ -116,7 +119,9 @@ struct CreateWorkoutView: View {
                 ForEach(restTimeOptions, id: \.value) { option in
                     Button {
                         defaultRestTime = option.value
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        useCustomRestTime = false
+                        customRestTime = ""
+                        HapticFeedback.impact(.light)
                     } label: {
                         HStack {
                             Text(option.label)
@@ -125,16 +130,81 @@ struct CreateWorkoutView: View {
 
                             Spacer()
 
-                            if defaultRestTime == option.value {
+                            if !useCustomRestTime && defaultRestTime == option.value {
                                 Image(systemName: "checkmark")
                                     .font(.subheadline)
                                     .foregroundColor(.primary)
                             }
                         }
                         .padding()
-                        .background(Color(.secondarySystemGroupedBackground))
+                        .background(
+                            !useCustomRestTime && defaultRestTime == option.value
+                                ? Color.primary.opacity(0.1)
+                                : Color(.secondarySystemGroupedBackground)
+                        )
                         .cornerRadius(12)
                     }
+                }
+
+                // Custom Rest Time Option
+                Button {
+                    useCustomRestTime.toggle()
+                    if useCustomRestTime {
+                        isCustomRestTimeFocused = true
+                    }
+                    HapticFeedback.impact(.light)
+                } label: {
+                    HStack {
+                        Text("Individuelle Pausenzeit")
+                            .font(.body)
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        if useCustomRestTime {
+                            Image(systemName: "checkmark")
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                        }
+                    }
+                    .padding()
+                    .background(
+                        useCustomRestTime
+                            ? Color.primary.opacity(0.1) : Color(.secondarySystemGroupedBackground)
+                    )
+                    .cornerRadius(12)
+                }
+
+                // Custom Rest Time Input Field
+                if useCustomRestTime {
+                    HStack {
+                        Text("Sekunden")
+                            .font(.body)
+
+                        Spacer()
+
+                        TextField("60", text: $customRestTime)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .monospacedDigit()
+                            .frame(maxWidth: 100)
+                            .focused($isCustomRestTimeFocused)
+                            .onChange(of: customRestTime) { _, newValue in
+                                // Update defaultRestTime as user types
+                                if let seconds = Int(newValue), seconds > 0 {
+                                    defaultRestTime = seconds
+                                }
+                            }
+
+                        Text("Sek")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
                 }
             }
 

@@ -36,7 +36,13 @@ struct WorkoutExercise: Identifiable, Equatable, Hashable {
     var targetWeight: Double?
 
     /// Rest time between sets in seconds (nil = use workout default)
+    /// Used when perSetRestTimes is nil (same rest time for all sets)
     var restTime: TimeInterval?
+
+    /// Individual rest times per set (nil = use restTime for all sets)
+    /// Array length should match targetSets
+    /// Index 0 = rest after set 1, Index 1 = rest after set 2, etc.
+    var perSetRestTimes: [TimeInterval]?
 
     /// Order of this exercise in the workout
     var orderIndex: Int
@@ -54,6 +60,7 @@ struct WorkoutExercise: Identifiable, Equatable, Hashable {
         targetTime: TimeInterval? = nil,
         targetWeight: Double? = nil,
         restTime: TimeInterval? = nil,
+        perSetRestTimes: [TimeInterval]? = nil,
         orderIndex: Int = 0,
         notes: String? = nil
     ) {
@@ -64,6 +71,7 @@ struct WorkoutExercise: Identifiable, Equatable, Hashable {
         self.targetTime = targetTime
         self.targetWeight = targetWeight
         self.restTime = restTime
+        self.perSetRestTimes = perSetRestTimes
         self.orderIndex = orderIndex
         self.notes = notes
     }

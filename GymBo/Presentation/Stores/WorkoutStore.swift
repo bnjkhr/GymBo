@@ -379,6 +379,7 @@ final class WorkoutStore {
         targetTime: TimeInterval?,
         targetWeight: Double?,
         restTime: TimeInterval?,
+        perSetRestTimes: [TimeInterval]?,
         notes: String?
     ) async {
         do {
@@ -390,6 +391,7 @@ final class WorkoutStore {
                 targetTime: targetTime,
                 targetWeight: targetWeight,
                 restTime: restTime,
+                perSetRestTimes: perSetRestTimes,
                 notes: notes
             )
 
@@ -570,6 +572,7 @@ final class WorkoutStore {
             targetTime: TimeInterval?,
             targetWeight: Double?,
             restTime: TimeInterval?,
+            perSetRestTimes: [TimeInterval]?,
             notes: String?
         ) async throws -> Workout {
             var workout = Workout(name: "Mock Workout")

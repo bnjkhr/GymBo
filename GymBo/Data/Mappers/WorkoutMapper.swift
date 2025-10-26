@@ -133,16 +133,26 @@ struct WorkoutMapper {
         // Update sets - for workout templates, sets represent target values
         // Clear and rebuild sets as they define the template structure
         entity.sets.removeAll()
-        for _ in 0..<domain.targetSets {
+        for setIndex in 0..<domain.targetSets {
             // For time-based exercises (targetTime != nil), store 0 reps
             // For rep-based exercises, store targetReps
             let reps = domain.targetReps ?? 0
+
+            // Determine rest time for this set
+            let restTime: TimeInterval
+            if let perSetRestTimes = domain.perSetRestTimes, setIndex < perSetRestTimes.count {
+                // Use individual rest time for this set
+                restTime = perSetRestTimes[setIndex]
+            } else {
+                // Use default rest time for all sets
+                restTime = domain.restTime ?? 90
+            }
 
             let setEntity = ExerciseSetEntity(
                 id: UUID(),
                 reps: reps,
                 weight: domain.targetWeight ?? 0.0,
-                restTime: domain.restTime ?? 90,
+                restTime: restTime,
                 completed: false
             )
             setEntity.owner = entity
@@ -170,16 +180,26 @@ struct WorkoutMapper {
         )
 
         // Create sets based on target values
-        for _ in 0..<domain.targetSets {
+        for setIndex in 0..<domain.targetSets {
             // For time-based exercises (targetTime != nil), store 0 reps
             // For rep-based exercises, store targetReps
             let reps = domain.targetReps ?? 0
+
+            // Determine rest time for this set
+            let restTime: TimeInterval
+            if let perSetRestTimes = domain.perSetRestTimes, setIndex < perSetRestTimes.count {
+                // Use individual rest time for this set
+                restTime = perSetRestTimes[setIndex]
+            } else {
+                // Use default rest time for all sets
+                restTime = domain.restTime ?? 90
+            }
 
             let setEntity = ExerciseSetEntity(
                 id: UUID(),
                 reps: reps,
                 weight: domain.targetWeight ?? 0.0,
-                restTime: domain.restTime ?? 90,
+                restTime: restTime,
                 completed: false
             )
             setEntity.owner = entity
@@ -206,6 +226,21 @@ struct WorkoutMapper {
         let targetReps = reps > 0 ? reps : nil
         let targetTime: TimeInterval? = reps == 0 ? 60 : nil  // Default 60s for time-based
 
+        // Check if sets have individual rest times (per-set rest times feature)
+        let restTimes = entity.sets.compactMap { $0.restTime }
+
+        let hasIndividualRestTimes: Bool
+        if restTimes.isEmpty || restTimes.count < 2 {
+            hasIndividualRestTimes = false
+        } else {
+            // Check if all rest times are the same
+            let firstRestTime = restTimes.first!
+            hasIndividualRestTimes = !restTimes.allSatisfy { $0 == firstRestTime }
+        }
+
+        let perSetRestTimes: [TimeInterval]? = hasIndividualRestTimes ? restTimes : nil
+        let restTime: TimeInterval? = firstSet?.restTime
+
         return WorkoutExercise(
             id: entity.id,
             exerciseId: exerciseId,
@@ -213,7 +248,8 @@ struct WorkoutMapper {
             targetReps: targetReps,
             targetTime: targetTime,
             targetWeight: firstSet?.weight,
-            restTime: firstSet?.restTime,
+            restTime: restTime,
+            perSetRestTimes: perSetRestTimes,
             orderIndex: entity.order,
             notes: entity.notes
         )

@@ -103,7 +103,7 @@ struct WorkoutDetailView: View {
                         }
                     } label: {
                         Image(systemName: isFavorite ? "star.fill" : "star")
-                            .foregroundStyle(isFavorite ? .yellow : .primary)
+                            .foregroundColor(isFavorite ? .appOrange : .primary)
                     }
                     .accessibilityLabel(
                         isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")
@@ -142,7 +142,7 @@ struct WorkoutDetailView: View {
                     workoutId: workout.id,
                     exercise: exercise,
                     exerciseName: exerciseNames[exercise.exerciseId] ?? "Übung",
-                    onSave: { sets, reps, time, weight, rest, notes in
+                    onSave: { sets, reps, time, weight, rest, perSetRestTimes, notes in
                         Task {
                             await updateExercise(
                                 exercise,
@@ -151,6 +151,7 @@ struct WorkoutDetailView: View {
                                 targetTime: time,
                                 targetWeight: weight,
                                 restTime: rest,
+                                perSetRestTimes: perSetRestTimes,
                                 notes: notes
                             )
                         }
@@ -441,6 +442,7 @@ struct WorkoutDetailView: View {
         targetTime: TimeInterval?,
         targetWeight: Double?,
         restTime: TimeInterval?,
+        perSetRestTimes: [TimeInterval]?,
         notes: String?
     ) async {
         await workoutStore.updateExercise(
@@ -451,6 +453,7 @@ struct WorkoutDetailView: View {
             targetTime: targetTime,
             targetWeight: targetWeight,
             restTime: restTime,
+            perSetRestTimes: perSetRestTimes,
             notes: notes
         )
 

@@ -38,6 +38,9 @@ final class SessionSetEntity {
     /// Order index for maintaining set sequence (CRITICAL for correct display order)
     var orderIndex: Int
 
+    /// Rest time after this set in seconds (copied from workout template)
+    var restTime: TimeInterval?
+
     /// Parent exercise (inverse relationship)
     var exercise: SessionExerciseEntity?
 
@@ -49,7 +52,8 @@ final class SessionSetEntity {
         reps: Int,
         completed: Bool = false,
         completedAt: Date? = nil,
-        orderIndex: Int = 0
+        orderIndex: Int = 0,
+        restTime: TimeInterval? = nil
     ) {
         self.id = id
         self.weight = weight
@@ -57,5 +61,6 @@ final class SessionSetEntity {
         self.completed = completed
         self.completedAt = completedAt
         self.orderIndex = orderIndex
+        self.restTime = restTime
     }
 }
