@@ -1,6 +1,6 @@
 # GymBo - Session Memory
 
-**Letzte Aktualisierung:** 2025-10-27 (Session 24 - Weekly Workout Goal + Profile UI Polish)
+**Letzte Aktualisierung:** 2025-10-27 (Session 25 - ProfileView Complete Implementation)
 
 ---
 
@@ -19,7 +19,7 @@
 
 ## 📊 Projekt-Status (Stand: 2025-10-27)
 
-### Version: 2.4.1 - Weekly Workout Goal + Profile UI Polish
+### Version: 2.5.0 - Complete ProfileView & Theme System
 
 **Session 24:** Configurable weekly workout goal feature + ProfileView UI/UX consistency improvements.
 
@@ -41,6 +41,537 @@
 - APPLE_HEALTH_IMPLEMENTATION_PLAN.md → Phase 1-4 complete
 - SESSION_MEMORY.md → Session 22 dokumentiert (inkl. Migration)
 - CURRENT_STATE.md → Apple Health + Migration Features dokumentiert
+
+---
+
+## ✅ Session 2025-10-27 (Session 25) - ProfileView Complete Implementation & Theme Switching Fix
+
+**Status:** ✅ Feature Complete - Production Ready
+
+### Zusammenfassung
+Session 25 implementierte eine vollständige ProfileView mit allen geplanten Features, fixte das Theme-Switching Reaktivitätsproblem, und vereinfachte die HealthKit-Integration durch Entfernung von Dummy-Toggles.
+
+### Part 1: Complete ProfileView Implementation ✅
+
+**Problem:** ProfileView war ein Platzhalter mit "wird ausgebaut" Nachricht
+
+**Lösung:** Vollständige Implementierung mit Clean Architecture Pattern
+
+#### Schema Migration V2 → V3
+
+**SchemaV3.swift** - Erweiterte UserProfileEntity:
+```swift
+@Model
+final class UserProfileEntity {
+    // Personal Information (NEW)
+    var displayName: String?
+    var age: Int?
+    var experienceLevelRaw: String?
+    var fitnessGoalRaw: String?
+    var profileImageData: Data?
+    
+    // Body Metrics (existing)
+    var weight: Double?
+    var height: Double?
+    var weeklyWorkoutGoal: Int
+    var lastHealthKitSync: Date?
+    
+    // Settings (NEW)
+    var healthKitEnabled: Bool
+    var appThemeRaw: String
+    
+    // Notifications (NEW)
+    var notificationsEnabled: Bool
+    var liveActivityEnabled: Bool
+    
+    // Legacy fields (backward compatibility)
+    var name: String
+    var birthDate: Date?
+    // ... other legacy fields
+}
+```
+
+**Migration:**
+- Lightweight migration (alle neuen Felder optional mit Defaults)
+- GymBoMigrationPlan: migrateV2toV3 Stage hinzugefügt
+- SwiftDataEntities.swift: DEBUG mode entities synchronisiert
+
+#### Domain Layer Updates
+
+**UserProfile.swift** - Neue Enums & Properties:
+```swift
+enum ExperienceLevel: String, Codable, CaseIterable {
+    case beginner = "Weniger als 1 Jahr"
+    case intermediate = "1-3 Jahre"
+    case advanced = "Mehr als 3 Jahre"
+}
+
+enum FitnessGoal: String, Codable, CaseIterable {
+    case fitness = "Fitness"
+    case weightLoss = "Gewichtsverlust"
+    case muscleGain = "Muskelgewinnung"
+}
+
+enum AppTheme: String, Codable, CaseIterable {
+    case light = "Hell"
+    case dark = "Dunkel"
+    case system = "System"
+}
+
+struct DomainUserProfile {
+    // Personal Information
+    var name: String?
+    var profileImageData: Data?
+    var age: Int?
+    var experienceLevel: ExperienceLevel?
+    var fitnessGoal: FitnessGoal?
+    
+    // Settings
+    var healthKitEnabled: Bool
+    var appTheme: AppTheme
+    
+    // Notifications
+    var notificationsEnabled: Bool
+    var liveActivityEnabled: Bool
+}
+```
+
+#### Repository Methods
+
+**UserProfileRepositoryProtocol** - Neue Update-Methoden:
+```swift
+protocol UserProfileRepositoryProtocol {
+    func updatePersonalInfo(
+        name: String?,
+        age: Int?,
+        experienceLevel: ExperienceLevel?,
+        fitnessGoal: FitnessGoal?
+    ) async throws
+    
+    func updateProfileImage(_ imageData: Data?) async throws
+    
+    func updateSettings(
+        healthKitEnabled: Bool?,
+        appTheme: AppTheme?
+    ) async throws
+    
+    func updateNotificationSettings(
+        notificationsEnabled: Bool?,
+        liveActivityEnabled: Bool?
+    ) async throws
+}
+```
+
+#### ProfileView UI Structure
+
+**ProfileView.swift** - Vier Hauptsektionen:
+
+1. **Profilbild Section:**
+   - Runde Image-Ansicht (100x100)
+   - Camera overlay icon
+   - Tap öffnet confirmationDialog (Kamera/Fotobibliothek)
+
+2. **Persönliche Daten Section:**
+   - Name TextField (inline editing)
+   - Alter Stepper (10-100 Jahre, mit Label)
+   - Erfahrung Menu (Anfänger/Fortgeschritten/Profi)
+   - Ziel Menu (Fitness/Gewichtsverlust/Muskelaufbau)
+   - Import-Button (wenn HealthKit aktiv): Alter, Gewicht, Größe
+
+3. **Einstellungen Section:**
+   - Apple Health Toggle (mit Beschreibung)
+   - App-Darstellung Menu (Hell/Dunkel/System)
+
+4. **Benachrichtigungen Section:**
+   - "Benachrichtigungen verwalten" Button → öffnet iOS Settings
+   - Live Activity Toggle (disabled - "Bald verfügbar")
+
+#### Image Handling
+
+**ImagePicker.swift** - UIViewControllerRepresentable:
+```swift
+struct ImagePicker: UIViewControllerRepresentable {
+    let sourceType: UIImagePickerController.SourceType
+    let onImagePicked: (UIImage) -> Void
+    
+    // Compression helpers
+    func compressedJPEG(maxSizeKB: Int = 500) -> Data?
+    func resized(maxDimension: CGFloat = 512) -> UIImage
+}
+```
+
+**Features:**
+- Separate sheets für camera/gallery (showCameraPicker, showGalleryPicker)
+- confirmationDialog für Source-Auswahl
+- Automatische Kompression (512px max, 500KB JPEG)
+- NSCameraUsageDescription in project.pbxproj
+
+#### HealthKit Age Import
+
+**HealthKitService.swift** - fetchDateOfBirth():
+```swift
+func fetchDateOfBirth() async -> Result<Int, HealthKitError> {
+    do {
+        guard let dateOfBirth = try healthStore.dateOfBirthComponents().date else {
+            return .failure(.dataNotAvailable)
+        }
+        let calendar = Calendar.current
+        let ageComponents = calendar.dateComponents([.year], from: dateOfBirth, to: Date())
+        guard let age = ageComponents.year else {
+            return .failure(.dataNotAvailable)
+        }
+        return .success(age)
+    } catch {
+        return .failure(.saveFailed(underlying: error))
+    }
+}
+```
+
+**ImportBodyMetricsUseCase** - age Field hinzugefügt:
+```swift
+struct BodyMetrics {
+    let bodyMass: Double?
+    let height: Double?
+    let age: Int?  // NEW
+}
+```
+
+### Part 2: Theme Switching Reactivity Fix ✅
+
+**Problem:** ProfileView zeigte alten Theme-Wert nach Änderung (erst nach reload korrekt)
+
+**Root Cause:** AppSettings war `private let` in GymBoApp → SwiftUI konnte Änderungen nicht beobachten
+
+**Lösung:** Multi-Layer Fix
+
+#### GymBoApp.swift
+```swift
+@main
+struct GymBoApp: App {
+    // BEFORE: private let appSettings: AppSettings
+    // AFTER:
+    @State private var appSettings: AppSettings
+    
+    init() {
+        // ...
+        _appSettings = State(initialValue: AppSettings(
+            userProfileRepository: dependencyContainer.makeUserProfileRepository()
+        ))
+    }
+}
+```
+
+#### AppSettings.swift - currentTheme Property
+```swift
+@Observable
+final class AppSettings {
+    var colorScheme: ColorScheme?
+    var currentTheme: AppTheme = .system  // NEW: Track for reactivity
+    
+    func loadTheme() async {
+        let profile = try await userProfileRepository.fetchOrCreate()
+        await MainActor.run {
+            currentTheme = profile.appTheme  // Update tracked property
+            switch profile.appTheme {
+            case .light: colorScheme = .light
+            case .dark: colorScheme = .dark
+            case .system: colorScheme = nil
+            }
+        }
+    }
+    
+    func updateTheme(_ theme: AppTheme) async {
+        try await userProfileRepository.updateSettings(
+            healthKitEnabled: nil,
+            appTheme: theme
+        )
+        await MainActor.run {
+            currentTheme = theme  // Update immediately
+            // ... update colorScheme
+        }
+    }
+}
+```
+
+#### ProfileView.swift - @Bindable Usage
+```swift
+struct ProfileView: View {
+    // BEFORE: @Environment(AppSettings.self) private var appSettings
+    // AFTER:
+    @Bindable private var appSettings: AppSettings
+    
+    init(
+        userProfileRepository: UserProfileRepositoryProtocol,
+        importBodyMetricsUseCase: ImportBodyMetricsUseCase,
+        appSettings: AppSettings  // NEW parameter
+    ) {
+        self.userProfileRepository = userProfileRepository
+        self.importBodyMetricsUseCase = importBodyMetricsUseCase
+        self.appSettings = appSettings
+    }
+    
+    // Theme Menu - now reactive!
+    Menu {
+        ForEach(AppTheme.allCases, id: \.self) { theme in
+            Button {
+                Task { await appSettings.updateTheme(theme) }
+            } label: {
+                HStack {
+                    Text(theme.rawValue)
+                    if appSettings.currentTheme == theme {
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
+        }
+    } label: {
+        Text(appSettings.currentTheme.rawValue)
+    }
+}
+```
+
+#### HomeView.swift - Pass appSettings
+```swift
+struct HomeView: View {
+    @Environment(AppSettings.self) private var appSettings
+    
+    var body: some View {
+        // ...
+        .sheet(isPresented: $showProfile) {
+            if let container = dependencyContainer {
+                ProfileView(
+                    userProfileRepository: container.makeUserProfileRepository(),
+                    importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase(),
+                    appSettings: appSettings  // Pass through
+                )
+            }
+        }
+    }
+}
+```
+
+**SheetsModifier** - appSettings hinzugefügt:
+```swift
+struct SheetsModifier: ViewModifier {
+    let appSettings: AppSettings  // NEW
+    // ... other properties
+    
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: $showProfile) {
+                // appSettings now in scope
+            }
+    }
+}
+```
+
+**Warum es jetzt funktioniert:**
+- `@State` in GymBoApp macht SwiftUI aware of changes
+- `@Bindable` in ProfileView creates reactive binding
+- `currentTheme` property tracked separately
+- View re-renders automatically when `currentTheme` changes
+
+### Part 3: HealthKit Toggle Simplification ✅
+
+**Problem:** Read/Write Toggles waren dummy - iOS verwaltet Berechtigungen selbst
+
+**Lösung:** Entfernung über alle Layer
+
+#### Files Updated:
+
+1. **Domain/Entities/UserProfile.swift**
+   - Removed: `healthKitReadEnabled`, `healthKitWriteEnabled`
+   - Kept: `healthKitEnabled`
+
+2. **Data/Migration/SchemaV3.swift**
+   - Removed from UserProfileEntity init & properties
+
+3. **SwiftDataEntities.swift**
+   - Removed from DEBUG mode entities
+
+4. **Data/Mappers/UserProfileMapper.swift**
+   - Removed from toEntity(), toDomain(), updateEntity()
+
+5. **Domain/RepositoryProtocols/UserProfileRepositoryProtocol.swift**
+   - Updated updateSettings(): removed read/write parameters
+   ```swift
+   func updateSettings(
+       healthKitEnabled: Bool?,
+       appTheme: AppTheme?
+   ) async throws
+   ```
+
+6. **Data/Repositories/SwiftDataUserProfileRepository.swift**
+   - Implementation updated
+
+7. **Presentation/Views/Profile/ProfileView.swift**
+   - Removed Read/Write toggle sections
+   - Only "Apple Health aktivieren" toggle visible
+   - updateSettings() simplified
+
+8. **Presentation/Stores/AppSettings.swift**
+   - updateTheme() call updated
+
+9. **Mock implementations**
+   - Updated in ProfileView, SessionStore
+
+#### UI Change:
+```
+BEFORE:
+✓ Apple Health aktivieren
+  ✓ Auslesen
+  ✓ Speichern
+  
+AFTER:
+✓ Apple Health aktivieren
+```
+
+### Files Created/Modified
+
+**Created:**
+- `Presentation/Views/Profile/Components/ImagePicker.swift`
+
+**Modified:**
+- `Domain/Entities/UserProfile.swift` (Enums, Properties)
+- `Data/Migration/SchemaV3.swift` (Expanded UserProfileEntity)
+- `Data/Migration/GymBoMigrationPlan.swift` (V3 migration)
+- `SwiftDataEntities.swift` (DEBUG entities)
+- `Data/Mappers/UserProfileMapper.swift` (Extended mapping)
+- `Data/Repositories/SwiftDataUserProfileRepository.swift` (New methods)
+- `Domain/RepositoryProtocols/UserProfileRepositoryProtocol.swift` (New methods)
+- `Presentation/Views/Profile/ProfileView.swift` (Complete rewrite)
+- `Presentation/Stores/AppSettings.swift` (currentTheme, reactivity)
+- `GymBoApp.swift` (@State for appSettings)
+- `Presentation/Views/Home/HomeView.swift` (Pass appSettings)
+- `Infrastructure/HealthKit/HealthKitService.swift` (fetchDateOfBirth)
+- `Domain/Services/HealthKitServiceProtocol.swift` (Protocol)
+- `Domain/UseCases/HealthKit/ImportBodyMetricsUseCase.swift` (age field)
+- `GymBo.xcodeproj/project.pbxproj` (Camera/Photo permissions)
+
+### Bugs Fixed
+
+1. **Type Casting Error** (DEBUG mode)
+   - Fatal error: Failed to cast SchemaV3.UserProfileEntity
+   - Fix: Synchronized SwiftDataEntities.swift with SchemaV3
+
+2. **Camera Opens Gallery**
+   - Both buttons opened gallery
+   - Fix: Separate sheets (showCameraPicker, showGalleryPicker)
+
+3. **Theme Display Not Updating**
+   - ProfileView showed old theme value
+   - Fix: @State appSettings + @Bindable + currentTheme property
+
+4. **Preview Compilation Error**
+   - Cannot use instance member in property initializer
+   - Fix: Simple let constants in Preview block
+
+5. **Missing Camera Permission**
+   - App crashed on camera access
+   - Fix: NSCameraUsageDescription in project.pbxproj
+
+### Technical Highlights
+
+#### Clean Architecture Flow:
+```
+UI (ProfileView)
+  → Repository (UserProfileRepositoryProtocol)
+    → SwiftData (UserProfileEntity)
+      → Mapper (UserProfileMapper)
+        → Domain (DomainUserProfile)
+```
+
+#### @Observable + @Bindable Pattern:
+```swift
+// App level
+@State private var appSettings: AppSettings
+
+// View level
+@Bindable private var appSettings: AppSettings
+
+// Usage
+appSettings.currentTheme  // Automatically reactive
+```
+
+#### Image Compression Pipeline:
+```
+UIImage (original)
+  → resized(maxDimension: 512)
+  → compressedJPEG(maxSizeKB: 500)
+  → Data
+  → SwiftData
+```
+
+### Testing Notes
+
+**Test Scenarios:**
+1. ✅ Profile Image: Camera/Gallery auswählen → Bild wird gespeichert
+2. ✅ Personal Info: Name, Alter, Erfahrung, Ziel → sofort gespeichert
+3. ✅ Theme Switching: Hell ↔ Dunkel → Display updated instantly
+4. ✅ HealthKit Import: Alter/Gewicht/Größe → importiert korrekt
+5. ✅ Notifications Button: → öffnet iOS Settings
+6. ✅ Migration: V2 → V3 → keine Datenverluste
+
+**Edge Cases:**
+- ✅ Theme wechseln während ProfileView offen → Update funktioniert
+- ✅ Kamera-Permission abgelehnt → Fehler gehandhabt
+- ✅ HealthKit deaktiviert → Import-Button ausgeblendet
+- ✅ Profilbild > 500KB → automatisch komprimiert
+
+### User Experience
+
+**Workflow: Profile Setup**
+1. Tap "Profil" im Home
+2. Profilbild hochladen (Camera/Gallery)
+3. Name eingeben
+4. Alter mit Stepper anpassen
+5. Erfahrung auswählen
+6. Ziel auswählen
+7. Optional: HealthKit aktivieren + Daten importieren
+8. Theme nach Präferenz einstellen
+9. Fertig - alles sofort gespeichert!
+
+**UX Highlights:**
+- Keine "Speichern" Buttons nötig (auto-save)
+- Theme-Änderungen sofort sichtbar
+- Import-Button nur wenn sinnvoll (HealthKit aktiv)
+- Live Activity "Bald verfügbar" (keine false promises)
+
+### Lessons Learned
+
+1. **@Observable mit @Environment:** 
+   - Funktioniert nicht immer reaktiv
+   - Besser: @Bindable als Property
+
+2. **Sheet Closures & Environment:**
+   - Environment-Werte nicht immer in scope
+   - Lösung: Als Parameter an modifier übergeben
+
+3. **SwiftData Schema Migration:**
+   - Lightweight migration funktioniert gut
+   - DEBUG mode braucht separate entities
+
+4. **Image Compression:**
+   - Immer vor DB-Speicherung komprimieren
+   - 512px + 500KB guter Balance
+
+5. **iOS Permissions:**
+   - System verwaltet HealthKit permissions
+   - Dummy-Toggles nur verwirrend
+
+### Next Steps
+
+**Potential Improvements:**
+1. Profile Image Cropper (aktuell: auto-crop circle)
+2. More Personal Stats (Geburtsdatum, Geschlecht)
+3. Social Features (Avatar, Username)
+4. Export/Import Profile Data
+5. Live Activity Implementation (when ready)
+
+**Architecture:**
+- Consider ProfileViewModel für komplexere Logic
+- Add Unit Tests for Mapper & Repository
+- Document Migration Strategy (V3 → V4)
 
 ---
 

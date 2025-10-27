@@ -277,38 +277,67 @@ final class ExerciseRecordEntity {
     }
 }
 
-// MARK: - UserProfileEntity
+// MARK: - UserProfileEntity (V3 - Expanded Profile)
 @Model
 final class UserProfileEntity {
     @Attribute(.unique) var id: UUID
-    var name: String
-    var birthDate: Date?
+
+    // Personal Information (V3)
+    var displayName: String?
+    var age: Int?
+    var experienceLevelRaw: String?
+    var fitnessGoalRaw: String?
+
+    // Body Metrics
     var weight: Double?
     var height: Double?
-    var biologicalSexRaw: Int16  // HKBiologicalSex.rawValue
+    var weeklyWorkoutGoal: Int
+    var lastHealthKitSync: Date?
+
+    // Settings (V3)
+    var healthKitEnabled: Bool
+    var appThemeRaw: String
+
+    // Notifications (V3)
+    var notificationsEnabled: Bool
+    var liveActivityEnabled: Bool
+
+    // Legacy fields (keep for backward compatibility)
+    var name: String
+    var birthDate: Date?
+    var biologicalSexRaw: Int16
     var healthKitSyncEnabled: Bool
-    // Persist profile goal and preferences as raw values
     var goalRaw: String
     var experienceRaw: String
     var equipmentRaw: String
     var preferredDurationRaw: Int
-
     var profileImageData: Data?
-    var lockerNumber: String?  // Spintnummer
-    var weeklyWorkoutGoal: Int  // Wöchentliches Trainingsziel (Anzahl Workouts pro Woche)
-    var hasExploredWorkouts: Bool  // Onboarding: Beispielworkouts entdeckt
-    var hasCreatedFirstWorkout: Bool  // Onboarding: Erstes Workout erstellt
-    var hasSetupProfile: Bool  // Onboarding: Profil eingerichtet
+    var lockerNumber: String?
+    var hasExploredWorkouts: Bool
+    var hasCreatedFirstWorkout: Bool
+    var hasSetupProfile: Bool
+
+    // Metadata
     var createdAt: Date
     var updatedAt: Date
 
     init(
         id: UUID = UUID(),
-        name: String = "",
-        birthDate: Date? = nil,
+        displayName: String? = nil,
+        age: Int? = nil,
+        experienceLevelRaw: String? = nil,
+        fitnessGoalRaw: String? = nil,
         weight: Double? = nil,
         height: Double? = nil,
-        biologicalSexRaw: Int16 = 0,  // HKBiologicalSex.notSet
+        weeklyWorkoutGoal: Int = 3,
+        lastHealthKitSync: Date? = nil,
+        healthKitEnabled: Bool = false,
+        appThemeRaw: String = "system",
+        notificationsEnabled: Bool = false,
+        liveActivityEnabled: Bool = false,
+        name: String = "",
+        birthDate: Date? = nil,
+        biologicalSexRaw: Int16 = 0,
         healthKitSyncEnabled: Bool = false,
         goalRaw: String = "general",
         experienceRaw: String = "intermediate",
@@ -316,7 +345,6 @@ final class UserProfileEntity {
         preferredDurationRaw: Int = 45,
         profileImageData: Data? = nil,
         lockerNumber: String? = nil,
-        weeklyWorkoutGoal: Int = 3,  // Default: 3 Workouts pro Woche
         hasExploredWorkouts: Bool = false,
         hasCreatedFirstWorkout: Bool = false,
         hasSetupProfile: Bool = false,
@@ -324,10 +352,20 @@ final class UserProfileEntity {
         updatedAt: Date = Date()
     ) {
         self.id = id
-        self.name = name
-        self.birthDate = birthDate
+        self.displayName = displayName
+        self.age = age
+        self.experienceLevelRaw = experienceLevelRaw
+        self.fitnessGoalRaw = fitnessGoalRaw
         self.weight = weight
         self.height = height
+        self.weeklyWorkoutGoal = weeklyWorkoutGoal
+        self.lastHealthKitSync = lastHealthKitSync
+        self.healthKitEnabled = healthKitEnabled
+        self.appThemeRaw = appThemeRaw
+        self.notificationsEnabled = notificationsEnabled
+        self.liveActivityEnabled = liveActivityEnabled
+        self.name = name
+        self.birthDate = birthDate
         self.biologicalSexRaw = biologicalSexRaw
         self.healthKitSyncEnabled = healthKitSyncEnabled
         self.goalRaw = goalRaw
@@ -336,7 +374,6 @@ final class UserProfileEntity {
         self.preferredDurationRaw = preferredDurationRaw
         self.profileImageData = profileImageData
         self.lockerNumber = lockerNumber
-        self.weeklyWorkoutGoal = weeklyWorkoutGoal
         self.hasExploredWorkouts = hasExploredWorkouts
         self.hasCreatedFirstWorkout = hasCreatedFirstWorkout
         self.hasSetupProfile = hasSetupProfile

@@ -29,7 +29,7 @@ struct GymBoApp: App {
 
     // MARK: - Properties
 
-    /// SwiftData container with V2 entities only
+    /// SwiftData container with V3 entities only
     let container: ModelContainer
 
     /// Dependency injection container
@@ -37,6 +37,9 @@ struct GymBoApp: App {
 
     /// Shared session store (initialized in init)
     private let sessionStore: SessionStore
+
+    /// App-wide settings (theme, etc.)
+    @State private var appSettings: AppSettings
 
     /// Migration state
     @State private var showMigrationAlert = false
@@ -59,8 +62,8 @@ struct GymBoApp: App {
             _showMigrationAlert = State(initialValue: true)
         }
 
-        // ✅ Production-Ready: ModelContainer with V2 schema and migration plan
-        // Migrates from V1 (no exerciseId) → V2 (with exerciseId in WorkoutExerciseEntity)
+        // ✅ Production-Ready: ModelContainer with V3 schema and migration plan
+        // Migrates: V1 → V2 (exerciseId) → V3 (expanded UserProfile)
 
         // 🔧 DEVELOPMENT MODE: Database deletion DISABLED to test persistence
         // Previously deleted DB on every start - now commented out to allow testing
@@ -123,14 +126,14 @@ struct GymBoApp: App {
 
         #else
             // PRODUCTION: Use versioned schema with migration plan
-            let schema = Schema(versionedSchema: SchemaV2.self)
+            let schema = Schema(versionedSchema: SchemaV3.self)
 
             do {
                 container = try ModelContainer(
                     for: schema,
                     migrationPlan: GymBoMigrationPlan.self
                 )
-                AppLogger.app.info("✅ SwiftData container created with V2 schema")
+                AppLogger.app.info("✅ SwiftData container created with V3 schema")
             } catch {
                 // If container creation fails, delete old database and try again
                 AppLogger.app.error("❌ Failed to create ModelContainer: \(error)")
@@ -167,6 +170,12 @@ struct GymBoApp: App {
         // Initialize session store (must be after dependencyContainer)
         sessionStore = dependencyContainer.makeSessionStore()
 
+        // Initialize app settings
+        _appSettings = State(
+            initialValue: AppSettings(
+                userProfileRepository: dependencyContainer.makeUserProfileRepository()
+            ))
+
         AppLogger.app.info("🚀 GymBo V2.0 initialized")
     }
 
@@ -178,7 +187,9 @@ struct GymBoApp: App {
                 MainTabView()
                     .modelContainer(container)
                     .environment(sessionStore)
+                    .environment(appSettings)
                     .environment(\.dependencyContainer, dependencyContainer)
+                    .preferredColorScheme(appSettings.colorScheme)
                     .task {
                         await performStartupTasks()
                     }
@@ -246,10 +257,12 @@ struct GymBoApp: App {
     /// **Warning:** This deletes ALL user data!
     private static func deleteDatabase() {
         let fileManager = FileManager.default
-        guard let storeURL = fileManager.urls(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask
-        ).first?.appendingPathComponent("default.store") else {
+        guard
+            let storeURL = fileManager.urls(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask
+            ).first?.appendingPathComponent("default.store")
+        else {
             AppLogger.app.warning("⚠️ Could not find database URL")
             return
         }

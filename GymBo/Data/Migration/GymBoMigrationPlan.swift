@@ -43,8 +43,9 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
         [
             SchemaV1.self,
             SchemaV2.self,  // ✅ Added: exerciseId field to WorkoutExerciseEntity
+            SchemaV3.self,  // ✅ Added: Expanded UserProfileEntity with full profile data
             // Future versions will be added here:
-            // SchemaV3.self,
+            // SchemaV4.self,
             // ...
         ]
     }
@@ -56,9 +57,10 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     /// **IMPORTANT:** Each stage defines how to migrate from one version to the next
     static var stages: [MigrationStage] {
         [
-            migrateV1toV2
+            migrateV1toV2,
+            migrateV2toV3,
             // Future migrations will be added here:
-            // migrateV2toV3,
+            // migrateV3toV4,
             // ...
         ]
     }
@@ -96,6 +98,22 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
                 print("✅ UserProfile already exists")
             }
         }
+    )
+
+    // MARK: - V2 → V3 Migration
+
+    /// Migration from V2 to V3: Expand UserProfileEntity with full profile data
+    ///
+    /// **Changes:**
+    /// - UserProfileEntity: Add displayName, age, experienceLevel, fitnessGoal
+    /// - UserProfileEntity: Add weeklyWorkoutGoal, lastHealthKitSync
+    /// - UserProfileEntity: Add healthKitEnabled, healthKitReadEnabled, healthKitWriteEnabled, appTheme
+    /// - UserProfileEntity: Add notificationsEnabled, liveActivityEnabled
+    ///
+    /// **Why:** Complete profile management with personal information, settings, and preferences
+    static let migrateV2toV3 = MigrationStage.lightweight(
+        fromVersion: SchemaV2.self,
+        toVersion: SchemaV3.self
     )
 
     // MARK: - Future Migration Stages (Examples)

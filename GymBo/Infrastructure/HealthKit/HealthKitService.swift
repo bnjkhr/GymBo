@@ -306,6 +306,28 @@ final class HealthKitService: HealthKitServiceProtocol {
         }
     }
 
+    func fetchDateOfBirth() async -> Result<Int, HealthKitError> {
+        do {
+            // Fetch date of birth components from HealthKit
+            guard let dateOfBirth = try healthStore.dateOfBirthComponents().date else {
+                return .failure(.dataNotAvailable)
+            }
+
+            // Calculate age from date of birth
+            let calendar = Calendar.current
+            let now = Date()
+            let ageComponents = calendar.dateComponents([.year], from: dateOfBirth, to: now)
+
+            guard let age = ageComponents.year else {
+                return .failure(.dataNotAvailable)
+            }
+
+            return .success(age)
+        } catch {
+            return .failure(.saveFailed(underlying: error))
+        }
+    }
+
     func fetchRestingHeartRate() async -> Result<Int, HealthKitError> {
         let restingHRType = HKQuantityType(.restingHeartRate)
 

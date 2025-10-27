@@ -353,6 +353,31 @@
 
 ## ✅ ABGESCHLOSSEN
 
+### Session 25 (2025-10-27) - ProfileView Complete Implementation & Theme Switching Fix
+- ✅ **Complete ProfileView Implementation**
+  - Schema Migration V2 → V3: Expanded UserProfileEntity with full profile data
+  - Personal Information: Name, Age (stepper), Experience Level, Fitness Goal
+  - Profile Image: Camera/Photo Library with permissions (NSCameraUsageDescription)
+  - Settings: Apple Health toggle (removed dummy Read/Write toggles)
+  - App Theme: System/Hell/Dunkel picker with reactive updates
+  - Notifications: Deep link to iOS Settings, Live Activity (disabled - future)
+  - HealthKit Import: Age, Weight, Height from Apple Health
+- ✅ **Theme Switching Reactivity Fix**
+  - Changed `appSettings` from `private let` to `@State` in GymBoApp
+  - ProfileView uses `@Bindable` for reactive theme updates
+  - AppSettings.currentTheme property tracks selected theme
+  - ProfileView displays correct theme value immediately on change
+- ✅ **HealthKit Toggle Simplification**
+  - Removed dummy Read/Write toggles (iOS manages permissions)
+  - Single "Apple Health aktivieren" toggle with real functionality
+  - Cleaned up across all layers (Domain, Data, Presentation)
+- ✅ **Architecture Improvements**
+  - Clean separation: Domain → Use Cases → Data → Presentation
+  - Proper @Observable usage with @Bindable in views
+  - ImagePicker UIViewControllerRepresentable with compression
+  - Separate sheets for camera/gallery selection (confirmationDialog)
+- Commits: Multiple (ProfileView implementation, theme fix, toggle cleanup)
+
 ### Session 24 (2025-10-27) - Weekly Workout Goal Feature + Profile UI/UX Polish
 - ✅ **Wöchentliches Workout-Ziel Feature**
   - UserProfileEntity: weeklyWorkoutGoal Feld hinzugefügt (Default: 3)

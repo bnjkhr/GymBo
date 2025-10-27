@@ -42,4 +42,43 @@ protocol UserProfileRepositoryProtocol {
     /// - Parameter goal: Number of workouts per week (1-7)
     /// - Throws: Repository error if update fails
     func updateWeeklyWorkoutGoal(_ goal: Int) async throws
+
+    /// Update personal information
+    /// - Parameters:
+    ///   - name: User's display name
+    ///   - age: User's age in years
+    ///   - experienceLevel: Fitness experience level
+    ///   - fitnessGoal: Primary fitness goal
+    /// - Throws: Repository error if update fails
+    func updatePersonalInfo(
+        name: String?,
+        age: Int?,
+        experienceLevel: ExperienceLevel?,
+        fitnessGoal: FitnessGoal?
+    ) async throws
+
+    /// Update profile image
+    /// - Parameter imageData: Image data (PNG/JPEG)
+    /// - Throws: Repository error if update fails
+    func updateProfileImage(_ imageData: Data?) async throws
+
+    /// Update app settings
+    /// - Parameters:
+    ///   - healthKitEnabled: Enable HealthKit integration
+    ///   - appTheme: App display theme
+    /// - Throws: Repository error if update fails
+    func updateSettings(
+        healthKitEnabled: Bool?,
+        appTheme: AppTheme?
+    ) async throws
+
+    /// Update notification preferences
+    /// - Parameters:
+    ///   - notificationsEnabled: Enable push notifications
+    ///   - liveActivityEnabled: Enable Live Activity for workouts
+    /// - Throws: Repository error if update fails
+    func updateNotificationSettings(
+        notificationsEnabled: Bool?,
+        liveActivityEnabled: Bool?
+    ) async throws
 }

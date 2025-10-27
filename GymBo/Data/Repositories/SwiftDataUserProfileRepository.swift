@@ -108,4 +108,61 @@ final class SwiftDataUserProfileRepository: UserProfileRepositoryProtocol {
 
         print("✅ Weekly workout goal updated: \(goal) workouts per week")
     }
+
+    func updatePersonalInfo(
+        name: String?,
+        age: Int?,
+        experienceLevel: ExperienceLevel?,
+        fitnessGoal: FitnessGoal?
+    ) async throws {
+        var profile = try await fetchOrCreate()
+
+        if let name = name { profile.name = name }
+        if let age = age { profile.age = age }
+        if let experience = experienceLevel { profile.experienceLevel = experience }
+        if let goal = fitnessGoal { profile.fitnessGoal = goal }
+        profile.updatedAt = Date()
+
+        try await update(profile)
+        print("✅ Personal info updated")
+    }
+
+    func updateProfileImage(_ imageData: Data?) async throws {
+        var profile = try await fetchOrCreate()
+        profile.profileImageData = imageData
+        profile.updatedAt = Date()
+
+        try await update(profile)
+        print("✅ Profile image updated")
+    }
+
+    func updateSettings(
+        healthKitEnabled: Bool?,
+        appTheme: AppTheme?
+    ) async throws {
+        var profile = try await fetchOrCreate()
+
+        if let enabled = healthKitEnabled { profile.healthKitEnabled = enabled }
+        if let theme = appTheme { profile.appTheme = theme }
+        profile.updatedAt = Date()
+
+        try await update(profile)
+        print("✅ Settings updated")
+    }
+
+    func updateNotificationSettings(
+        notificationsEnabled: Bool?,
+        liveActivityEnabled: Bool?
+    ) async throws {
+        var profile = try await fetchOrCreate()
+
+        if let notifications = notificationsEnabled {
+            profile.notificationsEnabled = notifications
+        }
+        if let liveActivity = liveActivityEnabled { profile.liveActivityEnabled = liveActivity }
+        profile.updatedAt = Date()
+
+        try await update(profile)
+        print("✅ Notification settings updated")
+    }
 }

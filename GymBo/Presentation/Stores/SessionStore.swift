@@ -1066,5 +1066,21 @@ extension SessionStore {
         func updateBodyMetrics(bodyMass: Double?, height: Double?) async throws {}
 
         func updateWeeklyWorkoutGoal(_ goal: Int) async throws {}
+
+        func updatePersonalInfo(
+            name: String?, age: Int?, experienceLevel: ExperienceLevel?,
+            fitnessGoal: FitnessGoal?
+        ) async throws {}
+
+        func updateProfileImage(_ imageData: Data?) async throws {}
+
+        func updateSettings(
+            healthKitEnabled: Bool?,
+            appTheme: AppTheme?
+        ) async throws {}
+
+        func updateNotificationSettings(notificationsEnabled: Bool?, liveActivityEnabled: Bool?)
+            async throws
+        {}
     }
 #endif

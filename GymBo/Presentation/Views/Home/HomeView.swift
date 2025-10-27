@@ -30,6 +30,7 @@ struct HomeView: View {
 
     @Environment(SessionStore.self) private var sessionStore
     @Environment(\.dependencyContainer) private var dependencyContainer
+    @Environment(AppSettings.self) private var appSettings
     @State private var workoutStore: WorkoutStore?
     @State private var workouts: [Workout] = []  // LOCAL state instead of store
     @State private var folders: [WorkoutFolder] = []  // LOCAL state for folders
@@ -55,39 +56,46 @@ struct HomeView: View {
         NavigationStack {
             contentView
                 .navigationBarTitleDisplayMode(.inline)
-                .modifier(SheetsModifier(
-                    showCreateWorkout: $showCreateWorkout,
-                    showCreateWorkoutDirect: $showCreateWorkoutDirect,
-                    showQuickSetup: $showQuickSetup,
-                    showProfile: $showProfile,
-                    showLockerInput: $showLockerInput,
-                    showActiveWorkout: $showActiveWorkout,
-                    showWorkoutSummary: $showWorkoutSummary,
-                    quickSetupPreviewData: $quickSetupPreviewData,
-                    navigateToNewWorkout: $navigateToNewWorkout,
-                    workoutStore: workoutStore,
-                    sessionStore: sessionStore,
-                    dependencyContainer: dependencyContainer,
-                    handleQuickSetupGeneration: handleQuickSetupGeneration,
-                    saveQuickSetupWorkout: saveQuickSetupWorkout
-                ))
-                .modifier(NavigationModifier(
-                    navigateToNewWorkout: $navigateToNewWorkout,
-                    navigateToExistingWorkout: $navigateToExistingWorkout,
-                    showActiveWorkout: $showActiveWorkout,
-                    workoutStore: workoutStore,
-                    sessionStore: sessionStore
-                ))
-                .modifier(LifecycleModifier(
-                    sessionStore: sessionStore,
-                    workoutStore: workoutStore,
-                    showWorkoutSummary: $showWorkoutSummary,
-                    showActiveWorkout: $showActiveWorkout,
-                    workouts: $workouts,
-                    folders: $folders,
-                    foldersUpdateTrigger: $foldersUpdateTrigger,
-                    updateWorkoutsHash: updateWorkoutsHash
-                ))
+                .modifier(
+                    SheetsModifier(
+                        showCreateWorkout: $showCreateWorkout,
+                        showCreateWorkoutDirect: $showCreateWorkoutDirect,
+                        showQuickSetup: $showQuickSetup,
+                        showProfile: $showProfile,
+                        showLockerInput: $showLockerInput,
+                        showActiveWorkout: $showActiveWorkout,
+                        showWorkoutSummary: $showWorkoutSummary,
+                        quickSetupPreviewData: $quickSetupPreviewData,
+                        navigateToNewWorkout: $navigateToNewWorkout,
+                        workoutStore: workoutStore,
+                        sessionStore: sessionStore,
+                        dependencyContainer: dependencyContainer,
+                        appSettings: appSettings,
+                        handleQuickSetupGeneration: handleQuickSetupGeneration,
+                        saveQuickSetupWorkout: saveQuickSetupWorkout
+                    )
+                )
+                .modifier(
+                    NavigationModifier(
+                        navigateToNewWorkout: $navigateToNewWorkout,
+                        navigateToExistingWorkout: $navigateToExistingWorkout,
+                        showActiveWorkout: $showActiveWorkout,
+                        workoutStore: workoutStore,
+                        sessionStore: sessionStore
+                    )
+                )
+                .modifier(
+                    LifecycleModifier(
+                        sessionStore: sessionStore,
+                        workoutStore: workoutStore,
+                        showWorkoutSummary: $showWorkoutSummary,
+                        showActiveWorkout: $showActiveWorkout,
+                        workouts: $workouts,
+                        folders: $folders,
+                        foldersUpdateTrigger: $foldersUpdateTrigger,
+                        updateWorkoutsHash: updateWorkoutsHash
+                    )
+                )
                 .onAppear {
                     // Reload workouts every time view appears to catch updates
                     Task {
@@ -805,6 +813,7 @@ struct SheetsModifier: ViewModifier {
     let workoutStore: WorkoutStore?
     let sessionStore: SessionStore
     let dependencyContainer: DependencyContainer?
+    let appSettings: AppSettings
     let handleQuickSetupGeneration: (QuickSetupConfig) async -> Void
     let saveQuickSetupWorkout: (String, [WorkoutExercise]) async -> Void
 
@@ -858,7 +867,8 @@ struct SheetsModifier: ViewModifier {
                 if let container = dependencyContainer {
                     ProfileView(
                         userProfileRepository: container.makeUserProfileRepository(),
-                        importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase()
+                        importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase(),
+                        appSettings: appSettings
                     )
                 }
             }

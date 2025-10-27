@@ -44,12 +44,17 @@ struct BodyMetrics: Equatable {
     /// Height in centimeters (nil if not available)
     let height: Double?
 
+    /// Age in years (nil if not available)
+    let age: Int?
+
     /// Timestamp when metrics were fetched
     let fetchedAt: Date
 
-    init(bodyMass: Double? = nil, height: Double? = nil, fetchedAt: Date = Date()) {
+    init(bodyMass: Double? = nil, height: Double? = nil, age: Int? = nil, fetchedAt: Date = Date())
+    {
         self.bodyMass = bodyMass
         self.height = height
+        self.age = age
         self.fetchedAt = fetchedAt
     }
 }
@@ -93,15 +98,27 @@ final class DefaultImportBodyMetricsUseCase: ImportBodyMetricsUseCase {
             height = nil
         }
 
+        // Fetch age (date of birth)
+        let ageResult = await healthKitService.fetchDateOfBirth()
+        var age: Int?
+        switch ageResult {
+        case .success(let a):
+            age = a
+        case .failure(let error):
+            print("⚠️ Failed to fetch age: \(error)")
+            age = nil
+        }
+
         // Return metrics (even if some are nil)
         let metrics = BodyMetrics(
             bodyMass: bodyMass,
             height: height,
+            age: age,
             fetchedAt: Date()
         )
 
         print(
-            "✅ Body metrics imported: weight=\(bodyMass?.description ?? "nil") kg, height=\(height?.description ?? "nil") cm"
+            "✅ Body metrics imported: weight=\(bodyMass?.description ?? "nil") kg, height=\(height?.description ?? "nil") cm, age=\(age?.description ?? "nil") years"
         )
 
         return .success(metrics)

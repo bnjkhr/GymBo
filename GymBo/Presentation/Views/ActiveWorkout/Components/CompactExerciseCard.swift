@@ -28,8 +28,8 @@ struct CompactExerciseCard: View {
     let exercise: DomainSessionExercise
     let exerciseIndex: Int
     let totalExercises: Int
-    let exerciseName: String  // TODO: Load from repository
-    let equipment: String?  // TODO: Load from repository
+    let exerciseName: String
+    let equipment: String?
 
     /// Callbacks
     let onToggleCompletion: ((UUID) -> Void)?  // Set ID (not index!)

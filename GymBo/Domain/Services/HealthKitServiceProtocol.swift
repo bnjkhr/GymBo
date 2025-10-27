@@ -56,6 +56,9 @@ protocol HealthKitServiceProtocol {
     /// Fetch height from Health
     func fetchHeight() async -> Result<Double, HealthKitError>  // cm
 
+    /// Fetch date of birth from Health (returns age in years)
+    func fetchDateOfBirth() async -> Result<Int, HealthKitError>  // age in years
+
     // MARK: - Query Historical Data
 
     /// Fetch resting heart rate (für Analytics)
@@ -160,6 +163,10 @@ enum HealthKitError: LocalizedError {
 
         func fetchHeight() async -> Result<Double, HealthKitError> {
             return .success(180.0)  // Mock: 180 cm
+        }
+
+        func fetchDateOfBirth() async -> Result<Int, HealthKitError> {
+            return .success(28)  // Mock: 28 years
         }
 
         func fetchRestingHeartRate() async -> Result<Int, HealthKitError> {
