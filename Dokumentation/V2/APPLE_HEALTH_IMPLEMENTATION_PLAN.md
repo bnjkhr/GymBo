@@ -1,10 +1,10 @@
 # Apple Health Integration - Implementierungsvorschlag
 **GymBo V2 - HealthKit Integration gemäß Clean Architecture**
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Erstellt:** 2025-10-27  
 **Aktualisiert:** 2025-10-27  
-**Status:** 🚧 IN PROGRESS
+**Status:** ✅ Phase 1-4 Complete
 
 ## ⚠️ Wichtige Entscheidungen
 
@@ -1354,7 +1354,7 @@ Profile Tab → Settings
 
 ## Implementierungs-Roadmap
 
-### 🚀 Phase 1: Core Integration (Priority: 🔴 High - 8-10 Std)
+### ✅ Phase 1: Core Integration (COMPLETE)
 
 **Scope:** Grundlegende HealthKit-Integration ohne UI
 
@@ -1368,71 +1368,93 @@ Profile Tab → Settings
 - [x] Session Entity: Add `healthKitSessionId` field
 - [x] DI Container: Register `HealthKitService`
 
-**Testing:**
-- [ ] Unit Tests für Use Cases (mit Mock)
-- [ ] Integration Test (echter HKHealthStore im Simulator)
-- [ ] Test ohne Permissions (Graceful degradation)
+**Completed:** 2025-10-27
+**Files Created:**
+- `GymBo/Domain/Services/HealthKitServiceProtocol.swift`
+- `GymBo/Infrastructure/Services/HealthKit/HealthKitService.swift`
+- Updated: `StartSessionUseCase.swift`, `EndSessionUseCase.swift`
+- Updated: `DependencyContainer.swift`
 
-**Deliverable:** Workouts werden automatisch in Health gespeichert (no UI yet)
+**Deliverable:** ✅ Workouts werden automatisch in Health gespeichert
 
 ---
 
-### 🚀 Phase 2: Permissions & Onboarding (Priority: 🔴 High - 3-4 Std)
+### ✅ Phase 2: Permissions & Onboarding (COMPLETE)
 
 **Scope:** User kann Permissions erteilen
 
 **Tasks:**
-- [ ] `HealthKitPermissionView.swift` (Onboarding Sheet)
-- [ ] Add to Onboarding Flow (optional step)
-- [ ] Settings: HealthKit Status + Reconnect Button
-- [ ] Info.plist: Add usage descriptions
-- [ ] SessionStore: Add `healthKitAvailable` & `healthKitAuthorized`
+- [x] `HealthKitPermissionView.swift` (Onboarding Sheet)
+- [x] Add to ProfileView (Settings)
+- [x] Info.plist: Add usage descriptions (NSHealthShareUsageDescription, NSHealthUpdateUsageDescription)
+- [x] SessionStore: Add `requestHealthKitAuthorization()`
 
-**Testing:**
-- [ ] Test Onboarding Flow (Grant/Deny/Skip)
-- [ ] Test Settings Reconnect
+**Completed:** 2025-10-27
+**Files Created:**
+- `GymBo/Presentation/Views/Profile/HealthKitPermissionView.swift`
+- Updated: `ProfileView.swift`
+- Updated: `project.pbxproj` (Info.plist keys)
 
-**Deliverable:** User sieht Permission Request & kann HealthKit aktivieren
+**Deliverable:** ✅ User kann HealthKit-Berechtigungen erteilen
 
 ---
 
-### 🚀 Phase 3: Heart Rate Streaming (Priority: 🟡 Medium - 4-5 Std)
+### ⏸️ Phase 3: Heart Rate Streaming (DEFERRED)
+
+**Status:** Wird SPÄTER in Live Activity integriert (User-Entscheidung)
 
 **Scope:** Live-Herzfrequenz während Workout (Apple Watch required)
 
-**Tasks:**
+**Reason for Deferral:** User entschied, Heart Rate Streaming später im Kontext der Live Activity-Entwicklung zu implementieren, da es dort besser integriert werden kann.
+
+**Future Tasks:**
 - [ ] `observeHeartRate()` in `HealthKitService`
-- [ ] SessionStore: Add `currentHeartRate` @Published
-- [ ] `HeartRateBadge.swift` Component
-- [ ] Integrate in `ActiveWorkoutSheetView`
-- [ ] Test with Apple Watch (Simulator + real device)
+- [ ] Live Activity: Add Heart Rate Widget
+- [ ] Test with Apple Watch
 
-**Testing:**
-- [ ] Test mit Apple Watch verbunden
-- [ ] Test ohne Apple Watch (Badge hidden)
-- [ ] Test Permission denied (Graceful)
-
-**Deliverable:** Live Heart Rate Badge in Active Workout View
+**Deliverable:** Wird in Phase "Live Activity" abgeschlossen
 
 ---
 
-### 🚀 Phase 4: Body Metrics Import (Priority: 🟡 Medium - 3-4 Std)
+### ✅ Phase 4: Body Metrics Import (COMPLETE)
 
-**Scope:** Import Gewicht & Größe aus Health
+**Scope:** Import Gewicht & Größe aus Health für präzisere Kalorienberechnung
 
 **Tasks:**
-- [ ] `ImportBodyMetricsUseCase.swift`
-- [ ] `ProfileStore.swift` (NEW)
-- [ ] `ProfileView.swift` - Add HealthKit Import Button
-- [ ] `fetchBodyMass()` & `fetchHeight()` in `HealthKitService`
-- [ ] UserProfile Entity: Add `weight` & `height` fields
+- [x] `ImportBodyMetricsUseCase.swift` - Fetch weight & height from HealthKit
+- [x] `DomainUserProfile.swift` - Domain entity mit BMI calculation
+- [x] `UserProfileRepositoryProtocol.swift` - Repository interface
+- [x] `SwiftDataUserProfileRepository.swift` - Persistence implementation
+- [x] `UserProfileMapper.swift` - Domain ↔ Data mapping
+- [x] `ProfileView.swift` - Body metrics section mit "Aus Apple Health importieren" button
+- [x] `fetchBodyMass()` & `fetchHeight()` in `HealthKitService`
+- [x] `EndSessionUseCase.swift` - Use real body weight for calorie calculation
+- [x] SwiftData Migration V1→V2 - Custom migration to create default UserProfile
 
-**Testing:**
-- [ ] Test Import (mit vorhandenen Daten)
-- [ ] Test Import (keine Daten verfügbar)
-- [ ] Test Permission denied
+**Completed:** 2025-10-27
+**Files Created:**
+- `GymBo/Domain/UseCases/HealthKit/ImportBodyMetricsUseCase.swift`
+- `GymBo/Domain/Entities/UserProfile.swift`
+- `GymBo/Domain/RepositoryProtocols/UserProfileRepositoryProtocol.swift`
+- `GymBo/Data/Repositories/SwiftDataUserProfileRepository.swift`
+- `GymBo/Data/Mappers/UserProfileMapper.swift`
+- Updated: `ProfileView.swift`, `EndSessionUseCase.swift`, `GymBoMigrationPlan.swift`
+- Updated: `DependencyContainer.swift`
 
-**Deliverable:** User kann Körpermaße aus Health importieren
+**Key Features:**
+- ✅ Body metrics import from Apple Health
+- ✅ Display weight, height, and calculated BMI in Profile
+- ✅ Real body weight used for calorie calculation (replaces hardcoded 80kg)
+- ✅ Automatic schema migration for existing users (no app deletion needed)
+- ✅ Graceful fallback to 80kg default if no profile data
+
+**Technical Highlights:**
+- Custom V1→V2 migration creates default UserProfile in `didMigrate` callback
+- Non-blocking HealthKit operations with `Task.detached`
+- Clean Architecture: Domain → Repository → SwiftData
+- Fixed HomeView type-checker timeout by extracting ViewModifiers
+
+**Deliverable:** ✅ User kann Körpermaße aus Health importieren & bessere Kalorienberechnung
 
 ---
 

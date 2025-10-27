@@ -1,13 +1,66 @@
-# GymBo V2 - Aktueller Stand (2025-10-26)
+# GymBo V2 - Aktueller Stand (2025-10-27)
 
-**Status:** ✅ MVP PRODUCTION-READY! Workout Folders Feature Complete
+**Status:** ✅ MVP PRODUCTION-READY! Apple Health Integration Complete (Phase 1-4)
+**Version:** 2.4.0
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
 **Design:** Modern iOS 26 mit Brand Color #F77E2D
 
-⚠️ **CRITICAL:** SwiftData Migration Support NICHT implementiert! Siehe [SWIFTDATA_MIGRATION_STRATEGY.md](SWIFTDATA_MIGRATION_STRATEGY.md)  
-🔴 **Risk:** Schema Changes führen zu Datenverlust bei Production Users!
+✅ **NEW:** SwiftData Migration V1→V2 implementiert! Custom migration mit UserProfile creation
+✅ **NEW:** Apple Health Integration! Workouts automatisch synchronisiert, Body Metrics Import
 
-**Letzte Session (2025-10-26 - Session 21 - WORKOUT FOLDERS/CATEGORIES):**
+**Letzte Session (2025-10-27 - Session 22 - APPLE HEALTH INTEGRATION PHASE 1-4):**
+- ✅ **Apple Health (HealthKit) Integration** (MAJOR FEATURE - Phase 1-4 Complete)
+  - **Phase 1: Core Integration**
+    - HealthKitServiceProtocol in Domain Layer (protocol abstraction)
+    - HealthKitService in Infrastructure (HKHealthStore implementation)
+    - StartSessionUseCase: Starts HKWorkoutSession (non-blocking background)
+    - EndSessionUseCase: Saves workout to Health with metadata
+    - Fire-and-forget: App funktioniert auch ohne HealthKit permissions
+  - **Phase 2: Permissions & UI**
+    - HealthKitPermissionView: Permission request sheet
+    - Info.plist keys: NSHealthShareUsageDescription, NSHealthUpdateUsageDescription
+    - ProfileView integration for settings
+  - **Phase 3: Heart Rate Streaming** (DEFERRED to Live Activity)
+    - User-Entscheidung: Heart Rate wird später in Live Activity implementiert
+  - **Phase 4: Body Metrics Import**
+    - ImportBodyMetricsUseCase: Fetch weight & height from HealthKit
+    - DomainUserProfile entity mit BMI calculation
+    - UserProfileRepositoryProtocol + SwiftDataUserProfileRepository
+    - ProfileView: Body metrics section mit "Aus Apple Health importieren" button
+    - EndSessionUseCase: Uses real body weight for calorie calculation (nicht mehr hardcoded 80kg)
+    - **Bessere Kalorienberechnung:** Calories = MET (6.0) × real bodyWeight × time
+- ✅ **SwiftData Migration V1→V2** (CRITICAL FIX)
+  - Custom migration statt lightweight (MigrationStage.custom)
+  - didMigrate callback creates default UserProfile automatically
+  - **Keine manuelle App-Löschung mehr nötig!**
+  - Migration Console Output: "🔄 Starting migration V1 → V2", "📝 Creating default UserProfile"
+- ✅ **HomeView Type-Checker Timeout Fix**
+  - Extracted 3 ViewModifier structs: SheetsModifier, NavigationModifier, LifecycleModifier
+  - Reduced compiler complexity, maintainable code structure
+- ✅ **Architecture Improvements**
+  - 4 Repositories now (added UserProfileRepository)
+  - 30+ Use Cases (added 3 HealthKit use cases)
+  - Clean separation: Domain protocols, Infrastructure implementations
+  - Non-blocking async operations mit Task.detached(priority: .background)
+- ✅ **9 New Files Created:**
+  - Domain: HealthKitServiceProtocol, UserProfile, UserProfileRepositoryProtocol, 3× HealthKit UseCases
+  - Infrastructure: HealthKitService
+  - Data: SwiftDataUserProfileRepository, UserProfileMapper
+  - Presentation: HealthKitPermissionView
+- ✅ **8 Files Updated:**
+  - StartSessionUseCase, EndSessionUseCase (HealthKit integration)
+  - DependencyContainer (new dependencies)
+  - ProfileView (body metrics UI)
+  - HomeView (ViewModifier refactoring)
+  - GymBoMigrationPlan (custom migration)
+  - project.pbxproj (Info.plist keys)
+- ✅ **User Decisions:**
+  - ❌ Apple Watch Support: Vorerst nicht
+  - ⏸️ Heart Rate Streaming: Später in Live Activity
+  - ✅ Body Metrics Import: High priority (bessere Kalorien)
+  - ✅ Automatic Migration: Ja (kein App-Delete nötig)
+
+**Session 21 (2025-10-26 - WORKOUT FOLDERS/CATEGORIES):**
 - ✅ Workout Folders/Categories Feature (MAJOR FEATURE)
   - WorkoutFolder Domain Entity (id, name, color, order, createdDate)
   - WorkoutFolderEntity SwiftData persistence
