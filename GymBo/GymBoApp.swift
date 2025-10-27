@@ -38,9 +38,27 @@ struct GymBoApp: App {
     /// Shared session store (initialized in init)
     private let sessionStore: SessionStore
 
+    /// Migration state
+    @State private var showMigrationAlert = false
+    @State private var migrationCompleted = false
+
     // MARK: - Initialization
 
     init() {
+        // Check if database reset is needed (v1.0 → v2.4.0 upgrade)
+        let versionManager = AppVersionManager.shared
+        versionManager.printVersionInfo()
+
+        let needsReset = versionManager.needsDatabaseReset()
+
+        // If upgrading from v1.0, delete old database before creating container
+        if needsReset {
+            AppLogger.app.warning("⚠️ V1.0 detected - deleting old database for clean v2.4.0 start")
+            Self.deleteDatabase()
+            // Will show alert to user after container is created
+            _showMigrationAlert = State(initialValue: true)
+        }
+
         // ✅ Production-Ready: ModelContainer with V2 schema and migration plan
         // Migrates from V1 (no exerciseId) → V2 (with exerciseId in WorkoutExerciseEntity)
 
@@ -156,13 +174,27 @@ struct GymBoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
-                .modelContainer(container)
-                .environment(sessionStore)
-                .environment(\.dependencyContainer, dependencyContainer)
-                .task {
-                    await performStartupTasks()
+            ZStack {
+                MainTabView()
+                    .modelContainer(container)
+                    .environment(sessionStore)
+                    .environment(\.dependencyContainer, dependencyContainer)
+                    .task {
+                        await performStartupTasks()
+                    }
+
+                // Migration alert overlay
+                if showMigrationAlert {
+                    MigrationAlertView {
+                        // User confirmed - mark migration complete and dismiss
+                        showMigrationAlert = false
+                        migrationCompleted = true
+                        AppVersionManager.shared.markV2MigrationComplete()
+                        AppLogger.app.info("✅ User confirmed v2.4.0 migration")
+                    }
+                    .transition(.opacity)
                 }
+            }
         }
     }
 
@@ -196,5 +228,43 @@ struct GymBoApp: App {
         } else {
             print("⚠️ performStartupTasks: No active session found")
         }
+
+        // Update version after startup (for next launch)
+        if migrationCompleted || !showMigrationAlert {
+            AppVersionManager.shared.updateStoredVersion()
+        }
+    }
+
+    // MARK: - Database Management
+
+    /// Delete the entire SwiftData database
+    ///
+    /// **Use cases:**
+    /// - v1.0 → v2.4.0 migration (clean slate)
+    /// - Unrecoverable migration errors
+    ///
+    /// **Warning:** This deletes ALL user data!
+    private static func deleteDatabase() {
+        let fileManager = FileManager.default
+        guard let storeURL = fileManager.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first?.appendingPathComponent("default.store") else {
+            AppLogger.app.warning("⚠️ Could not find database URL")
+            return
+        }
+
+        // Delete main store file
+        try? fileManager.removeItem(at: storeURL)
+
+        // Delete Write-Ahead Logging files
+        try? fileManager.removeItem(
+            at: storeURL.deletingPathExtension().appendingPathExtension("store-shm")
+        )
+        try? fileManager.removeItem(
+            at: storeURL.deletingPathExtension().appendingPathExtension("store-wal")
+        )
+
+        AppLogger.app.info("🗑️ Database deleted successfully")
     }
 }
