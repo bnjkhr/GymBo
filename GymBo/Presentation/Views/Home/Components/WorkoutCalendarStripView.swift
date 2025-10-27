@@ -12,53 +12,25 @@ import SwiftUI
 ///
 /// **Features:**
 /// - Shows last 14 days
-/// - Highlights days with completed workouts
-/// - Shows current streak (consecutive workout days)
-/// - Auto-scrolls to today
+/// - Small black dot above day indicates workout completion
+/// - Minimalist, clean design
+/// - Auto-scrolls to show today as last visible day
+///
+/// **Design:**
+/// - No streak display
+/// - No colored circles
+/// - Simple dot indicator (5pt black circle)
 struct WorkoutCalendarStripView: View {
     @Environment(\.dependencyContainer) private var dependencyContainer
     @State private var workoutDates: Set<Date> = []
-    @State private var currentStreak: Int = 0
     @State private var isLoading = true
 
     // Calendar helper
     private let calendar = Calendar.current
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Streak Badge (if exists)
-            if currentStreak > 0 {
-                HStack {
-                    HStack(spacing: 6) {
-                        Image(systemName: "flame.fill")
-                            .font(.subheadline)
-                            .foregroundColor(.appOrange)
-
-                        Text("\(currentStreak)")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .monospacedDigit()
-
-                        Text(currentStreak == 1 ? "Tag" : "Tage")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.appOrange.opacity(0.12))
-                    )
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(Color.appOrange.opacity(0.3), lineWidth: 1)
-                    )
-
-                    Spacer()
-                }
-            }
-
-            // Calendar Strip
+        VStack(spacing: 0) {
+            // Calendar Strip (no streak display)
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
@@ -75,11 +47,11 @@ struct WorkoutCalendarStripView: View {
                     .padding(.vertical, 2)
                 }
                 .onAppear {
-                    // Auto-scroll to today
-                    if let today = last14Days.first(where: { calendar.isDateInToday($0) }) {
+                    // Auto-scroll to today (last day)
+                    if let today = last14Days.last {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             withAnimation {
-                                proxy.scrollTo(today, anchor: .center)
+                                proxy.scrollTo(today, anchor: .trailing)
                             }
                         }
                     }
@@ -133,7 +105,6 @@ struct WorkoutCalendarStripView: View {
 
             await MainActor.run {
                 workoutDates = dates
-                currentStreak = calculateStreak(from: dates)
                 isLoading = false
             }
         } catch {
@@ -150,23 +121,6 @@ struct WorkoutCalendarStripView: View {
     private func normalizeDate(_ date: Date) -> Date {
         calendar.startOfDay(for: date)
     }
-
-    /// Calculate consecutive workout days streak (ending today or most recent day)
-    private func calculateStreak(from dates: Set<Date>) -> Int {
-        let today = calendar.startOfDay(for: Date())
-        var streak = 0
-        var currentDate = today
-
-        // Count backwards from today
-        while dates.contains(currentDate) {
-            streak += 1
-            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDate)
-            else { break }
-            currentDate = previousDay
-        }
-
-        return streak
-    }
 }
 
 // MARK: - Day Cell
@@ -179,31 +133,24 @@ private struct DayCell: View {
     private let calendar = Calendar.current
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
+            // Small black dot indicator (above day number)
+            Circle()
+                .fill(hasWorkout ? Color.black : Color.clear)
+                .frame(width: 5, height: 5)
+
+            // Day number
+            Text("\(dayNumber)")
+                .font(.body)
+                .fontWeight(.regular)
+                .foregroundStyle(.primary)
+                .monospacedDigit()
+
             // Weekday
             Text(weekdayShort)
                 .font(.caption2)
                 .fontWeight(.medium)
-                .foregroundStyle(isToday ? .primary : .secondary)
-
-            // Day Circle
-            ZStack {
-                Circle()
-                    .fill(hasWorkout ? Color.green : Color(.tertiarySystemFill))
-                    .frame(width: 32, height: 32)
-
-                if isToday {
-                    Circle()
-                        .strokeBorder(Color.blue, lineWidth: 2)
-                        .frame(width: 32, height: 32)
-                }
-
-                Text("\(dayNumber)")
-                    .font(.caption)
-                    .fontWeight(hasWorkout ? .semibold : .regular)
-                    .foregroundStyle(hasWorkout ? .white : .secondary)
-                    .monospacedDigit()
-            }
+                .foregroundStyle(.secondary)
         }
         .frame(width: 40)
     }
