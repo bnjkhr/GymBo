@@ -45,15 +45,18 @@ final class DefaultEndSessionUseCase: EndSessionUseCase {
 
     private let sessionRepository: SessionRepositoryProtocol
     private let healthKitService: HealthKitServiceProtocol
+    private let userProfileRepository: UserProfileRepositoryProtocol
 
     // MARK: - Initialization
 
     init(
         sessionRepository: SessionRepositoryProtocol,
-        healthKitService: HealthKitServiceProtocol
+        healthKitService: HealthKitServiceProtocol,
+        userProfileRepository: UserProfileRepositoryProtocol
     ) {
         self.sessionRepository = sessionRepository
         self.healthKitService = healthKitService
+        self.userProfileRepository = userProfileRepository
     }
 
     // MARK: - Execute
@@ -92,7 +95,7 @@ final class DefaultEndSessionUseCase: EndSessionUseCase {
                 // Calculate estimated calories (simple formula)
                 let duration = session.duration  // seconds
                 let totalVolume = session.totalVolume  // kg
-                let estimatedCalories = self.calculateCalories(
+                let estimatedCalories = await self.calculateCalories(
                     duration: duration,
                     volume: totalVolume
                 )
@@ -129,10 +132,19 @@ final class DefaultEndSessionUseCase: EndSessionUseCase {
     /// Simplified calorie estimation
     /// Source: MET (Metabolic Equivalent of Task) for strength training
     /// MET for strength training: ~6.0 (moderate) to 8.0 (vigorous)
-    private func calculateCalories(duration: TimeInterval, volume: Double) -> Double {
+    private func calculateCalories(duration: TimeInterval, volume: Double) async -> Double {
         let hours = duration / 3600.0
         let met: Double = 6.0  // Conservative estimate
-        let bodyWeight: Double = 80.0  // TODO: Get from user profile
+
+        // Get body weight from user profile (defaults to 80kg if not available)
+        let bodyWeight: Double
+        if let profile = try? await userProfileRepository.fetchOrCreate() {
+            bodyWeight = profile.bodyMassOrDefault
+            print("💪 Using user body weight for calorie calculation: \(bodyWeight) kg")
+        } else {
+            bodyWeight = 80.0
+            print("⚠️ Using default body weight for calorie calculation: \(bodyWeight) kg")
+        }
 
         // Formula: Calories = MET × body weight (kg) × time (hours)
         let calories = met * bodyWeight * hours

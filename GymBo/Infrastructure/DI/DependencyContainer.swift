@@ -125,6 +125,15 @@ final class DependencyContainer {
         )
     }
 
+    /// Creates UserProfileRepository implementation
+    /// - Returns: Repository conforming to UserProfileRepositoryProtocol
+    func makeUserProfileRepository() -> UserProfileRepositoryProtocol {
+        return SwiftDataUserProfileRepository(
+            modelContext: modelContext,
+            mapper: UserProfileMapper()
+        )
+    }
+
     // MARK: - Use Cases (Domain Layer)
 
     /// Creates StartSessionUseCase
@@ -153,7 +162,8 @@ final class DependencyContainer {
         // ✅ Sprint 1.2 COMPLETE
         return DefaultEndSessionUseCase(
             sessionRepository: makeSessionRepository(),
-            healthKitService: makeHealthKitService()
+            healthKitService: makeHealthKitService(),
+            userProfileRepository: makeUserProfileRepository()
         )
     }
 
@@ -324,6 +334,14 @@ final class DependencyContainer {
     func makeUpdateWorkoutExerciseUseCase() -> UpdateWorkoutExerciseUseCase {
         return DefaultUpdateWorkoutExerciseUseCase(
             workoutRepository: makeWorkoutRepository()
+        )
+    }
+
+    /// Creates ImportBodyMetricsUseCase
+    /// - Returns: Use case for importing body metrics from HealthKit
+    func makeImportBodyMetricsUseCase() -> ImportBodyMetricsUseCase {
+        return DefaultImportBodyMetricsUseCase(
+            healthKitService: makeHealthKitService()
         )
     }
 

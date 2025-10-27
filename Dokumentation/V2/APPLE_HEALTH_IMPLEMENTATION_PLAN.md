@@ -1,9 +1,16 @@
 # Apple Health Integration - Implementierungsvorschlag
 **GymBo V2 - HealthKit Integration gemäß Clean Architecture**
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Erstellt:** 2025-10-27  
-**Status:** 📋 PLANUNG  
+**Aktualisiert:** 2025-10-27  
+**Status:** 🚧 IN PROGRESS
+
+## ⚠️ Wichtige Entscheidungen
+
+- **Apple Watch Support:** NICHT implementieren (vorerst)
+- **Heart Rate Streaming:** Wird SPÄTER in Live Activity integriert (nicht jetzt)
+- **Fokus:** Körpermaße-Import (Gewicht & Größe) für bessere Kalorienberechnung  
 
 ---
 

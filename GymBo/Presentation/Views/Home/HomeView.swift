@@ -135,7 +135,10 @@ struct HomeView: View {
                 }
             }
             .sheet(isPresented: $showProfile) {
-                ProfileView()
+                ProfileView(
+                    userProfileRepository: dependencyContainer.makeUserProfileRepository(),
+                    importBodyMetricsUseCase: dependencyContainer.makeImportBodyMetricsUseCase()
+                )
             }
             .sheet(isPresented: $showLockerInput) {
                 LockerNumberInputSheet()

@@ -25,6 +25,19 @@ struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(SessionStore.self) private var sessionStore
     @State private var showHealthKitPermission = false
+    @State private var userProfile: DomainUserProfile?
+    @State private var isLoadingMetrics = false
+
+    private let userProfileRepository: UserProfileRepositoryProtocol
+    private let importBodyMetricsUseCase: ImportBodyMetricsUseCase
+
+    init(
+        userProfileRepository: UserProfileRepositoryProtocol,
+        importBodyMetricsUseCase: ImportBodyMetricsUseCase
+    ) {
+        self.userProfileRepository = userProfileRepository
+        self.importBodyMetricsUseCase = importBodyMetricsUseCase
+    }
 
     var body: some View {
         NavigationStack {
@@ -32,6 +45,9 @@ struct ProfileView: View {
                 VStack(spacing: 24) {
                     // Profile Header
                     profileHeader
+
+                    // Body Metrics Section
+                    bodyMetricsSection
 
                     // HealthKit Settings
                     healthKitSection
@@ -42,6 +58,9 @@ struct ProfileView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
+            .task {
+                await loadUserProfile()
+            }
             .navigationTitle("Profil")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -66,6 +85,105 @@ struct ProfileView: View {
     }
 
     // MARK: - Subviews
+
+    private var bodyMetricsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Körpermaße")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 12) {
+                // Weight Row
+                HStack {
+                    Image(systemName: "scalemass.fill")
+                        .font(.body)
+                        .foregroundStyle(.blue)
+                        .frame(width: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Gewicht")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+
+                        if let weight = userProfile?.bodyMass {
+                            Text("\(weight, specifier: "%.1f") kg")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Nicht festgelegt")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Spacer()
+                }
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+
+                // Height Row
+                HStack {
+                    Image(systemName: "ruler.fill")
+                        .font(.body)
+                        .foregroundStyle(.green)
+                        .frame(width: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Größe")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+
+                        if let height = userProfile?.height {
+                            Text("\(height, specifier: "%.0f") cm")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Nicht festgelegt")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Spacer()
+                }
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+
+                // Import Button
+                if sessionStore.healthKitAuthorized {
+                    Button {
+                        Task {
+                            await importBodyMetrics()
+                        }
+                    } label: {
+                        HStack {
+                            if isLoadingMetrics {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "arrow.down.circle.fill")
+                            }
+                            Text("Aus Apple Health importieren")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isLoadingMetrics)
+
+                    if let lastSync = userProfile?.lastHealthKitSync {
+                        Text("Zuletzt aktualisiert: \(lastSync, style: .relative)")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .padding(.horizontal, 4)
+                    }
+                }
+            }
+        }
+    }
 
     private var healthKitSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -191,10 +309,77 @@ struct ProfileView: View {
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
     }
+
+    // MARK: - Helper Methods
+
+    private func loadUserProfile() async {
+        do {
+            userProfile = try await userProfileRepository.fetchOrCreate()
+            print(
+                "✅ User profile loaded: weight=\(userProfile?.bodyMass?.description ?? "nil"), height=\(userProfile?.height?.description ?? "nil")"
+            )
+        } catch {
+            print("❌ Failed to load user profile: \(error)")
+        }
+    }
+
+    private func importBodyMetrics() async {
+        isLoadingMetrics = true
+        defer { isLoadingMetrics = false }
+
+        // Import from HealthKit
+        let result = await importBodyMetricsUseCase.execute()
+
+        switch result {
+        case .success(let metrics):
+            // Save to repository
+            do {
+                try await userProfileRepository.updateBodyMetrics(
+                    bodyMass: metrics.bodyMass,
+                    height: metrics.height
+                )
+
+                // Reload profile
+                await loadUserProfile()
+
+                print("✅ Body metrics imported and saved")
+            } catch {
+                print("❌ Failed to save body metrics: \(error)")
+            }
+
+        case .failure(let error):
+            print("❌ Failed to import body metrics: \(error)")
+        }
+    }
 }
 
 // MARK: - Preview
 
 #Preview {
-    ProfileView()
+    @Previewable @State var mockRepository = MockUserProfileRepository()
+    @Previewable @State var mockUseCase = MockImportBodyMetricsUseCase()
+
+    ProfileView(
+        userProfileRepository: mockRepository,
+        importBodyMetricsUseCase: mockUseCase
+    )
+    .environment(SessionStore.preview)
+}
+
+// MARK: - Mock Implementations for Preview
+
+private class MockUserProfileRepository: UserProfileRepositoryProtocol {
+    func fetchOrCreate() async throws -> DomainUserProfile {
+        DomainUserProfile(bodyMass: 75.0, height: 180.0)
+    }
+
+    func update(_ profile: DomainUserProfile) async throws {}
+
+    func updateBodyMetrics(bodyMass: Double?, height: Double?) async throws {}
+}
+
+private class MockImportBodyMetricsUseCase: ImportBodyMetricsUseCase {
+    func execute() async -> Result<BodyMetrics, HealthKitError> {
+        .success(BodyMetrics(bodyMass: 75.0, height: 180.0))
+    }
 }

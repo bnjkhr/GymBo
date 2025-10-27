@@ -1005,7 +1005,8 @@ extension SessionStore {
                 completeSetUseCase: DefaultCompleteSetUseCase(sessionRepository: repository),
                 endSessionUseCase: DefaultEndSessionUseCase(
                     sessionRepository: repository,
-                    healthKitService: healthKitService
+                    healthKitService: healthKitService,
+                    userProfileRepository: MockUserProfileRepository()
                 ),
                 cancelSessionUseCase: DefaultCancelSessionUseCase(sessionRepository: repository),
                 pauseSessionUseCase: DefaultPauseSessionUseCase(sessionRepository: repository),
@@ -1052,5 +1053,16 @@ extension SessionStore {
             store.currentSession = .preview
             return store
         }
+    }
+
+    /// Mock UserProfileRepository for previews
+    private class MockUserProfileRepository: UserProfileRepositoryProtocol {
+        func fetchOrCreate() async throws -> DomainUserProfile {
+            DomainUserProfile(bodyMass: 80.0, height: 175.0)
+        }
+
+        func update(_ profile: DomainUserProfile) async throws {}
+
+        func updateBodyMetrics(bodyMass: Double?, height: Double?) async throws {}
     }
 #endif
