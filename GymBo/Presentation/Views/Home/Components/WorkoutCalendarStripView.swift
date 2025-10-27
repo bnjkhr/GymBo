@@ -23,14 +23,38 @@ import SwiftUI
 struct WorkoutCalendarStripView: View {
     @Environment(\.dependencyContainer) private var dependencyContainer
     @State private var workoutDates: Set<Date> = []
+    @State private var lastWorkoutDate: Date?
     @State private var isLoading = true
 
     // Calendar helper
     private let calendar = Calendar.current
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Calendar Strip (no streak display)
+        VStack(spacing: 12) {
+            // Stats Header (only show if workouts exist)
+            if !workoutDates.isEmpty {
+                HStack(spacing: 16) {
+                    // This week stats
+                    Text("Diese Woche: \(thisWeekWorkoutCount)/3 Workouts")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+
+                    Spacer()
+
+                    // Last workout
+                    if let lastDate = lastWorkoutDate {
+                        Text("Letztes Workout: \(formatDate(lastDate))")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                            .textCase(.uppercase)
+                    }
+                }
+            }
+
+            // Calendar Strip
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
@@ -77,6 +101,20 @@ struct WorkoutCalendarStripView: View {
         }
     }
 
+    /// Count workouts this week (Monday to today)
+    private var thisWeekWorkoutCount: Int {
+        guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: Date())?.start else {
+            return 0
+        }
+
+        let today = calendar.startOfDay(for: Date())
+        let endOfToday = calendar.date(byAdding: .day, value: 1, to: today) ?? today
+
+        return workoutDates.filter { date in
+            date >= weekStart && date < endOfToday
+        }.count
+    }
+
     // MARK: - Data Loading
 
     private func loadWorkoutHistory() async {
@@ -103,8 +141,14 @@ struct WorkoutCalendarStripView: View {
                 }
             )
 
+            // Find most recent workout date
+            let mostRecentDate = sessions
+                .map { $0.startDate }
+                .max()
+
             await MainActor.run {
                 workoutDates = dates
+                lastWorkoutDate = mostRecentDate
                 isLoading = false
             }
         } catch {
@@ -120,6 +164,20 @@ struct WorkoutCalendarStripView: View {
     /// Normalize date to start of day for comparison
     private func normalizeDate(_ date: Date) -> Date {
         calendar.startOfDay(for: date)
+    }
+
+    /// Format date for display (e.g. "24.10." or "Heute")
+    private func formatDate(_ date: Date) -> String {
+        if calendar.isDateInToday(date) {
+            return "Heute"
+        } else if calendar.isDateInYesterday(date) {
+            return "Gestern"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd.MM."
+            formatter.locale = Locale(identifier: "de_DE")
+            return formatter.string(from: date)
+        }
     }
 }
 
