@@ -400,6 +400,8 @@
 				DEVELOPMENT_TEAM = 5N2YD2P2G5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "GymBo benötigt Zugriff auf deine Gesundheitsdaten, um Gewicht und Herzfrequenz zu importieren.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "GymBo möchte deine Workouts und verbrannten Kalorien in Apple Health speichern.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -433,6 +435,8 @@
 				DEVELOPMENT_TEAM = 5N2YD2P2G5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "GymBo benötigt Zugriff auf deine Gesundheitsdaten, um Gewicht und Herzfrequenz zu importieren.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "GymBo möchte deine Workouts und verbrannten Kalorien in Apple Health speichern.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
