@@ -23,6 +23,8 @@ import SwiftUI
 struct ProfileView: View {
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(SessionStore.self) private var sessionStore
+    @State private var showHealthKitPermission = false
 
     var body: some View {
         NavigationStack {
@@ -30,6 +32,9 @@ struct ProfileView: View {
                 VStack(spacing: 24) {
                     // Profile Header
                     profileHeader
+
+                    // HealthKit Settings
+                    healthKitSection
 
                     // Placeholder for future sections
                     placeholderContent
@@ -46,10 +51,79 @@ struct ProfileView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showHealthKitPermission) {
+                HealthKitPermissionView(
+                    onAuthorize: {
+                        await sessionStore.requestHealthKitPermission()
+                        showHealthKitPermission = false
+                    },
+                    onSkip: {
+                        showHealthKitPermission = false
+                    }
+                )
+            }
         }
     }
 
     // MARK: - Subviews
+
+    private var healthKitSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Apple Health")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: "heart.circle.fill")
+                        .font(.body)
+                        .foregroundStyle(.red)
+                        .frame(width: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Apple Health")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+
+                        Text(sessionStore.healthKitAuthorized ? "Verbunden" : "Nicht verbunden")
+                            .font(.caption)
+                            .foregroundStyle(sessionStore.healthKitAuthorized ? .green : .secondary)
+                    }
+
+                    Spacer()
+
+                    if sessionStore.healthKitAvailable {
+                        if sessionStore.healthKitAuthorized {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                        } else {
+                            Button("Verbinden") {
+                                showHealthKitPermission = true
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                        }
+                    } else {
+                        Text("Nicht verfügbar")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+
+                if sessionStore.healthKitAuthorized {
+                    Text("Trainings werden automatisch mit Apple Health synchronisiert")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
+                }
+            }
+        }
+    }
 
     private var profileHeader: some View {
         VStack(spacing: 16) {

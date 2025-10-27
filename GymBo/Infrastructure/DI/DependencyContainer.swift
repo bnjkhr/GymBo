@@ -60,7 +60,8 @@ final class DependencyContainer {
             addExerciseToSessionUseCase: makeAddExerciseToSessionUseCase(),
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository(),
-            workoutRepository: makeWorkoutRepository()
+            workoutRepository: makeWorkoutRepository(),
+            healthKitService: makeHealthKitService()
         )
     }()
 

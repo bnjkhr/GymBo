@@ -8,6 +8,7 @@
 
 import Combine
 import Foundation
+import HealthKit
 import Observation
 import SwiftUI
 
@@ -59,6 +60,12 @@ final class SessionStore {
     /// Success message for user feedback (auto-clears after 3s)
     var successMessage: String?
 
+    /// HealthKit availability status
+    var healthKitAvailable: Bool = false
+
+    /// HealthKit authorization status
+    var healthKitAuthorized: Bool = false
+
     // MARK: - Dependencies (Injected)
 
     private let startSessionUseCase: StartSessionUseCase
@@ -78,6 +85,7 @@ final class SessionStore {
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
     private let workoutRepository: WorkoutRepositoryProtocol
+    private let healthKitService: HealthKitServiceProtocol
     private weak var restTimerManager: RestTimerStateManager?
 
     // MARK: - Private State
@@ -104,6 +112,7 @@ final class SessionStore {
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol,
         workoutRepository: WorkoutRepositoryProtocol,
+        healthKitService: HealthKitServiceProtocol,
         restTimerManager: RestTimerStateManager? = nil
     ) {
         self.startSessionUseCase = startSessionUseCase
@@ -123,7 +132,12 @@ final class SessionStore {
         self.workoutRepository = workoutRepository
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
+        self.healthKitService = healthKitService
         self.restTimerManager = restTimerManager
+
+        // Initialize HealthKit availability
+        self.healthKitAvailable = HKHealthStore.isHealthDataAvailable()
+        self.healthKitAuthorized = healthKitService.isAuthorized()
     }
 
     // MARK: - Public Actions
@@ -131,6 +145,21 @@ final class SessionStore {
     /// Set the rest timer manager (called from ActiveWorkoutSheetView)
     func setRestTimerManager(_ manager: RestTimerStateManager) {
         self.restTimerManager = manager
+    }
+
+    /// Request HealthKit permissions
+    func requestHealthKitPermission() async {
+        let result = await healthKitService.requestAuthorization()
+
+        switch result {
+        case .success:
+            healthKitAuthorized = true
+            showSuccessMessage("Apple Health verbunden")
+            print("✅ HealthKit authorization granted")
+        case .failure(let error):
+            healthKitAuthorized = false
+            print("❌ HealthKit authorization failed: \(error)")
+        }
     }
 
     /// Start a new workout session
@@ -1012,7 +1041,8 @@ extension SessionStore {
                 ),
                 sessionRepository: repository,
                 exerciseRepository: exerciseRepository,
-                workoutRepository: workoutRepository
+                workoutRepository: workoutRepository,
+                healthKitService: healthKitService
             )
         }
 
