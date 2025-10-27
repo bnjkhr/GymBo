@@ -1,0 +1,47 @@
+# CodeRabbit Configuration for GymBo
+# Documentation: https://docs.coderabbit.ai/guides/configure-coderabbit
+
+language: "de"  # Reviews in German
+early_access: false
+reviews:
+  profile: "chill"  # Options: chill, assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+  tools:
+    shellcheck:
+      enabled: true
+    swiftlint:
+      enabled: true
+
+chat:
+  auto_reply: true
+
+# Path-based instructions
+path_instructions:
+  - path: "**/*.swift"
+    instructions: |
+      - Focus on SwiftUI best practices
+      - Check for proper @State, @StateObject, @ObservedObject usage
+      - Verify proper memory management
+      - Look for potential retain cycles
+  - path: "**/Tests/**"
+    instructions: |
+      - Verify test coverage
+      - Check for proper assertions
+      - Ensure tests are maintainable
+
+# Ignore patterns
+path_filters:
+  excluded:
+    - "**/*.xcassets/**"
+    - "**/*.xcodeproj/**"
+    - "**/*.xcworkspace/**"
+    - "**/Pods/**"
+    - "**/.build/**"
+    - "**/DerivedData/**"
