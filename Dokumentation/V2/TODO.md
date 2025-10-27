@@ -27,7 +27,7 @@
 ### 🟢 Low Priority / Nice-to-Have
 
 - [ ] **Dynamic Island** - Live Activities während aktivem Workout
-- [ ] **Rework Calender-Strip** - Verbessertes Design & Interaktivität
+- [ ] **Wöchentliches Workout-Ziel** - User kann im Profil Ziel-Anzahl pro Woche setzen (aktuell hardcoded: 3)
 
 ---
 
