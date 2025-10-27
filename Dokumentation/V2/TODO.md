@@ -1,9 +1,33 @@
 # GymBo V2 - TODO Liste
 
-**Stand:** 2025-10-26
+**Stand:** 2025-10-27
 **Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.3.0)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 21 - Workout Folders Feature Complete
+**Letzte Änderungen:** Session 22 - Code Cleanup Complete + File Renaming
+
+---
+
+## 📋 AKTUELLE TO-DOs (Kanban)
+
+> **Hinweis:** Neue To-dos einfach hier oben in die entsprechende Kategorie einfügen!
+
+### 🔴 High Priority
+
+- [ ] **Übungen tauschen bei aktivem Workout** - Lange auf Übung drücken → Alternative vorschlagen
+- [ ] **Feature Flags** - System für experimentelle Features implementieren
+- [ ] **Live Activities** - Lock Screen Integration für aktive Sessions
+
+### 🟡 Medium Priority
+
+- [ ] **Progression** - Automatische Gewichtssteigerung & Progression Tracking
+- [ ] **Widgets** - iOS Home Screen Widgets für schnellen Zugriff
+- [ ] **Workout Import** - Workouts von anderen Plattformen importieren
+- [ ] **Aufwärmsätze** - Warmup sets für bessere Trainingsstruktur
+
+### 🟢 Low Priority / Nice-to-Have
+
+- [ ] **Dynamic Island** - Live Activities während aktivem Workout
+- [ ] **Rework Calender-Strip** - Verbessertes Design & Interaktivität
 
 ---
 
@@ -16,6 +40,7 @@
 - Toggle Favorite
 - **Workout Folders/Categories** (organize in colored folders)
 - Move workouts between folders
+- Folder reordering (drag & drop)
 - Quick-Setup Workout Creation (wizard)
 - WorkoutStore mit allen Use Cases
 - Pull-to-refresh
@@ -72,157 +97,17 @@
 - SwiftData Migration Plan (V1 → V2)
 - @Bindable + local @State for UI reactivity
 
----
-
-## 🟢 Optional - Migration Support (Für Zukunft)
-
-### SwiftData Migration Support (DONE - bereits implementiert!)
-**Status:** ✅ IMPLEMENTED (GymBoMigrationPlan.swift, SchemaV1.swift, SchemaV2.swift)
-**Location:** `/Data/Migration/`
-
-**Was bereits vorhanden:**
-- ✅ SchemaV1 mit allen V1 Entities
-- ✅ SchemaV2 mit Migration (exerciseId hinzugefügt)
-- ✅ GymBoMigrationPlan registriert
-- ✅ ModelContainer nutzt Migration Plan (Production Mode)
-- ✅ DEBUG Mode: Database deletion DISABLED (commented out)
-
-**Nächste Schritte (optional):**
-- [ ] Write Unit Tests für Migrations
-- [ ] Test Migration mit verschiedenen iOS Versionen
-- [ ] Document Schema Change Process
+**7. Code Quality** ✅
+- Debug logging removed (72 lines cleaned)
+- Legacy code removed (Item.swift)
+- Proper file naming (HomeViewPlaceholder → HomeView)
 
 ---
 
-## 📝 Session 6 Complete (2025-10-23) - PRODUCTION-READY REORDERING
-
-### ✅ Implementierte Features:
-
-**1. Exercise Reordering Feature**
-- Drag & drop reordering in active sessions
-- **Permanent save toggle** (updates workout template)
-- ReorderExercisesSheet (dedicated UI, verhindert Button-Auto-Trigger Bug)
-- Production-ready mit explizitem orderIndex handling
-
-**2. Auto-Finish Exercise**
-- Exercises auto-finish when all sets completed
-- Auto un-finish when set uncompleted
-- Integrated in CompleteSetUseCase
-
-**3. Production-Ready Fixes (Critical!)**
-- **StartSessionUseCase**: Uses explicit orderIndex from templates (not array position)
-- **WorkoutMapper**: In-place updates (preserves SwiftData relationships)
-- **SessionMapper**: Correctly updates orderIndex during reordering
-- **All mappers**: Avoid entity recreation (performance + stability)
-
-### 🧪 Testing Status:
-- ✅ Session-only reorder works
-- ✅ Permanent template reorder works
-- ✅ Auto-finish works on last set completion
-- ✅ UI updates immediately
-- ✅ No exercise deletion or corruption
-
-### 📦 Files Changed (12):
-- `SessionMapper.swift` - orderIndex update fix
-- `WorkoutMapper.swift` - in-place updates
-- `StartSessionUseCase.swift` - explicit orderIndex
-- `CompleteSetUseCase.swift` - auto-finish logic
-- `SwiftDataWorkoutRepository.swift` - updateExerciseOrder()
-- `WorkoutRepositoryProtocol.swift` - new method
-- `SessionStore.swift` - reorder with permanent save
-- `ActiveWorkoutSheetView.swift` - ReorderExercisesSheet
-- `DependencyContainer.swift` - workoutRepository injection
-- `WorkoutSeedData.swift` - TEST Multi Exercise workout
-
-**Commit:** `30b3e6f` - "feat: Production-ready exercise reordering with auto-finish"
-
----
-
-## 📝 Session Notes (2025-10-22)
-
-### Erledigte Fixes heute:
-1. ✅ **orderIndex Bug** - Sets/Exercises haben jetzt explizite Reihenfolge (SwiftData @Relationship hat keine garantierte Order!)
-2. ✅ **@Observable Migration** - Von ObservableObject zu iOS 17+ @Observable für bessere Reaktivität
-3. ✅ **Timer Auto-Start** - Timer startet nicht mehr automatisch beim Workout-Launch
-4. ✅ **Timer Always Visible** - TimerSection zeigt immer entweder Rest Timer ODER Workout Duration
-5. ✅ **Doppel-Tap Bug** - Sets können jetzt mit einem Klick abgehakt werden
-6. ✅ **UI Cleanup** - Duplicate kg/reps Labels entfernt
-
-### Wichtige Learnings:
-- **SwiftData @Relationship Arrays haben KEINE garantierte Reihenfolge!** → Immer `orderIndex` verwenden
-- **@Observable ist besser als ObservableObject** für komplexe State-Updates in SwiftUI
-- **TextField in ForEach kann zu Crashes führen** → Erstmal als separates Feature planen
-- **UUIDs statt Array-Indices** verwenden für eindeutige Identifikation (wichtig für Reordering!)
-
-### Offene TODOs für nächste Session:
-- Weight/Reps editierbar machen (neuer Ansatz mit Sheet/Alert statt inline TextFields)
-- Exercise Names aus Repository laden (aktuell: "Übung 1", "Übung 2")
-- UpdateSetUseCase implementieren für persistente Weight/Reps Änderungen
-
----
-
-## 🎯 Nächste Features (Nice-to-Have)
-
-### ✅ ERLEDIGT in Sessions 19-21 (2025-10-26)
-
-**Session 19 - Brand Color & Per-Set Rest Times:**
-- ✅ Brand Color #F77E2D systemweit implementiert
-- ✅ Per-Set Rest Times (individuelle Pausenzeiten pro Satz)
-- ✅ Difficulty Badges zu Graustufen geändert
-- ✅ Color+AppColors.swift mit hex initializer
-
-**Session 20 - Quick-Setup Workout Creation:**
-- ✅ WorkoutCreationModeSheet mit 3 Modi
-- ✅ 3-Schritt Quick-Setup Wizard (Equipment → Dauer → Ziel)
-- ✅ QuickSetupWorkoutUseCase (AI-basierte Generierung)
-- ✅ QuickSetupPreviewView mit Smart Exercise Swap
-- ✅ Plus-Icon Button für Create Workout
-
-**Session 21 - Workout Folders/Categories:**
-- ✅ WorkoutFolder Domain Entity + SwiftData persistence
-- ✅ ManageFoldersSheet + CreateFolderSheet
-- ✅ 8 vordefinierte Farben für Folders
-- ✅ Context Menu zum Verschieben von Workouts
-- ✅ Collapsible Folder Sections in HomeView
-- ✅ Auto-move zu "Ohne Kategorie" bei Folder-Deletion
-- ✅ UI Reactivity Fixes (@Bindable + onChange Listener)
-- ✅ Rest Timer Notification Bugs behoben
-- ✅ Difficulty Labels aus Exercise List entfernt
-- ✅ Collapsible Sections für Favoriten & Alle Workouts
-
-**Bereits früher erledigt:**
-- ✅ Exercise Names werden angezeigt (aus ExerciseRepository)
-- ✅ Equipment wird angezeigt (Icons in WorkoutDetailView)
-- ✅ Workout Repository ist fertig (SwiftDataWorkoutRepository)
-- ✅ Exercise Repository ist fertig (SwiftDataExerciseRepository)
-- ✅ ExercisesView mit Search & Filter
-- ✅ HomeView Redesign (Greeting, Locker Number, Calendar)
-
----
-
-## 🚀 Neue Features (Priorisiert nach Code-Review 2025-10-26)
-
-### 0. Code-Review Findings (Optional Improvements)
-
-**High Priority:**
-- [ ] **Folder Reordering** (ManageFoldersSheet.swift) - Drag & drop reordering
-- [ ] **Debug Logging entfernen** - Extensive debug logs aus Production Code entfernen
-
-**Medium Priority:**
-- [ ] **Unit Tests auslagern** - Tests aus inline zu separate Test target verschieben
-  - CompleteSetUseCase.swift, EndSessionUseCase.swift, StartSessionUseCase.swift
-  - SwiftDataSessionRepository.swift, SessionMapper.swift
-- [ ] **Legacy Code Cleanup** - Item.swift (V1) komplett entfernen
-- [ ] **Structured Logging** - print() → AppLogger mit strukturierten Metadaten
-
-**Low Priority (Nice-to-Have):**
-- [ ] **Profile Placeholders** - ProfileView.swift & ExerciseDetailView.swift komplettieren
-- [ ] **ProgressView implementieren** - Aktuell nur Placeholder
-- [ ] **CompactExerciseCard verbessern** - Exercise names/equipment aus Repository laden (aktuell hardcoded)
-
----
+## 🚀 GEPLANTE FEATURES (Priorisiert)
 
 ### 1. Exercise Swap Feature (Medium Effort - 4-6 Std)
+**Status:** 🔴 High Priority (Kanban)
 **Ziel:** Lange auf Übung drücken → Alternative Übungen vorschlagen
 
 **User Story:**
@@ -252,7 +137,141 @@
 
 ---
 
-### 2. Profile Page (Low Effort - 2-3 Std)
+### 2. Feature Flags System (Low Effort - 2-3 Std)
+**Status:** 🔴 High Priority (Kanban)
+**Ziel:** System für experimentelle Features
+
+**Features:**
+- Remote config integration (optional)
+- Local feature toggles
+- Developer menu für Testing
+- A/B Testing Unterstützung
+
+**Dateien:**
+- `/Infrastructure/FeatureFlags/FeatureFlagService.swift` - NEW
+- `/Infrastructure/FeatureFlags/FeatureFlag.swift` - NEW
+- Settings View Integration
+
+---
+
+### 3. Aufwärmsätze (Medium Effort - 4-5 Std)
+**Status:** 🔴 High Priority (Kanban)
+**Ziel:** Warmup sets vor Arbeitssätzen
+
+**Features:**
+- Warmup set marking
+- Auto-berechnung von Warmup-Gewichten (% von Arbeitsgewicht)
+- Separate Statistiken (warmup vs. working sets)
+- Optional: Warmup templates
+
+**Dateien:**
+- Update `SessionSet` Entity mit `isWarmup: Bool`
+- Update UI in `CompactSetRow`
+- Update Use Cases für Set-Creation
+
+---
+
+### 4. Progression System (High Effort - 8-10 Std)
+**Status:** 🟡 Medium Priority (Kanban)
+**Ziel:** Automatische Gewichtssteigerung & Progression Tracking
+
+**Features:**
+- Linear Progression
+- Double Progression
+- Wave Loading
+- Progression suggestions
+- History tracking
+
+**Referenz:** Siehe `PROGRESSION_FEATURE_PLAN.md`
+
+---
+
+### 5. iOS Widgets (Medium Effort - 5-6 Std)
+**Status:** 🟡 Medium Priority (Kanban)
+**Ziel:** Home Screen Widgets für schnellen Zugriff
+
+**Widget Types:**
+- Small: Nächstes Workout
+- Medium: Workout Stats (Streak, Last Session)
+- Large: Weekly Overview + Quick Start
+
+**Dateien:**
+- `/Widgets/GymBoWidgets.swift` - NEW
+- `/Widgets/Views/` - Widget Views
+- Widget Extension Target
+
+---
+
+### 6. Workout Import (Medium Effort - 4-5 Std)
+**Status:** 🟡 Medium Priority (Kanban)
+**Ziel:** Workouts von anderen Plattformen importieren
+
+**Supported Formats:**
+- JSON (custom format)
+- CSV (simple format)
+- JEFIT (popular app)
+- Strong (popular app)
+
+**Dateien:**
+- `/Domain/UseCases/Import/ImportWorkoutUseCase.swift` - NEW
+- `/Infrastructure/Import/WorkoutImporter.swift` - NEW
+- UI in WorkoutList (Import Button)
+
+---
+
+### 7. Dynamic Island (Low Effort - 2-3 Std)
+**Status:** 🟢 Low Priority (Kanban)
+**Ziel:** Live Activities während aktivem Workout
+
+**Features:**
+- Current exercise name
+- Set counter
+- Rest timer countdown
+- Quick actions (complete set, skip rest)
+
+**Requirements:**
+- iOS 16.1+
+- iPhone 14 Pro+
+
+**Dateien:**
+- `/Widgets/LiveActivities/WorkoutLiveActivity.swift` - NEW
+- Update `SessionStore` mit Live Activity Start/Stop
+
+---
+
+### 8. Live Activities (Medium Effort - 3-4 Std)
+**Status:** 🟢 Low Priority (Kanban)
+**Ziel:** Lock Screen Integration für aktive Sessions
+
+**Features:**
+- Lock screen widget during workout
+- Compact view (minimal info)
+- Expanded view (current set details)
+- Quick actions
+
+**Dateien:**
+- Same as Dynamic Island
+- Shared implementation
+
+---
+
+### 9. Rework Calendar Strip (Low Effort - 2-3 Std)
+**Status:** 🟢 Low Priority (Kanban)
+**Ziel:** Verbessertes Design & Interaktivität
+
+**Improvements:**
+- Tap on day → Show workout details
+- Swipe gestures für Navigation
+- Improved streak visualization
+- Monthly view option
+
+**Dateien:**
+- Update `/Presentation/Views/Home/Components/WorkoutCalendarStripView.swift`
+- Optional: New Sheet für Day Details
+
+---
+
+### 10. Profile Page (Low Effort - 2-3 Std)
 **Ziel:** Profilseite implementieren (Button ist schon da!)
 
 **Features:**
@@ -268,37 +287,7 @@
 
 ---
 
-### 3. HomeView Redesign ✅ COMPLETE (Session 2025-10-24 Abend)
-**Status:** ✅ Implementiert und gebaut
-
-**Implementierte Features:**
-1. ✅ Zeitbasierte Begrüßung ("Hey, guten Morgen!" / "Hey!" / "Hey, guten Abend!")
-2. ✅ Spintnummer-Widget mit Lock/Unlock States
-3. ✅ Workout Calendar Strip (14 Tage, Streak-Badge, Auto-Scroll)
-4. ✅ Repository-Erweiterung: `fetchCompletedSessions(from:to:)`
-
-**Neue Dateien:**
-- ✅ `/Presentation/Views/Home/Components/GreetingHeaderView.swift`
-- ✅ `/Presentation/Views/Home/Components/LockerNumberInputSheet.swift`
-- ✅ `/Presentation/Views/Home/Components/WorkoutCalendarStripView.swift`
-
-**Technische Details:**
-- Spintnummer: `@AppStorage("lockerNumber")` für Persistierung
-- Begrüßung: `.largeTitle` Font (konsistent mit anderen Views)
-- Calendar: Lädt Sessions aus letzten 14 Tagen, berechnet Streak
-- Design: iOS-native Components, Haptic Feedback
-
-**Build Status:** ✅ BUILD SUCCEEDED
-
-**Post-Implementation Bug Fix:**
-- 🐛 Dark Mode: Weiße Schrift auf weißem Hintergrund behoben
-- Changed `Color.white` → `Color(.systemBackground)` in Exercise Cards
-- Changed `Color.black` → `Color.primary` in buttons for Dark Mode support
-- Commit: `2a17490`
-
----
-
-### 4. Session History (2-3 Stunden)
+### 11. Session History (2-3 Stunden)
 **Ziel:** Vergangene Workouts anzeigen
 
 **Features:**
@@ -319,7 +308,7 @@
 
 ---
 
-### 5. Localization Support (3-4 Stunden)
+### 12. Localization Support (3-4 Stunden)
 **Ziel:** App für Übersetzung vorbereiten
 
 **Tasks:**
@@ -335,42 +324,76 @@
 
 ---
 
----
+## 📊 Langfristig (Phase 2+)
 
-## 📊 Langfristig (Phase 2)
-
-### 6. Statistics & Charts (Phase 3)
+### Statistics & Charts (Phase 3)
 - Workout-Frequenz (Heatmap Calendar)
 - Volumen-Trends (Line Charts)
 - Personal Records (PRs)
 - Progress per Exercise
 - SwiftUI Charts Framework
 
-### 7. Advanced Workout Builder
+### Advanced Workout Builder
 - Templates & Folders
 - Superset Support
 - Drop Sets, Pyramid Sets
 - Custom Rest Timer per Exercise
 
-### 8. Cloud Sync & Social
+### Cloud Sync & Social
 - iCloud Sync
 - Share Workouts
 - Social Feed (optional)
 
-### 9. AI Features (Phase 4)
+### AI Features (Phase 4)
 - Workout Generator (AI-basiert)
 - Form Check (Video Analysis)
 - Smart Progression Suggestions
 
 ---
 
-## ✅ ABGESCHLOSSEN (Sessions 1-8+)
+## ✅ ABGESCHLOSSEN
 
-### Session 8+ (2025-10-24) - Documentation Update
+### Session 22 (2025-10-27) - Code Cleanup & Refactoring
+- ✅ Debug logging entfernt (72 lines, 4 files)
+- ✅ Folder reordering implementiert (drag & drop in ManageFoldersSheet)
+- ✅ Legacy code entfernt (Item.swift)
+- ✅ HomeViewPlaceholder → HomeView umbenannt
+- ✅ All references updated (MainTabView.swift)
+- Commits: `064d70e`, `6fca564`
+
+### Sessions 19-21 (2025-10-26) - Workout Folders & Quick-Setup
+
+**Session 19 - Brand Color & Per-Set Rest Times:**
+- ✅ Brand Color #F77E2D systemweit implementiert
+- ✅ Per-Set Rest Times (individuelle Pausenzeiten pro Satz)
+- ✅ Difficulty Badges zu Graustufen geändert
+- ✅ Color+AppColors.swift mit hex initializer
+
+**Session 20 - Quick-Setup Workout Creation:**
+- ✅ WorkoutCreationModeSheet mit 3 Modi
+- ✅ 3-Schritt Quick-Setup Wizard (Equipment → Dauer → Ziel)
+- ✅ QuickSetupWorkoutUseCase (AI-basierte Generierung)
+- ✅ QuickSetupPreviewView mit Smart Exercise Swap
+- ✅ Plus-Icon Button für Create Workout
+
+**Session 21 - Workout Folders/Categories:**
+- ✅ WorkoutFolder Domain Entity + SwiftData persistence
+- ✅ ManageFoldersSheet + CreateFolderSheet
+- ✅ 8 vordefinierte Farben für Folders
+- ✅ Context Menu zum Verschieben von Workouts
+- ✅ Collapsible Folder Sections in HomeView
+- ✅ Auto-move zu "Ohne Kategorie" bei Folder-Deletion
+- ✅ UI Reactivity Fixes (@Bindable + onChange Listener)
+- ✅ Rest Timer Notification Bugs behoben
+- ✅ Difficulty Labels aus Exercise List entfernt
+- ✅ Collapsible Sections für Favoriten & Alle Workouts
+
+### Session 8+ (2025-10-24) - Documentation Update & HomeView Redesign
+- ✅ HomeView Redesign (Greeting, Locker Number, Calendar)
+- ✅ Dark Mode Fix (white text on white background)
 - ✅ Reviewed entire codebase
 - ✅ Updated README.md with actual status
 - ✅ Updated TODO.md with new priorities
-- ✅ Confirmed all MVP features complete
 
 ### Session 7 (2025-10-23) - Workout Management Complete
 - ✅ Create/Edit/Delete Workouts
@@ -379,7 +402,7 @@
 - ✅ Standardized headers
 - ✅ Fixed HomeView refresh bug
 
-**Was implementiert wurde:**
+### Session 6 (2025-10-23) - Exercise Reordering
 - ✅ Exercise drag & drop reordering in active sessions
 - ✅ Permanent save toggle (saves to workout template)
 - ✅ ReorderExercisesSheet with dedicated UI
@@ -387,156 +410,41 @@
 - ✅ In-place updates in WorkoutMapper & SessionMapper
 - ✅ Auto-finish exercise when all sets completed
 
-**Was noch aussteht:**
-- [ ] Set reordering within exercises
-- [ ] Undo/redo for reordering
-- [ ] Haptic feedback during drag
-
-**Original Requirements (ERFÜLLT):**
-- ✅ **NIEMALS Index verwenden** für Identifikation
-- ✅ **IMMER UUID verwenden** für eindeutige Identifikation
-- ✅ Neue Reihenfolge wird im Workout persistiert
-- ✅ orderIndex to Entities added
-   }
-   
-   // Domain/Entities/SessionSet.swift
-   struct DomainSessionSet {
-       let id: UUID
-       var orderIndex: Int  // ← NEU: Explizite Reihenfolge
-       // ...
-   }
-   ```
-
-2. **Add ReorderExerciseUseCase**
-   ```swift
-   protocol ReorderExerciseUseCase {
-       func execute(
-           sessionId: UUID,
-           exerciseId: UUID,
-           newIndex: Int
-       ) async throws -> DomainWorkoutSession
-   }
-   ```
-
-3. **Add ReorderSetUseCase**
-   ```swift
-   protocol ReorderSetUseCase {
-       func execute(
-           sessionId: UUID,
-           exerciseId: UUID,
-           setId: UUID,
-           newIndex: Int
-       ) async throws -> DomainWorkoutSession
-   }
-   ```
-
-4. **UI Implementation**
-   ```swift
-   // In ActiveWorkoutSheetView.swift
-   ForEach(session.exercises.sorted(by: { $0.orderIndex < $1.orderIndex })) { exercise in
-       CompactExerciseCard(...)
-   }
-   .onMove { indices, newOffset in
-       Task {
-           // Get exerciseId (NOT index!)
-           let exerciseId = session.exercises[indices.first!].id
-           await sessionStore.reorderExercise(
-               exerciseId: exerciseId,
-               newIndex: newOffset
-           )
-       }
-   }
-   
-   // In CompactExerciseCard.swift
-   ForEach(exercise.sets.sorted(by: { $0.orderIndex < $1.orderIndex })) { set in
-       CompactSetRow(set: set)
-   }
-   .onMove { indices, newOffset in
-       // Get setId (NOT index!)
-       let setId = exercise.sets[indices.first!].id
-       onReorderSet?(setId, newOffset)
-   }
-   ```
-
-5. **Persistence**
-   - Update SwiftData Entities mit orderIndex
-   - Mapper aktualisieren
-   - Repository speichert neue Reihenfolge
-
-**Warum orderIndex statt Array-Position?**
-- ✅ Explizit persistiert in Datenbank
-- ✅ Unabhängig von Filter/Sort in UI
-- ✅ Robust bei concurrency
-- ✅ Ermöglicht Undo/Redo in Zukunft
-
-**Testing:**
-- User verschiebt Übung 3 nach Position 1
-- App restart → Reihenfolge bleibt erhalten
-- Set-Completion funktioniert weiterhin korrekt
-
-**Dateien:**
-- `/Domain/Entities/SessionExercise.swift` - Add orderIndex
-- `/Domain/Entities/SessionSet.swift` - Add orderIndex
-- `/Domain/UseCases/Session/ReorderExerciseUseCase.swift` - NEW
-- `/Domain/UseCases/Session/ReorderSetUseCase.swift` - NEW
-- `/Data/SwiftDataEntities.swift` - Update entities
-- `/Data/Mappers/SessionMapper.swift` - Map orderIndex
-- `/Presentation/Stores/SessionStore.swift` - Add reorder functions
-- `/Presentation/Views/ActiveWorkout/ActiveWorkoutSheetView.swift` - Add .onMove
-- `/Presentation/Views/ActiveWorkout/Components/CompactExerciseCard.swift` - Add .onMove
-
----
-
-### 8. Statistics (Phase 3 aus TECHNICAL_CONCEPT_V2.md)
-- Workout-Frequenz
-- Volumen-Trends
-- Personal Records (PRs)
-- Charts (SwiftUI Charts)
-
-### 9. Workout Builder (Phase 2 aus UX_CONCEPT_V2.md)
-- Drag & Drop Exercises
-- Template Management
-- Folders
-
-### 9. Profile & Settings
-- User Profile
-- Rest Timer Defaults
-- Theme Settings
-
-### 10. Testing
-- Integration Tests (Store + Use Case)
-- UI Tests (Critical Flows)
-- Performance Tests
-
----
-
-## 🐛 Bug-Fixes (Alle erledigt!)
-
-- ✅ ~~"Keine Übungen" nach Set-Completion~~ (In-place updates)
-- ✅ ~~Rest Timer startet nur einmal~~ (Timer nach jedem Set)
+### Earlier Sessions (1-5) - MVP Foundation
+- ✅ Clean Architecture Setup (4 Layers)
+- ✅ SwiftData Integration
+- ✅ Session Management (Start/End/Pause/Resume)
+- ✅ Active Workout UI
+- ✅ Exercise Library (145+ Übungen)
+- ✅ Set Management (Complete/Uncomplete/Add/Remove)
+- ✅ Rest Timer with Notifications
 
 ---
 
 ## 🔧 Technical Debt
 
-### 1. Ordnerstruktur aufräumen (30 Min) 🟡 OPTIONAL
-**Problem:** `GymBo/GymBo/GymBo/` verschachtelt  
-**Lösung:** Flache Struktur (NACH MVP stabilisiert)  
-**Risiko:** Xcode .pbxproj absolute Pfade könnten brechen
+### Code Quality Improvements (Optional)
 
-### 2. Logging verbessern (1 Stunde)
-**Aktuell:** print() Statements  
-**Besser:** Structured Logging mit AppLogger
+**✅ DONE:**
+- ✅ Debug Logging entfernt (Session 22)
+- ✅ Legacy Code Cleanup - Item.swift entfernt (Session 22)
+- ✅ File naming - HomeViewPlaceholder → HomeView (Session 22)
 
-```swift
-AppLogger.session.info("Set completed", metadata: [
-    "exerciseId": "\(exerciseId)",
-    "setId": "\(setId)"
-])
-```
+**Medium Priority:**
+- [ ] **Unit Tests auslagern** - Tests aus inline zu separate Test target verschieben
+  - CompleteSetUseCase.swift, EndSessionUseCase.swift, StartSessionUseCase.swift
+  - SwiftDataSessionRepository.swift, SessionMapper.swift
+- [ ] **Structured Logging** - print() → AppLogger mit strukturierten Metadaten
 
-### 3. Error Handling verbessern
-**Aktuell:** print() bei Fehlern  
+**Low Priority (Nice-to-Have):**
+- [ ] **Profile Placeholders** - ProfileView.swift & ExerciseDetailView.swift komplettieren
+- [ ] **ProgressView implementieren** - Aktuell nur Placeholder
+- [ ] **CompactExerciseCard verbessern** - Exercise names/equipment aus Repository laden (aktuell hardcoded)
+- [ ] **Ordnerstruktur aufräumen** - `GymBo/GymBo/GymBo/` verschachtelt (Risiko: Xcode .pbxproj breaking)
+
+### Error Handling Improvements
+
+**Aktuell:** print() bei Fehlern
 **Besser:** User-facing Error Messages
 
 ```swift
@@ -553,51 +461,57 @@ catch {
 }
 ```
 
-### 4. Preview Data auslagern
-**Aktuell:** Preview Helper in Production Code  
-**Besser:** Separate Preview Target
+---
+
+## 📋 Wie du neue To-dos hinzufügst
+
+### Quick Add (Oben im Dokument)
+
+1. **Scroll nach oben** zu "📋 AKTUELLE TO-DOs (Kanban)"
+2. **Wähle Priorität:**
+   - 🔴 High Priority - Wichtig, bald erledigen
+   - 🟡 Medium Priority - Wichtig, aber nicht dringend
+   - 🟢 Low Priority - Nice-to-have
+3. **Füge eine Zeile hinzu:**
+   ```markdown
+   - [ ] **Dein Feature Name** - Kurze Beschreibung
+   ```
+
+### Detailed Add (Unten bei "GEPLANTE FEATURES")
+
+1. **Scroll zu "🚀 GEPLANTE FEATURES"**
+2. **Kopiere ein bestehendes Feature** als Template
+3. **Fülle aus:**
+   - Status (🔴/🟡/🟢)
+   - Ziel
+   - User Story (optional)
+   - Implementation Details
+   - Dateien
+4. **Füge Link im Kanban oben hinzu** (optional)
+
+### Beispiel:
+
+```markdown
+## 📋 AKTUELLE TO-DOs (Kanban)
+
+### 🔴 High Priority
+- [x] ~~Debug Logging entfernen~~ (DONE Session 22)
+- [ ] **Dein neues Feature** - Beschreibung
 
 ---
 
-## 📋 Feature-Priorisierung (Empfehlung)
+## 🚀 GEPLANTE FEATURES
 
-### Must-Have (MVP Launch)
-1. ✅ Session Management ← **FERTIG**
-2. ✅ Active Workout UI ← **FERTIG**
-3. 🔴 Exercise Names ← **NÄCHSTES**
-4. 🔴 Workout Repository ← **DANACH**
-5. 🔴 Session History (simple Liste)
+### 13. Dein neues Feature (Effort - X Std)
+**Status:** 🔴 High Priority (Kanban)
+**Ziel:** Was soll erreicht werden
 
-### Nice-to-Have (v2.1)
-6. Statistics & Charts
-7. Workout Builder
-8. Exercise Database (erweitert)
-9. Profile & Settings
+**Features:**
+- Feature 1
+- Feature 2
 
-### Future (v2.2+)
-10. Cloud Sync
-11. Social Features
-12. AI Workout Generator
-13. Video Tutorials
-
----
-
-## 🎯 Nächste Session - Quick Win (2 Stunden)
-
-**Ziel:** Exercise Names + Equipment anzeigen
-
-**Checklist:**
-- [ ] Add `exerciseName: String?` to SessionExercise
-- [ ] Add `equipment: String?` to SessionExercise
-- [ ] Update test data in StartSessionUseCase
-- [ ] Update CompactExerciseCard to use names
-- [ ] Build & Test
-- [ ] Screenshot für Dokumentation
-
-**Ergebnis:**
-```
-Statt: "Übung 1"
-Jetzt: "Bankdrücken (Barbell)"
+**Dateien:**
+- `/Path/To/File.swift` - NEW
 ```
 
 ---
@@ -612,27 +526,15 @@ Jetzt: "Bankdrücken (Barbell)"
 - ✅ Keine hardcoded Magic Numbers
 - ✅ Deutsche Lokalisierung
 - ✅ Dokumentation aktualisiert (CURRENT_STATE.md)
-
----
-
-## 📚 Referenzen
-
-- `CURRENT_STATE.md` - Aktueller Implementierungsstatus
-- `TECHNICAL_CONCEPT_V2.md` - Vollständige Architektur
-- `UX_CONCEPT_V2.md` - UX/UI Konzept & User Flows
-- `ACTIVE_WORKOUT_REDESIGN.md` - Design-Prozess (historisch)
-
----
-
-**Letzte Aktualisierung:** 2025-10-22 22:40
+- ✅ Committed & Pushed mit descriptive message
 
 ---
 
 ## 🔮 Phase 2: Progression Features (Future)
 
-**Status:** 📋 PLANNED - Fully documented, ready for implementation  
-**Documentation:** See `PROGRESSION_FEATURE_PLAN.md` (detailed) or `PROGRESSION_QUICK_REF.md` (quick overview)  
-**Estimated Time:** ~14 hours  
+**Status:** 📋 PLANNED - Fully documented, ready for implementation
+**Documentation:** See `PROGRESSION_FEATURE_PLAN.md` (detailed) or `PROGRESSION_QUICK_REF.md` (quick overview)
+**Estimated Time:** ~14 hours
 **Dependencies:** Workout Repository (Phase 1) must be complete first
 
 ### What's Ready
@@ -654,52 +556,17 @@ Jetzt: "Bankdrücken (Barbell)"
 - UserProfileEntity has goals/experience
 - WorkoutSessionEntity has complete history
 
-### Quick Overview
-
-**New Entities:**
-- `ProgressionEventEntity` - Track all progression events (increases, deloads)
-
-**Entity Extensions:**
-- `WorkoutEntity`: Add `progressionStrategyRaw`, `defaultTargetReps*`
-- `WorkoutExerciseEntity`: Add `progressionIncrement`, `autoProgressionDisabled`
-- `WorkoutSessionEntity`: Add `perceivedDifficulty` (RPE)
-
-**Use Cases:**
-- `SuggestProgressionUseCase` - Analyze history, suggest next workout values
-- `RecordProgressionEventUseCase` - Log progression events
-- `GetProgressionHistoryUseCase` - Display progression timeline
-
-**UI Components:**
-- Progression suggestion banner (accept/decline)
-- Progression settings in workout editor
-- Progression timeline view
-
-### When to Start Phase 2
-
-**Start when:**
-1. ✅ Workout Repository is complete and tested
-2. ✅ User can select workouts from database
-3. ✅ Sessions load real workout templates
-4. ✅ App is stable with Phase 1 features
-
-**Don't start if:**
-- Workout Repository has bugs
-- Session flow isn't working reliably
-- Data model is still changing
-
 ---
 
 ## 📚 Documentation Index
 
-- `CURRENT_STATE.md` - Current implementation status (Session 4)
-- `TODO.md` - This file - Task prioritization
+- `CURRENT_STATE.md` - Current implementation status
+- `TODO.md` - This file - Task prioritization & tracking
 - `TECHNICAL_CONCEPT_V2.md` - Architecture details
 - `UX_CONCEPT_V2.md` - UI/UX design
-- `PROGRESSION_FEATURE_PLAN.md` - ⭐ NEW: Complete Phase 2 specification
-- `PROGRESSION_QUICK_REF.md` - ⭐ NEW: Quick reference for Phase 2
+- `PROGRESSION_FEATURE_PLAN.md` - Complete Phase 2 specification
+- `PROGRESSION_QUICK_REF.md` - Quick reference for Phase 2
 
 ---
 
----
-
-**Last Updated:** 2025-10-24 (Abend - Extended) - HomeView Redesign Complete + Dark Mode Fix
+**Last Updated:** 2025-10-27 - Session 22 Complete + Kanban Integration

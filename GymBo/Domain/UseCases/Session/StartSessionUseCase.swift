@@ -45,17 +45,20 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
     private let workoutRepository: WorkoutRepositoryProtocol
+    private let healthKitService: HealthKitServiceProtocol
 
     // MARK: - Initialization
 
     init(
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol,
-        workoutRepository: WorkoutRepositoryProtocol
+        workoutRepository: WorkoutRepositoryProtocol,
+        healthKitService: HealthKitServiceProtocol
     ) {
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
         self.workoutRepository = workoutRepository
+        self.healthKitService = healthKitService
     }
 
     // MARK: - Execute
@@ -104,6 +107,37 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
         } catch {
             print("❌ StartSessionUseCase: Failed to save session: \(error)")
             throw UseCaseError.saveFailed(error)
+        }
+
+        // Start HealthKit session (fire-and-forget, non-blocking)
+        Task.detached(priority: .background) { [weak self] in
+            guard let self = self else { return }
+
+            print("🔵 StartSessionUseCase: Starting HealthKit session")
+            let result = await self.healthKitService.startWorkoutSession(
+                type: .traditionalStrengthTraining,
+                startDate: session.startDate
+            )
+
+            switch result {
+            case .success(let sessionId):
+                print("✅ HealthKit session started: \(sessionId)")
+
+                // Update session with HealthKit ID
+                var updatedSession = session
+                updatedSession.healthKitSessionId = sessionId
+
+                do {
+                    try await self.sessionRepository.update(updatedSession)
+                    print("✅ Session updated with HealthKit ID")
+                } catch {
+                    print("⚠️ Failed to update session with HealthKit ID: \(error)")
+                }
+
+            case .failure(let error):
+                // Log but don't fail the workout - graceful degradation
+                print("⚠️ HealthKit session failed to start: \(error.localizedDescription)")
+            }
         }
 
         return session

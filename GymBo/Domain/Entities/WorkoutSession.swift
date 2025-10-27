@@ -56,6 +56,9 @@ struct DomainWorkoutSession: Identifiable, Equatable {
     /// TODO: Load from workout repository in future
     var workoutName: String?
 
+    /// HealthKit workout session ID (for syncing with Apple Health)
+    var healthKitSessionId: String?
+
     // MARK: - Nested Types
 
     /// Possible states of a workout session
@@ -148,7 +151,8 @@ struct DomainWorkoutSession: Identifiable, Equatable {
         endDate: Date? = nil,
         exercises: [DomainSessionExercise] = [],
         state: SessionState = .active,
-        workoutName: String? = nil
+        workoutName: String? = nil,
+        healthKitSessionId: String? = nil
     ) {
         self.id = id
         self.workoutId = workoutId
@@ -157,6 +161,7 @@ struct DomainWorkoutSession: Identifiable, Equatable {
         self.exercises = exercises
         self.state = state
         self.workoutName = workoutName
+        self.healthKitSessionId = healthKitSessionId
     }
 
     // MARK: - Equatable

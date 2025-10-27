@@ -36,6 +36,11 @@ final class DependencyContainer {
     /// SwiftData ModelContext for persistence operations
     private let modelContext: ModelContext
 
+    /// Singleton HealthKit Service (shared across app)
+    private lazy var _healthKitService: HealthKitServiceProtocol = {
+        HealthKitService()
+    }()
+
     /// Singleton SessionStore (shared across app)
     private lazy var _sessionStore: SessionStore = {
         SessionStore(
@@ -55,7 +60,8 @@ final class DependencyContainer {
             addExerciseToSessionUseCase: makeAddExerciseToSessionUseCase(),
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository(),
-            workoutRepository: makeWorkoutRepository()
+            workoutRepository: makeWorkoutRepository(),
+            healthKitService: makeHealthKitService()
         )
     }()
 
@@ -82,6 +88,14 @@ final class DependencyContainer {
     /// - Parameter modelContext: SwiftData ModelContext for data persistence
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+
+    // MARK: - Services (Infrastructure Layer)
+
+    /// Returns the singleton HealthKit Service instance
+    /// - Returns: Shared HealthKit Service instance
+    func makeHealthKitService() -> HealthKitServiceProtocol {
+        return _healthKitService
     }
 
     // MARK: - Repositories (Data Layer)
@@ -111,6 +125,15 @@ final class DependencyContainer {
         )
     }
 
+    /// Creates UserProfileRepository implementation
+    /// - Returns: Repository conforming to UserProfileRepositoryProtocol
+    func makeUserProfileRepository() -> UserProfileRepositoryProtocol {
+        return SwiftDataUserProfileRepository(
+            modelContext: modelContext,
+            mapper: UserProfileMapper()
+        )
+    }
+
     // MARK: - Use Cases (Domain Layer)
 
     /// Creates StartSessionUseCase
@@ -119,7 +142,8 @@ final class DependencyContainer {
         return DefaultStartSessionUseCase(
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository(),
-            workoutRepository: makeWorkoutRepository()
+            workoutRepository: makeWorkoutRepository(),
+            healthKitService: makeHealthKitService()
         )
     }
 
@@ -137,7 +161,9 @@ final class DependencyContainer {
     func makeEndSessionUseCase() -> EndSessionUseCase {
         // ✅ Sprint 1.2 COMPLETE
         return DefaultEndSessionUseCase(
-            sessionRepository: makeSessionRepository()
+            sessionRepository: makeSessionRepository(),
+            healthKitService: makeHealthKitService(),
+            userProfileRepository: makeUserProfileRepository()
         )
     }
 
@@ -308,6 +334,14 @@ final class DependencyContainer {
     func makeUpdateWorkoutExerciseUseCase() -> UpdateWorkoutExerciseUseCase {
         return DefaultUpdateWorkoutExerciseUseCase(
             workoutRepository: makeWorkoutRepository()
+        )
+    }
+
+    /// Creates ImportBodyMetricsUseCase
+    /// - Returns: Use case for importing body metrics from HealthKit
+    func makeImportBodyMetricsUseCase() -> ImportBodyMetricsUseCase {
+        return DefaultImportBodyMetricsUseCase(
+            healthKitService: makeHealthKitService()
         )
     }
 

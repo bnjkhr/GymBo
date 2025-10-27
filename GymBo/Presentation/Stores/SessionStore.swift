@@ -8,6 +8,7 @@
 
 import Combine
 import Foundation
+import HealthKit
 import Observation
 import SwiftUI
 
@@ -59,6 +60,12 @@ final class SessionStore {
     /// Success message for user feedback (auto-clears after 3s)
     var successMessage: String?
 
+    /// HealthKit availability status
+    var healthKitAvailable: Bool = false
+
+    /// HealthKit authorization status
+    var healthKitAuthorized: Bool = false
+
     // MARK: - Dependencies (Injected)
 
     private let startSessionUseCase: StartSessionUseCase
@@ -78,6 +85,7 @@ final class SessionStore {
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
     private let workoutRepository: WorkoutRepositoryProtocol
+    private let healthKitService: HealthKitServiceProtocol
     private weak var restTimerManager: RestTimerStateManager?
 
     // MARK: - Private State
@@ -104,6 +112,7 @@ final class SessionStore {
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol,
         workoutRepository: WorkoutRepositoryProtocol,
+        healthKitService: HealthKitServiceProtocol,
         restTimerManager: RestTimerStateManager? = nil
     ) {
         self.startSessionUseCase = startSessionUseCase
@@ -123,7 +132,12 @@ final class SessionStore {
         self.workoutRepository = workoutRepository
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
+        self.healthKitService = healthKitService
         self.restTimerManager = restTimerManager
+
+        // Initialize HealthKit availability
+        self.healthKitAvailable = HKHealthStore.isHealthDataAvailable()
+        self.healthKitAuthorized = healthKitService.isAuthorized()
     }
 
     // MARK: - Public Actions
@@ -131,6 +145,21 @@ final class SessionStore {
     /// Set the rest timer manager (called from ActiveWorkoutSheetView)
     func setRestTimerManager(_ manager: RestTimerStateManager) {
         self.restTimerManager = manager
+    }
+
+    /// Request HealthKit permissions
+    func requestHealthKitPermission() async {
+        let result = await healthKitService.requestAuthorization()
+
+        switch result {
+        case .success:
+            healthKitAuthorized = true
+            showSuccessMessage("Apple Health verbunden")
+            print("✅ HealthKit authorization granted")
+        case .failure(let error):
+            healthKitAuthorized = false
+            print("❌ HealthKit authorization failed: \(error)")
+        }
     }
 
     /// Start a new workout session
@@ -965,14 +994,20 @@ extension SessionStore {
             let repository = MockSessionRepository()
             let exerciseRepository = MockExerciseRepository()
             let workoutRepository = MockWorkoutRepository()
+            let healthKitService = MockHealthKitService()
             return SessionStore(
                 startSessionUseCase: DefaultStartSessionUseCase(
                     sessionRepository: repository,
                     exerciseRepository: exerciseRepository,
-                    workoutRepository: workoutRepository
+                    workoutRepository: workoutRepository,
+                    healthKitService: healthKitService
                 ),
                 completeSetUseCase: DefaultCompleteSetUseCase(sessionRepository: repository),
-                endSessionUseCase: DefaultEndSessionUseCase(sessionRepository: repository),
+                endSessionUseCase: DefaultEndSessionUseCase(
+                    sessionRepository: repository,
+                    healthKitService: healthKitService,
+                    userProfileRepository: MockUserProfileRepository()
+                ),
                 cancelSessionUseCase: DefaultCancelSessionUseCase(sessionRepository: repository),
                 pauseSessionUseCase: DefaultPauseSessionUseCase(sessionRepository: repository),
                 resumeSessionUseCase: DefaultResumeSessionUseCase(sessionRepository: repository),
@@ -1007,7 +1042,8 @@ extension SessionStore {
                 ),
                 sessionRepository: repository,
                 exerciseRepository: exerciseRepository,
-                workoutRepository: workoutRepository
+                workoutRepository: workoutRepository,
+                healthKitService: healthKitService
             )
         }
 
@@ -1017,5 +1053,16 @@ extension SessionStore {
             store.currentSession = .preview
             return store
         }
+    }
+
+    /// Mock UserProfileRepository for previews
+    private class MockUserProfileRepository: UserProfileRepositoryProtocol {
+        func fetchOrCreate() async throws -> DomainUserProfile {
+            DomainUserProfile(bodyMass: 80.0, height: 175.0)
+        }
+
+        func update(_ profile: DomainUserProfile) async throws {}
+
+        func updateBodyMetrics(bodyMass: Double?, height: Double?) async throws {}
     }
 #endif

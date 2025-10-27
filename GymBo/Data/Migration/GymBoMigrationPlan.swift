@@ -69,14 +69,33 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     ///
     /// **Changes:**
     /// - WorkoutExerciseEntity: Add exerciseId field populated from exercise.id
+    /// - UserProfileEntity: Create default profile if none exists
     ///
     /// **Why:** Fixes issue where exercise names weren't loading due to lazy relationship loading
-    ///
-    /// **Note:** Lightweight migration cannot automatically populate non-optional fields.
-    /// Solution: Delete app and reinstall to get fresh database with seed data.
-    static let migrateV1toV2 = MigrationStage.lightweight(
+    ///           and ensures UserProfile exists for HealthKit integration
+    static let migrateV1toV2 = MigrationStage.custom(
         fromVersion: SchemaV1.self,
-        toVersion: SchemaV2.self
+        toVersion: SchemaV2.self,
+        willMigrate: { context in
+            print("🔄 Starting migration V1 → V2")
+        },
+        didMigrate: { context in
+            print("✅ Migration V1 → V2 complete")
+
+            // Ensure UserProfile exists (new in V2)
+            let profileDescriptor = FetchDescriptor<SchemaV2.UserProfileEntity>()
+            let existingProfiles = try? context.fetch(profileDescriptor)
+
+            if existingProfiles?.isEmpty ?? true {
+                print("📝 Creating default UserProfile")
+                let defaultProfile = SchemaV2.UserProfileEntity()
+                context.insert(defaultProfile)
+                try? context.save()
+                print("✅ Default UserProfile created")
+            } else {
+                print("✅ UserProfile already exists")
+            }
+        }
     )
 
     // MARK: - Future Migration Stages (Examples)

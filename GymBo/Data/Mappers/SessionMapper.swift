@@ -43,6 +43,7 @@ struct SessionMapper {
             endDate: domain.endDate,
             state: domain.state.rawValue,
             workoutName: domain.workoutName,
+            healthKitSessionId: domain.healthKitSessionId,
             exercises: []  // Will be set below
         )
 
@@ -69,7 +70,8 @@ struct SessionMapper {
                 toDomain($0)
             },
             state: DomainWorkoutSession.SessionState(rawValue: entity.state) ?? .active,
-            workoutName: entity.workoutName
+            workoutName: entity.workoutName,
+            healthKitSessionId: entity.healthKitSessionId
         )
     }
 
@@ -83,6 +85,7 @@ struct SessionMapper {
         entity.endDate = domain.endDate
         entity.state = domain.state.rawValue
         entity.workoutName = domain.workoutName
+        entity.healthKitSessionId = domain.healthKitSessionId
 
         // Update exercises IN-PLACE to preserve SwiftData relationships
         // Match by ID and update existing entities
