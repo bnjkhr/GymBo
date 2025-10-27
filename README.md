@@ -69,7 +69,27 @@ GymBo ist eine moderne iOS App zum Tracken von Gym-Workouts mit Fokus auf schnel
 
 ---
 
-## 🎉 Recent Updates (Session 6 - 2025-10-24)
+## 🎉 Recent Updates (Session 24 - 2025-10-27)
+
+### Weekly Workout Goal Feature + Profile UI Polish ✅
+
+**New Features:**
+- **Configurable Weekly Workout Goal**: User kann wöchentliches Trainingsziel im Profil setzen (1-7 Workouts/Woche)
+- **Instant Updates**: Änderungen werden sofort ohne Reload sichtbar (NotificationCenter-basiert)
+- **Profile UI Consistency**: Alle Icons dunkelgrau (.secondary), keine bunten Icons mehr
+
+**Technical Implementation:**
+- UserProfile Domain Entity erweitert mit `weeklyWorkoutGoal`
+- Repository mit Validierung (1-7 range)
+- NotificationCenter für View-to-View Communication
+- ProfileView: Neue "Trainingsziele" Section mit Stepper
+- WorkoutCalendarStripView: Dynamisches Ziel statt hardcoded "3"
+
+**Commits:** `18c8c56`, `e86cf7a`, `4f5ed52`, `04e4091`, `7c4777b`, `a2a5cbd`
+
+---
+
+## 🎉 Previous Updates (Session 6 - 2025-10-24)
 
 ### Part 1: Modern Dark UI Redesign ✅
 - **Black Background Theme**: Seamless black background from timer to cards
@@ -450,5 +470,5 @@ Für Feature-Requests oder Bug-Reports:
 
 **Developer:** Benjamin Kohler ([@bnjkhr](https://github.com/bnjkhr))  
 **Project Start:** Oktober 2025  
-**Current Version:** v2.1.0 (MVP + Modern UI)  
-**Last Updated:** 2025-10-24
+**Current Version:** v2.4.1 (Weekly Workout Goal + Profile Polish)  
+**Last Updated:** 2025-10-27

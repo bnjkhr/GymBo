@@ -1,6 +1,6 @@
 # GymBo - Session Memory
 
-**Letzte Aktualisierung:** 2025-10-27 (Session 23 - Continuation)
+**Letzte Aktualisierung:** 2025-10-27 (Session 24 - Weekly Workout Goal + Profile UI Polish)
 
 ---
 
@@ -19,9 +19,9 @@
 
 ## 📊 Projekt-Status (Stand: 2025-10-27)
 
-### Version: 2.4.0 - Apple Health Integration + V1.0 Migration Complete
+### Version: 2.4.1 - Weekly Workout Goal + Profile UI Polish
 
-**Session 23 (Continuation):** Clean repository state, all previous work committed and documented.
+**Session 24:** Configurable weekly workout goal feature + ProfileView UI/UX consistency improvements.
 
 **Alle Core Features implementiert:**
 - ✅ Workout Management (Create/Edit/Delete/Favorite)
@@ -44,39 +44,133 @@
 
 ---
 
-## ✅ Session 2025-10-27 (Session 23) - Session Continuation & Documentation Update
+## ✅ Session 2025-10-27 (Session 24) - Weekly Workout Goal Feature + Profile UI/UX Polish
 
-**Status:** ✅ Repository Clean-up Complete
+**Status:** ✅ Feature Complete - Production Ready
 
-**Kontext:**
-- Session ist eine Continuation von Session 22 (Context Limit erreicht)
-- Alle Features aus Session 22 waren bereits implementiert und committed:
-  - ✅ ProfileView Enhancement (Coming Soon notice)
-  - ✅ TabBar orange tint
-  - ✅ V1.0 → V2.4.0 Migration Strategy (AppVersionManager, MigrationAlertView)
-  - ✅ Calendar-Strip Redesign (minimalist design mit dots)
-  - ✅ Stats Header (weekly count + last workout date)
+### Part 1: Configurable Weekly Workout Goal ✅
 
-**Durchgeführte Arbeiten:**
-- ✅ Uncommitted TODO.md change committed (weekly workout goal note)
-- ✅ Documentation updates (SESSION_MEMORY.md, CURRENT_STATE.md)
-- ✅ Repository state verifiziert (clean working directory)
-- ✅ Alle Änderungen committed und gepusht
+**Problem:** Wöchentliches Trainingsziel war hardcoded auf "3" in WorkoutCalendarStripView.
 
-**Git Status vor dieser Session:**
+**Lösung:**
+- UserProfileEntity: `weeklyWorkoutGoal: Int` hinzugefügt (Default: 3)
+- DomainUserProfile: `weeklyWorkoutGoal: Int` property + initializer
+- UserProfileMapper: Vollständiges Mapping (toEntity, toDomain, updateEntity)
+- Repository: `updateWeeklyWorkoutGoal(_ goal: Int)` mit Validierung (1-7)
+- ProfileView: Neue "Trainingsziele" Section mit Stepper (1-7 range)
+- WorkoutCalendarStripView: Lädt `weeklyWorkoutGoal` dynamisch aus UserProfile
+
+**Files Modified:**
 ```
-M  Dokumentation/SESSION_MEMORY.md
-M  Dokumentation/V2/CURRENT_STATE.md
-M  Dokumentation/V2/TODO.md
+GymBo/SwiftDataEntities.swift
+GymBo/Domain/Entities/UserProfile.swift
+GymBo/Data/Mappers/UserProfileMapper.swift
+GymBo/Domain/RepositoryProtocols/UserProfileRepositoryProtocol.swift
+GymBo/Data/Repositories/SwiftDataUserProfileRepository.swift
+GymBo/Presentation/Views/Profile/ProfileView.swift
+GymBo/Presentation/Views/Home/Components/WorkoutCalendarStripView.swift
+GymBo/Presentation/Stores/SessionStore.swift (Mock Repository fix)
 ```
 
-**Commits dieser Session:**
-- `1d5ef24` - docs: Add weekly workout goal configuration to TODO
-- (pending) - docs: Update SESSION_MEMORY and CURRENT_STATE for session 23
+**Compilation Fixes:**
+- Fixed `.appOrange` → `Color.appOrange` in ProfileView
+- Added `updateWeeklyWorkoutGoal()` to all MockUserProfileRepository instances
+- Updated mock initializers with `weeklyWorkoutGoal` parameter
 
-**Nächste Schritte:**
-- Ready für IDE restart
-- Alle Informationen dokumentiert für nahtlose Fortsetzung
+### Part 2: Instant Updates via NotificationCenter ✅
+
+**Problem:** Nach Änderung des Ziels im Profil wurde WorkoutCalendarStrip erst nach Tab-Switch aktualisiert.
+
+**Lösung:**
+- Created `Notification+Names.swift` extension with `.userProfileDidChange`
+- ProfileView postet Notification bei `updateWeeklyGoal()`
+- WorkoutCalendarStripView hört via `.onReceive()` und refresht sofort
+- ScenePhase monitoring für App-Background-Return
+
+**Files Created:**
+```
+GymBo/Presentation/Extensions/Notification+Names.swift
+```
+
+**Result:** Updates sind instant - keine Tab-Switches mehr nötig! ✅
+
+### Part 3: ProfileView UI/UX Consistency ✅
+
+**Designregel:** Icons sind IMMER dunkelgrau (.secondary), außer es ist ein Button oder aktiv markiert (dann orange).
+
+**Änderungen:**
+- ✅ Weight Icon (scalemass.fill): ~~blue~~ → gray (.secondary)
+- ✅ Height Icon (ruler.fill): ~~green~~ → gray (.secondary)
+- ✅ Apple Health Icon (heart.circle.fill): ~~red~~ → gray (.secondary)
+- ✅ Weekly Goal Icon (calendar.badge.checkmark): ~~orange~~ → gray (.secondary)
+- ✅ "Profil wird ausgebaut" Icon: ~~sparkles (orange)~~ → person.text.rectangle (black/primary)
+- ✅ "Aus Apple Health importieren" Button: `.tint(.secondary)` statt orange
+
+**Result:** Konsistente, cleane UI ohne bunte Icons (außer Status-Indikatoren wie Checkmarks).
+
+### Commits (Session 24):
+```
+18c8c56 - feat: Add configurable weekly workout goal
+e86cf7a - fix: Correct compilation errors in ProfileView
+4f5ed52 - docs: Update TODO.md for Session 24
+04e4091 - fix: Add updateWeeklyWorkoutGoal to MockUserProfileRepository in SessionStore
+7c4777b - fix: Auto-refresh WorkoutCalendarStrip when returning from ProfileView
+a2a5cbd - fix: Implement NotificationCenter for instant profile updates
+[pending] - refactor: ProfileView UI/UX consistency - gray icons only
+[pending] - docs: Update all documentation for Session 24
+```
+
+### Technical Highlights:
+
+**1. NotificationCenter Pattern für View-Communication:**
+```swift
+// In ProfileView:
+NotificationCenter.default.post(name: .userProfileDidChange, object: nil)
+
+// In WorkoutCalendarStripView:
+.onReceive(NotificationCenter.default.publisher(for: .userProfileDidChange)) { _ in
+    refreshTrigger = UUID() // Triggers .task(id:) reload
+}
+```
+
+**2. Repository Validation:**
+```swift
+func updateWeeklyWorkoutGoal(_ goal: Int) async throws {
+    guard goal >= 1 && goal <= 7 else {
+        throw NSError(/* validation error */)
+    }
+    // ... update logic
+}
+```
+
+**3. Reactive UI mit .task(id:):**
+```swift
+@State private var refreshTrigger = UUID()
+
+.task(id: refreshTrigger) {
+    await loadWorkoutHistory() // Re-runs when refreshTrigger changes
+}
+```
+
+### Testing Notes:
+- ✅ Build succeeds ohne Warnings
+- ✅ Weekly goal persists nach App-Restart
+- ✅ Updates sind instant (kein Reload nötig)
+- ✅ Validation funktioniert (1-7 range)
+- ✅ ProfileView Icons konsistent grau
+- ✅ Mock Repositories konform zu Protocol
+
+### User Experience:
+1. User öffnet Profil → sieht aktuelles Ziel (z.B. "3 Workouts pro Woche")
+2. User ändert mit Stepper (z.B. auf 5)
+3. User schließt ProfileView
+4. **Instant:** HomeView zeigt "Diese Woche: X/5 Workouts" ✅
+5. Nach App-Restart: Ziel bleibt persistent
+
+### Next Steps:
+- Feature ist production-ready
+- Dokumentation aktualisiert
+- Bereit für weitere Features oder UI/UX Pflege
 
 ---
 

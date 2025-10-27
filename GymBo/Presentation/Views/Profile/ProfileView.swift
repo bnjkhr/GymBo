@@ -102,7 +102,7 @@ struct ProfileView: View {
                 HStack {
                     Image(systemName: "calendar.badge.checkmark")
                         .font(.body)
-                        .foregroundStyle(Color.appOrange)
+                        .foregroundStyle(.secondary)
                         .frame(width: 24)
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -158,7 +158,7 @@ struct ProfileView: View {
                 HStack {
                     Image(systemName: "scalemass.fill")
                         .font(.body)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(.secondary)
                         .frame(width: 24)
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -187,7 +187,7 @@ struct ProfileView: View {
                 HStack {
                     Image(systemName: "ruler.fill")
                         .font(.body)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(.secondary)
                         .frame(width: 24)
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -231,6 +231,7 @@ struct ProfileView: View {
                         .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    .tint(.secondary)
                     .disabled(isLoadingMetrics)
 
                     if let lastSync = userProfile?.lastHealthKitSync {
@@ -256,7 +257,7 @@ struct ProfileView: View {
                 HStack {
                     Image(systemName: "heart.circle.fill")
                         .font(.body)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(.secondary)
                         .frame(width: 24)
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -329,9 +330,9 @@ struct ProfileView: View {
             // Coming Soon Notice
             VStack(spacing: 12) {
                 HStack(spacing: 12) {
-                    Image(systemName: "sparkles")
+                    Image(systemName: "person.text.rectangle")
                         .font(.title2)
-                        .foregroundColor(.appOrange)
+                        .foregroundColor(.primary)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Profil wird weiter ausgebaut")

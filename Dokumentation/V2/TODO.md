@@ -353,16 +353,26 @@
 
 ## ✅ ABGESCHLOSSEN
 
-### Session 24 (2025-10-27) - Weekly Workout Goal Feature
-- ✅ Wöchentliches Workout-Ziel konfigurierbar gemacht
-- ✅ UserProfileEntity: weeklyWorkoutGoal Feld hinzugefügt (Default: 3)
-- ✅ DomainUserProfile: weeklyWorkoutGoal Property hinzugefügt
-- ✅ UserProfileMapper: Mapping für weeklyWorkoutGoal implementiert
-- ✅ Repository: updateWeeklyWorkoutGoal() mit Validierung (1-7)
-- ✅ ProfileView: Neue "Trainingsziele" Section mit Stepper
-- ✅ WorkoutCalendarStripView: Dynamisches Ziel statt hardcoded "3"
-- ✅ Compilation fixes (Color.appOrange, Mock Repository)
-- Commits: `18c8c56`, `e86cf7a`
+### Session 24 (2025-10-27) - Weekly Workout Goal Feature + Profile UI/UX Polish
+- ✅ **Wöchentliches Workout-Ziel Feature**
+  - UserProfileEntity: weeklyWorkoutGoal Feld hinzugefügt (Default: 3)
+  - DomainUserProfile: weeklyWorkoutGoal Property hinzugefügt
+  - UserProfileMapper: Mapping für weeklyWorkoutGoal implementiert
+  - Repository: updateWeeklyWorkoutGoal() mit Validierung (1-7)
+  - ProfileView: Neue "Trainingsziele" Section mit Stepper
+  - WorkoutCalendarStripView: Dynamisches Ziel statt hardcoded "3"
+- ✅ **Instant Updates via NotificationCenter**
+  - Notification.Name.userProfileDidChange implementiert
+  - ProfileView postet Notification bei Änderung
+  - WorkoutCalendarStripView empfängt und refresht sofort
+  - Keine Tab-Switches mehr nötig - updates instant!
+- ✅ **Profile UI/UX Konsistenz**
+  - Alle statischen Icons → dunkelgrau (.secondary)
+  - "Profil wird ausgebaut" Icon: sparkles → person.text.rectangle
+  - Import Button: tint(.secondary) statt orange
+  - Keine bunten Icons mehr (außer Status-Indikatoren)
+- ✅ Compilation fixes (Color.appOrange, Mock Repositories)
+- Commits: `18c8c56`, `e86cf7a`, `4f5ed52`, `04e4091`, `7c4777b`, `a2a5cbd`
 
 ### Session 22 (2025-10-27) - Code Cleanup & Refactoring
 - ✅ Debug logging entfernt (72 lines, 4 files)
