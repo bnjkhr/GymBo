@@ -3,7 +3,7 @@
 **Stand:** 2025-10-27
 **Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.3.0)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 22 - Code Cleanup Complete + File Renaming
+**Letzte Änderungen:** Session 24 - Weekly Workout Goal Feature Complete
 
 ---
 
@@ -27,7 +27,6 @@
 ### 🟢 Low Priority / Nice-to-Have
 
 - [ ] **Dynamic Island** - Live Activities während aktivem Workout
-- [ ] **Wöchentliches Workout-Ziel** - User kann im Profil Ziel-Anzahl pro Woche setzen (aktuell hardcoded: 3)
 
 ---
 
@@ -86,6 +85,7 @@
 - Collapsible Sections (Favoriten, Folders, Ohne Kategorie)
 - HomeView Redesign (Greeting, Locker Number, Workout Calendar)
 - Difficulty badges (grayscale) removed from Exercise List
+- **Configurable Weekly Workout Goal** (Profile Settings with 1-7 range)
 
 **6. Architecture** ✅
 - Clean Architecture (4 Layers)
@@ -352,6 +352,17 @@
 ---
 
 ## ✅ ABGESCHLOSSEN
+
+### Session 24 (2025-10-27) - Weekly Workout Goal Feature
+- ✅ Wöchentliches Workout-Ziel konfigurierbar gemacht
+- ✅ UserProfileEntity: weeklyWorkoutGoal Feld hinzugefügt (Default: 3)
+- ✅ DomainUserProfile: weeklyWorkoutGoal Property hinzugefügt
+- ✅ UserProfileMapper: Mapping für weeklyWorkoutGoal implementiert
+- ✅ Repository: updateWeeklyWorkoutGoal() mit Validierung (1-7)
+- ✅ ProfileView: Neue "Trainingsziele" Section mit Stepper
+- ✅ WorkoutCalendarStripView: Dynamisches Ziel statt hardcoded "3"
+- ✅ Compilation fixes (Color.appOrange, Mock Repository)
+- Commits: `18c8c56`, `e86cf7a`
 
 ### Session 22 (2025-10-27) - Code Cleanup & Refactoring
 - ✅ Debug logging entfernt (72 lines, 4 files)
