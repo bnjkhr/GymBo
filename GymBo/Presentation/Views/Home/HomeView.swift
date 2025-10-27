@@ -806,7 +806,7 @@ struct SheetsModifier: ViewModifier {
     let sessionStore: SessionStore
     let dependencyContainer: DependencyContainer
     let handleQuickSetupGeneration: (QuickSetupConfig) async -> Void
-    let saveQuickSetupWorkout: (String, [ExerciseTemplate]) async -> Void
+    let saveQuickSetupWorkout: (String, [WorkoutExercise]) async -> Void
 
     func body(content: Content) -> some View {
         content
