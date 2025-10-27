@@ -24,6 +24,7 @@ struct UserProfileMapper {
             id: domain.id,
             weight: domain.bodyMass,
             height: domain.height,
+            weeklyWorkoutGoal: domain.weeklyWorkoutGoal,
             createdAt: domain.createdAt,
             updatedAt: domain.updatedAt
         )
@@ -37,6 +38,7 @@ struct UserProfileMapper {
             id: entity.id,
             bodyMass: entity.weight,
             height: entity.height,
+            weeklyWorkoutGoal: entity.weeklyWorkoutGoal,
             lastHealthKitSync: nil,  // Not tracked in existing entity
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt
@@ -50,6 +52,7 @@ struct UserProfileMapper {
     func updateEntity(_ entity: UserProfileEntity, from domain: DomainUserProfile) {
         entity.weight = domain.bodyMass
         entity.height = domain.height
+        entity.weeklyWorkoutGoal = domain.weeklyWorkoutGoal
         entity.updatedAt = Date()
     }
 }

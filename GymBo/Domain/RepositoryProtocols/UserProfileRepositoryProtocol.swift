@@ -37,4 +37,9 @@ protocol UserProfileRepositoryProtocol {
     ///   - height: Height in cm (nil to keep existing)
     /// - Throws: Repository error if update fails
     func updateBodyMetrics(bodyMass: Double?, height: Double?) async throws
+
+    /// Update weekly workout goal
+    /// - Parameter goal: Number of workouts per week (1-7)
+    /// - Throws: Repository error if update fails
+    func updateWeeklyWorkoutGoal(_ goal: Int) async throws
 }

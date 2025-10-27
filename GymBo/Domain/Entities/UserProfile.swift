@@ -30,6 +30,9 @@ struct DomainUserProfile: Identifiable, Equatable {
     /// Height in centimeters (nil if not set)
     var height: Double?
 
+    /// Weekly workout goal (number of workouts per week)
+    var weeklyWorkoutGoal: Int
+
     /// Last time metrics were synced from HealthKit
     var lastHealthKitSync: Date?
 
@@ -45,6 +48,7 @@ struct DomainUserProfile: Identifiable, Equatable {
         id: UUID = UUID(),
         bodyMass: Double? = nil,
         height: Double? = nil,
+        weeklyWorkoutGoal: Int = 3,
         lastHealthKitSync: Date? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
@@ -52,6 +56,7 @@ struct DomainUserProfile: Identifiable, Equatable {
         self.id = id
         self.bodyMass = bodyMass
         self.height = height
+        self.weeklyWorkoutGoal = weeklyWorkoutGoal
         self.lastHealthKitSync = lastHealthKitSync
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -90,6 +95,7 @@ struct DomainUserProfile: Identifiable, Equatable {
             DomainUserProfile(
                 bodyMass: 75.5,
                 height: 180.0,
+                weeklyWorkoutGoal: 4,
                 lastHealthKitSync: Date().addingTimeInterval(-3600)
             )
         }

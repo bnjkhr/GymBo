@@ -295,6 +295,7 @@ final class UserProfileEntity {
 
     var profileImageData: Data?
     var lockerNumber: String?  // Spintnummer
+    var weeklyWorkoutGoal: Int  // Wöchentliches Trainingsziel (Anzahl Workouts pro Woche)
     var hasExploredWorkouts: Bool  // Onboarding: Beispielworkouts entdeckt
     var hasCreatedFirstWorkout: Bool  // Onboarding: Erstes Workout erstellt
     var hasSetupProfile: Bool  // Onboarding: Profil eingerichtet
@@ -315,6 +316,7 @@ final class UserProfileEntity {
         preferredDurationRaw: Int = 45,
         profileImageData: Data? = nil,
         lockerNumber: String? = nil,
+        weeklyWorkoutGoal: Int = 3,  // Default: 3 Workouts pro Woche
         hasExploredWorkouts: Bool = false,
         hasCreatedFirstWorkout: Bool = false,
         hasSetupProfile: Bool = false,
@@ -334,6 +336,7 @@ final class UserProfileEntity {
         self.preferredDurationRaw = preferredDurationRaw
         self.profileImageData = profileImageData
         self.lockerNumber = lockerNumber
+        self.weeklyWorkoutGoal = weeklyWorkoutGoal
         self.hasExploredWorkouts = hasExploredWorkouts
         self.hasCreatedFirstWorkout = hasCreatedFirstWorkout
         self.hasSetupProfile = hasSetupProfile

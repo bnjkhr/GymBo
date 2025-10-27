@@ -85,4 +85,27 @@ final class SwiftDataUserProfileRepository: UserProfileRepositoryProtocol {
             "✅ Body metrics updated: weight=\(bodyMass?.description ?? "unchanged") kg, height=\(height?.description ?? "unchanged") cm"
         )
     }
+
+    func updateWeeklyWorkoutGoal(_ goal: Int) async throws {
+        // Validate goal (1-7 workouts per week)
+        guard goal >= 1 && goal <= 7 else {
+            throw NSError(
+                domain: "UserProfileRepository",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "Weekly workout goal must be between 1 and 7"]
+            )
+        }
+
+        // Fetch or create profile
+        var profile = try await fetchOrCreate()
+
+        // Update goal
+        profile.weeklyWorkoutGoal = goal
+        profile.updatedAt = Date()
+
+        // Save
+        try await update(profile)
+
+        print("✅ Weekly workout goal updated: \(goal) workouts per week")
+    }
 }

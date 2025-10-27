@@ -24,6 +24,7 @@ struct WorkoutCalendarStripView: View {
     @Environment(\.dependencyContainer) private var dependencyContainer
     @State private var workoutDates: Set<Date> = []
     @State private var lastWorkoutDate: Date?
+    @State private var weeklyWorkoutGoal: Int = 3
     @State private var isLoading = true
 
     // Calendar helper
@@ -35,7 +36,7 @@ struct WorkoutCalendarStripView: View {
             if !workoutDates.isEmpty {
                 HStack(spacing: 16) {
                     // This week stats
-                    Text("Diese Woche: \(thisWeekWorkoutCount)/3 Workouts")
+                    Text("Diese Woche: \(thisWeekWorkoutCount)/\(weeklyWorkoutGoal) Workouts")
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
@@ -121,7 +122,11 @@ struct WorkoutCalendarStripView: View {
         guard let container = dependencyContainer else { return }
 
         do {
-            let repository = container.makeSessionRepository()
+            let sessionRepository = container.makeSessionRepository()
+            let userProfileRepository = container.makeUserProfileRepository()
+
+            // Fetch user profile to get weekly goal
+            let userProfile = try await userProfileRepository.fetchOrCreate()
 
             // Fetch sessions from last 14 days
             let startDate = calendar.startOfDay(for: last14Days.first ?? Date())
@@ -131,7 +136,7 @@ struct WorkoutCalendarStripView: View {
                     to: calendar.startOfDay(for: last14Days.last ?? Date()))
                 ?? Date()
 
-            let sessions = try await repository.fetchCompletedSessions(
+            let sessions = try await sessionRepository.fetchCompletedSessions(
                 from: startDate, to: endDate)
 
             // Extract unique workout dates (normalized to start of day)
@@ -142,13 +147,15 @@ struct WorkoutCalendarStripView: View {
             )
 
             // Find most recent workout date
-            let mostRecentDate = sessions
+            let mostRecentDate =
+                sessions
                 .map { $0.startDate }
                 .max()
 
             await MainActor.run {
                 workoutDates = dates
                 lastWorkoutDate = mostRecentDate
+                weeklyWorkoutGoal = userProfile.weeklyWorkoutGoal
                 isLoading = false
             }
         } catch {

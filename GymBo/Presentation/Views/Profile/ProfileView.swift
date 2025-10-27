@@ -46,6 +46,9 @@ struct ProfileView: View {
                     // Profile Header
                     profileHeader
 
+                    // Workout Goals Section
+                    workoutGoalsSection
+
                     // Body Metrics Section
                     bodyMetricsSection
 
@@ -85,6 +88,62 @@ struct ProfileView: View {
     }
 
     // MARK: - Subviews
+
+    private var workoutGoalsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Trainingsziele")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 12) {
+                // Weekly Workout Goal
+                HStack {
+                    Image(systemName: "calendar.badge.checkmark")
+                        .font(.body)
+                        .foregroundStyle(.appOrange)
+                        .frame(width: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Wöchentliches Ziel")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+
+                        Text("\(userProfile?.weeklyWorkoutGoal ?? 3) Workouts pro Woche")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    // Stepper to adjust goal
+                    Stepper(
+                        value: Binding(
+                            get: { userProfile?.weeklyWorkoutGoal ?? 3 },
+                            set: { newValue in
+                                Task {
+                                    await updateWeeklyGoal(newValue)
+                                }
+                            }
+                        ),
+                        in: 1...7
+                    ) {
+                        EmptyView()
+                    }
+                    .labelsHidden()
+                }
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+
+                Text("Setze dir ein realistisches Ziel für regelmäßiges Training")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 4)
+            }
+        }
+    }
 
     private var bodyMetricsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -300,11 +359,19 @@ struct ProfileView: View {
                 .padding(.top, 8)
 
             VStack(spacing: 8) {
-                placeholderRow(icon: "person.fill", title: "Persönliche Daten", subtitle: "Name, Alter, Erfahrung")
-                placeholderRow(icon: "chart.bar.fill", title: "Trainingsstatistiken", subtitle: "Fortschritt & Erfolge")
-                placeholderRow(icon: "target", title: "Trainingsziele", subtitle: "Ziele setzen & tracken")
-                placeholderRow(icon: "bell.fill", title: "Benachrichtigungen", subtitle: "Push-Benachrichtigungen")
-                placeholderRow(icon: "gear", title: "App-Einstellungen", subtitle: "Themes, Sprache, etc.")
+                placeholderRow(
+                    icon: "person.fill", title: "Persönliche Daten",
+                    subtitle: "Name, Alter, Erfahrung")
+                placeholderRow(
+                    icon: "chart.bar.fill", title: "Trainingsstatistiken",
+                    subtitle: "Fortschritt & Erfolge")
+                placeholderRow(
+                    icon: "target", title: "Trainingsziele", subtitle: "Ziele setzen & tracken")
+                placeholderRow(
+                    icon: "bell.fill", title: "Benachrichtigungen",
+                    subtitle: "Push-Benachrichtigungen")
+                placeholderRow(
+                    icon: "gear", title: "App-Einstellungen", subtitle: "Themes, Sprache, etc.")
             }
         }
     }
@@ -377,6 +444,19 @@ struct ProfileView: View {
 
         case .failure(let error):
             print("❌ Failed to import body metrics: \(error)")
+        }
+    }
+
+    private func updateWeeklyGoal(_ newGoal: Int) async {
+        do {
+            try await userProfileRepository.updateWeeklyWorkoutGoal(newGoal)
+
+            // Reload profile to reflect changes
+            await loadUserProfile()
+
+            print("✅ Weekly workout goal updated to \(newGoal)")
+        } catch {
+            print("❌ Failed to update weekly workout goal: \(error)")
         }
     }
 }
