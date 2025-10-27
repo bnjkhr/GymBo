@@ -97,6 +97,9 @@ struct WorkoutCalendarStripView: View {
                 refreshTrigger = UUID()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidChange)) { _ in
+            refreshTrigger = UUID()
+        }
     }
 
     // MARK: - Computed Properties

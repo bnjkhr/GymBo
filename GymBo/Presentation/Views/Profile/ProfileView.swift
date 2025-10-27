@@ -454,6 +454,9 @@ struct ProfileView: View {
             // Reload profile to reflect changes
             await loadUserProfile()
 
+            // Notify other views that profile has changed
+            NotificationCenter.default.post(name: .userProfileDidChange, object: nil)
+
             print("✅ Weekly workout goal updated to \(newGoal)")
         } catch {
             print("❌ Failed to update weekly workout goal: \(error)")
