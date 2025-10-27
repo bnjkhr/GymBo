@@ -55,140 +55,39 @@ struct HomeView: View {
         NavigationStack {
             contentView
                 .navigationBarTitleDisplayMode(.inline)
-                .sheet(isPresented: $showCreateWorkout) {
-                    WorkoutCreationModeSheet(
-                        onSelectEmpty: {
-                            showCreateWorkoutDirect = true
-                        },
-                        onSelectQuickSetup: {
-                            showQuickSetup = true
-                        },
-                        onSelectWizard: {
-                            // Coming soon
-                        }
-                    )
-                }
-                .sheet(isPresented: $showCreateWorkoutDirect) {
-                    if let store = workoutStore {
-                        CreateWorkoutView { createdWorkout in
-                            // Navigate to the created workout's detail view
-                            navigateToNewWorkout = createdWorkout
-                        }
-                        .environment(store)
-                    }
-                }
-                .sheet(isPresented: $showQuickSetup) {
-                    QuickSetupView { config in
-                        // Dismiss this sheet first
-                        showQuickSetup = false
-
-                        // Generate workout exercises from config
-                        Task {
-                            await handleQuickSetupGeneration(config: config)
-                        }
-                    }
-                }
-                .sheet(item: $quickSetupPreviewData) { previewData in
-                    if let store = workoutStore {
-                        QuickSetupPreviewView(
-                            config: previewData.config,
-                            generatedExercises: previewData.exercises,
-                            allExercises: previewData.allExercises,
-                            onSave: { name, exercises in
-                                Task {
-                                    await saveQuickSetupWorkout(name: name, exercises: exercises)
-                                }
-                            }
-                        )
-                        .environment(store)
-                    }
-                }
-                .sheet(isPresented: $showProfile) {
-                    ProfileView(
-                        userProfileRepository: dependencyContainer.makeUserProfileRepository(),
-                        importBodyMetricsUseCase: dependencyContainer.makeImportBodyMetricsUseCase()
-                    )
-                }
-                .sheet(isPresented: $showLockerInput) {
-                    LockerNumberInputSheet()
-                }
-                // Navigation for NEWLY created workouts (opens ExercisePicker automatically)
-                .navigationDestination(item: $navigateToNewWorkout) { workout in
-                    if let store = workoutStore {
-                        WorkoutDetailView(
-                            workout: workout,
-                            onStartWorkout: {
-                                Task {
-                                    await sessionStore.startSession(workoutId: workout.id)
-                                    showActiveWorkout = true
-                                }
-                            },
-                            openExercisePickerOnAppear: true
-                        )
-                        .environment(store)
-                    }
-                }
-                // Navigation for EXISTING workouts (no auto-open)
-                .navigationDestination(item: $navigateToExistingWorkout) { workout in
-                    if let store = workoutStore {
-                        WorkoutDetailView(
-                            workout: workout,
-                            onStartWorkout: {
-                                Task {
-                                    await sessionStore.startSession(workoutId: workout.id)
-                                    showActiveWorkout = true
-                                }
-                            },
-                            openExercisePickerOnAppear: false
-                        )
-                        .environment(store)
-                    }
-                }
-                .sheet(isPresented: $showActiveWorkout) {
-                    if sessionStore.hasActiveSession {
-                        ActiveWorkoutSheetView()
-                            .environment(workoutStore)
-                    }
-                }
-                .sheet(isPresented: $showWorkoutSummary) {
-                    if let completedSession = sessionStore.completedSession {
-                        WorkoutSummaryView(session: completedSession) {
-                            // Clear completed session and dismiss
-                            sessionStore.completedSession = nil
-                            showWorkoutSummary = false
-                        }
-                    }
-                }
-                .onChange(of: sessionStore.completedSession) { oldValue, newValue in
-                    // Show summary sheet when a session is completed
-                    showWorkoutSummary = (newValue != nil)
-                }
-                .onChange(of: showActiveWorkout) { oldValue, newValue in
-                    // When Active Workout sheet is dismissed, reload workouts
-                    if !newValue && oldValue {
-                        Task {
-                            if let store = workoutStore {
-                                await store.refresh()
-                                workouts = store.workouts
-                                updateWorkoutsHash()
-                            }
-                        }
-                    }
-                }
-                .onChange(of: workoutStore?.workouts) { oldValue, newValue in
-                    // Sync local workouts array when store changes (e.g., favorite toggle, folder deletion)
-                    if let updatedWorkouts = newValue {
-                        workouts = updatedWorkouts
-                        updateWorkoutsHash()
-                    }
-                }
-                .onChange(of: workoutStore?.folders) { oldValue, newValue in
-                    // Sync local folders array when store changes (e.g., folder deletion)
-                    if let updatedFolders = newValue {
-                        folders = updatedFolders
-                        foldersUpdateTrigger += 1
-                    }
-                }
+                .modifier(SheetsModifier(
+                    showCreateWorkout: $showCreateWorkout,
+                    showCreateWorkoutDirect: $showCreateWorkoutDirect,
+                    showQuickSetup: $showQuickSetup,
+                    showProfile: $showProfile,
+                    showLockerInput: $showLockerInput,
+                    showActiveWorkout: $showActiveWorkout,
+                    showWorkoutSummary: $showWorkoutSummary,
+                    quickSetupPreviewData: $quickSetupPreviewData,
+                    navigateToNewWorkout: $navigateToNewWorkout,
+                    workoutStore: workoutStore,
+                    sessionStore: sessionStore,
+                    dependencyContainer: dependencyContainer,
+                    handleQuickSetupGeneration: handleQuickSetupGeneration,
+                    saveQuickSetupWorkout: saveQuickSetupWorkout
+                ))
+                .modifier(NavigationModifier(
+                    navigateToNewWorkout: $navigateToNewWorkout,
+                    navigateToExistingWorkout: $navigateToExistingWorkout,
+                    showActiveWorkout: $showActiveWorkout,
+                    workoutStore: workoutStore,
+                    sessionStore: sessionStore
+                ))
+                .modifier(LifecycleModifier(
+                    sessionStore: sessionStore,
+                    workoutStore: workoutStore,
+                    showWorkoutSummary: $showWorkoutSummary,
+                    showActiveWorkout: $showActiveWorkout,
+                    workouts: $workouts,
+                    folders: $folders,
+                    foldersUpdateTrigger: $foldersUpdateTrigger,
+                    updateWorkoutsHash: updateWorkoutsHash
+                ))
                 .onAppear {
                     // Reload workouts every time view appears to catch updates
                     Task {
@@ -886,6 +785,184 @@ private struct CardButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+// MARK: - View Modifiers
+
+/// Groups all sheet presentations to reduce type-checker complexity
+struct SheetsModifier: ViewModifier {
+    @Binding var showCreateWorkout: Bool
+    @Binding var showCreateWorkoutDirect: Bool
+    @Binding var showQuickSetup: Bool
+    @Binding var showProfile: Bool
+    @Binding var showLockerInput: Bool
+    @Binding var showActiveWorkout: Bool
+    @Binding var showWorkoutSummary: Bool
+    @Binding var quickSetupPreviewData: QuickSetupPreviewData?
+    @Binding var navigateToNewWorkout: Workout?
+
+    let workoutStore: WorkoutStore?
+    let sessionStore: SessionStore
+    let dependencyContainer: DependencyContainer
+    let handleQuickSetupGeneration: (QuickSetupConfig) async -> Void
+    let saveQuickSetupWorkout: (String, [ExerciseTemplate]) async -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: $showCreateWorkout) {
+                WorkoutCreationModeSheet(
+                    onSelectEmpty: {
+                        showCreateWorkoutDirect = true
+                    },
+                    onSelectQuickSetup: {
+                        showQuickSetup = true
+                    },
+                    onSelectWizard: {
+                        // Coming soon
+                    }
+                )
+            }
+            .sheet(isPresented: $showCreateWorkoutDirect) {
+                if let store = workoutStore {
+                    CreateWorkoutView { createdWorkout in
+                        navigateToNewWorkout = createdWorkout
+                    }
+                    .environment(store)
+                }
+            }
+            .sheet(isPresented: $showQuickSetup) {
+                QuickSetupView { config in
+                    showQuickSetup = false
+                    Task {
+                        await handleQuickSetupGeneration(config)
+                    }
+                }
+            }
+            .sheet(item: $quickSetupPreviewData) { previewData in
+                if let store = workoutStore {
+                    QuickSetupPreviewView(
+                        config: previewData.config,
+                        generatedExercises: previewData.exercises,
+                        allExercises: previewData.allExercises,
+                        onSave: { name, exercises in
+                            Task {
+                                await saveQuickSetupWorkout(name, exercises)
+                            }
+                        }
+                    )
+                    .environment(store)
+                }
+            }
+            .sheet(isPresented: $showProfile) {
+                ProfileView(
+                    userProfileRepository: dependencyContainer.makeUserProfileRepository(),
+                    importBodyMetricsUseCase: dependencyContainer.makeImportBodyMetricsUseCase()
+                )
+            }
+            .sheet(isPresented: $showLockerInput) {
+                LockerNumberInputSheet()
+            }
+            .sheet(isPresented: $showActiveWorkout) {
+                if sessionStore.hasActiveSession {
+                    ActiveWorkoutSheetView()
+                        .environment(workoutStore)
+                }
+            }
+            .sheet(isPresented: $showWorkoutSummary) {
+                if let completedSession = sessionStore.completedSession {
+                    WorkoutSummaryView(session: completedSession) {
+                        sessionStore.completedSession = nil
+                        showWorkoutSummary = false
+                    }
+                }
+            }
+    }
+}
+
+/// Groups navigation destinations to reduce type-checker complexity
+struct NavigationModifier: ViewModifier {
+    @Binding var navigateToNewWorkout: Workout?
+    @Binding var navigateToExistingWorkout: Workout?
+    @Binding var showActiveWorkout: Bool
+
+    let workoutStore: WorkoutStore?
+    let sessionStore: SessionStore
+
+    func body(content: Content) -> some View {
+        content
+            .navigationDestination(item: $navigateToNewWorkout) { workout in
+                if let store = workoutStore {
+                    WorkoutDetailView(
+                        workout: workout,
+                        onStartWorkout: {
+                            Task {
+                                await sessionStore.startSession(workoutId: workout.id)
+                                showActiveWorkout = true
+                            }
+                        },
+                        openExercisePickerOnAppear: true
+                    )
+                    .environment(store)
+                }
+            }
+            .navigationDestination(item: $navigateToExistingWorkout) { workout in
+                if let store = workoutStore {
+                    WorkoutDetailView(
+                        workout: workout,
+                        onStartWorkout: {
+                            Task {
+                                await sessionStore.startSession(workoutId: workout.id)
+                                showActiveWorkout = true
+                            }
+                        },
+                        openExercisePickerOnAppear: false
+                    )
+                    .environment(store)
+                }
+            }
+    }
+}
+
+/// Groups lifecycle events (onChange, onAppear) to reduce type-checker complexity
+struct LifecycleModifier: ViewModifier {
+    let sessionStore: SessionStore
+    let workoutStore: WorkoutStore?
+    @Binding var showWorkoutSummary: Bool
+    @Binding var showActiveWorkout: Bool
+    @Binding var workouts: [Workout]
+    @Binding var folders: [WorkoutFolder]
+    @Binding var foldersUpdateTrigger: Int
+    let updateWorkoutsHash: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: sessionStore.completedSession) { oldValue, newValue in
+                showWorkoutSummary = (newValue != nil)
+            }
+            .onChange(of: showActiveWorkout) { oldValue, newValue in
+                if !newValue && oldValue {
+                    Task {
+                        if let store = workoutStore {
+                            await store.refresh()
+                            workouts = store.workouts
+                            updateWorkoutsHash()
+                        }
+                    }
+                }
+            }
+            .onChange(of: workoutStore?.workouts) { oldValue, newValue in
+                if let updatedWorkouts = newValue {
+                    workouts = updatedWorkouts
+                    updateWorkoutsHash()
+                }
+            }
+            .onChange(of: workoutStore?.folders) { oldValue, newValue in
+                if let updatedFolders = newValue {
+                    folders = updatedFolders
+                    foldersUpdateTrigger += 1
+                }
+            }
     }
 }
 
