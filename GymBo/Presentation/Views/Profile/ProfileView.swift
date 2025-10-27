@@ -266,48 +266,76 @@ struct ProfileView: View {
     }
 
     private var placeholderContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Einstellungen")
+        VStack(alignment: .leading, spacing: 16) {
+            // Coming Soon Notice
+            VStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    Image(systemName: "sparkles")
+                        .font(.title2)
+                        .foregroundStyle(.appOrange)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Profil wird weiter ausgebaut")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+
+                        Text("Weitere Funktionen kommen in den nächsten Updates")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+                }
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+            }
+
+            // Future Features Preview
+            Text("Geplante Features")
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
+                .padding(.top, 8)
 
             VStack(spacing: 8) {
-                placeholderRow(icon: "person.fill", title: "Persönliche Daten")
-                placeholderRow(icon: "chart.bar.fill", title: "Trainingsstatistiken")
-                placeholderRow(icon: "gear", title: "Einstellungen")
-                placeholderRow(icon: "bell.fill", title: "Benachrichtigungen")
+                placeholderRow(icon: "person.fill", title: "Persönliche Daten", subtitle: "Name, Alter, Erfahrung")
+                placeholderRow(icon: "chart.bar.fill", title: "Trainingsstatistiken", subtitle: "Fortschritt & Erfolge")
+                placeholderRow(icon: "target", title: "Trainingsziele", subtitle: "Ziele setzen & tracken")
+                placeholderRow(icon: "bell.fill", title: "Benachrichtigungen", subtitle: "Push-Benachrichtigungen")
+                placeholderRow(icon: "gear", title: "App-Einstellungen", subtitle: "Themes, Sprache, etc.")
             }
-
-            Text("Details werden später hinzugefügt")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
-                .padding(.top, 4)
         }
     }
 
-    private func placeholderRow(icon: String, title: String) -> some View {
-        HStack {
+    private func placeholderRow(icon: String, title: String, subtitle: String) -> some View {
+        HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.body)
-                .foregroundStyle(.primary)
-                .frame(width: 24)
+                .foregroundStyle(.secondary)
+                .frame(width: 28)
 
-            Text(title)
-                .font(.body)
-                .foregroundStyle(.primary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Spacer()
 
-            Image(systemName: "chevron.right")
+            Image(systemName: "clock")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
         .padding()
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
+        .opacity(0.6)
     }
 
     // MARK: - Helper Methods
