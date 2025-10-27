@@ -208,6 +208,27 @@ final class WorkoutStore {
         }
     }
 
+    /// Reorder folders
+    func reorderFolders(from source: IndexSet, to destination: Int) async {
+        var updatedFolders = folders
+        updatedFolders.move(fromOffsets: source, toOffset: destination)
+
+        // Update order property for all folders
+        for (index, folder) in updatedFolders.enumerated() {
+            var updatedFolder = folder
+            updatedFolder.order = index
+            do {
+                try await workoutRepository.updateFolder(updatedFolder)
+            } catch {
+                self.error = error
+                print("❌ Failed to reorder folders: \(error)")
+                return
+            }
+        }
+
+        await loadFolders()
+    }
+
     /// Move workout to a folder
     func moveWorkoutToFolder(workoutId: UUID, folderId: UUID?) async {
         do {

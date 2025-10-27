@@ -47,7 +47,9 @@ struct ManageFoldersSheet: View {
                     }
                 }
                 .onMove { source, destination in
-                    // TODO: Implement reordering
+                    Task {
+                        await store.reorderFolders(from: source, to: destination)
+                    }
                 }
                 .onDelete { indexSet in
                     for index in indexSet {
