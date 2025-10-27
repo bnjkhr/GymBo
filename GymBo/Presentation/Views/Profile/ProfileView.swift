@@ -102,7 +102,7 @@ struct ProfileView: View {
                 HStack {
                     Image(systemName: "calendar.badge.checkmark")
                         .font(.body)
-                        .foregroundStyle(.appOrange)
+                        .foregroundStyle(Color.appOrange)
                         .frame(width: 24)
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -478,12 +478,14 @@ struct ProfileView: View {
 
 private class MockUserProfileRepository: UserProfileRepositoryProtocol {
     func fetchOrCreate() async throws -> DomainUserProfile {
-        DomainUserProfile(bodyMass: 75.0, height: 180.0)
+        DomainUserProfile(bodyMass: 75.0, height: 180.0, weeklyWorkoutGoal: 4)
     }
 
     func update(_ profile: DomainUserProfile) async throws {}
 
     func updateBodyMetrics(bodyMass: Double?, height: Double?) async throws {}
+
+    func updateWeeklyWorkoutGoal(_ goal: Int) async throws {}
 }
 
 private class MockImportBodyMetricsUseCase: ImportBodyMetricsUseCase {
