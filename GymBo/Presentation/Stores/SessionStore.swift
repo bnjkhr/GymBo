@@ -1058,11 +1058,13 @@ extension SessionStore {
     /// Mock UserProfileRepository for previews
     private class MockUserProfileRepository: UserProfileRepositoryProtocol {
         func fetchOrCreate() async throws -> DomainUserProfile {
-            DomainUserProfile(bodyMass: 80.0, height: 175.0)
+            DomainUserProfile(bodyMass: 80.0, height: 175.0, weeklyWorkoutGoal: 3)
         }
 
         func update(_ profile: DomainUserProfile) async throws {}
 
         func updateBodyMetrics(bodyMass: Double?, height: Double?) async throws {}
+
+        func updateWeeklyWorkoutGoal(_ goal: Int) async throws {}
     }
 #endif
