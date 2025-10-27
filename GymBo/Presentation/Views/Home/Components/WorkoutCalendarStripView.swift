@@ -22,10 +22,12 @@ import SwiftUI
 /// - Simple dot indicator (5pt black circle)
 struct WorkoutCalendarStripView: View {
     @Environment(\.dependencyContainer) private var dependencyContainer
+    @Environment(\.scenePhase) private var scenePhase
     @State private var workoutDates: Set<Date> = []
     @State private var lastWorkoutDate: Date?
     @State private var weeklyWorkoutGoal: Int = 3
     @State private var isLoading = true
+    @State private var refreshTrigger = UUID()
 
     // Calendar helper
     private let calendar = Calendar.current
@@ -87,8 +89,13 @@ struct WorkoutCalendarStripView: View {
         .padding(16)
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(16)
-        .task {
+        .task(id: refreshTrigger) {
             await loadWorkoutHistory()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                refreshTrigger = UUID()
+            }
         }
     }
 
