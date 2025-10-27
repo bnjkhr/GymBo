@@ -804,7 +804,7 @@ struct SheetsModifier: ViewModifier {
 
     let workoutStore: WorkoutStore?
     let sessionStore: SessionStore
-    let dependencyContainer: DependencyContainer
+    let dependencyContainer: DependencyContainer?
     let handleQuickSetupGeneration: (QuickSetupConfig) async -> Void
     let saveQuickSetupWorkout: (String, [WorkoutExercise]) async -> Void
 
@@ -855,10 +855,12 @@ struct SheetsModifier: ViewModifier {
                 }
             }
             .sheet(isPresented: $showProfile) {
-                ProfileView(
-                    userProfileRepository: dependencyContainer.makeUserProfileRepository(),
-                    importBodyMetricsUseCase: dependencyContainer.makeImportBodyMetricsUseCase()
-                )
+                if let container = dependencyContainer {
+                    ProfileView(
+                        userProfileRepository: container.makeUserProfileRepository(),
+                        importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase()
+                    )
+                }
             }
             .sheet(isPresented: $showLockerInput) {
                 LockerNumberInputSheet()
