@@ -21,7 +21,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeViewPlaceholder()
+            HomeView()
                 .tabItem {
                     Label("Start", systemImage: "house.fill")
                 }

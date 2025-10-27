@@ -1,5 +1,5 @@
 //
-//  HomeViewPlaceholder.swift
+//  HomeView.swift
 //  GymTracker
 //
 //  Created on 2025-10-22.
@@ -26,7 +26,7 @@ struct QuickSetupPreviewData: Identifiable {
 /// - Workout list with favorites
 /// - Start workout button
 /// - Continue active session
-struct HomeViewPlaceholder: View {
+struct HomeView: View {
 
     @Environment(SessionStore.self) private var sessionStore
     @Environment(\.dependencyContainer) private var dependencyContainer
@@ -874,6 +874,6 @@ private struct CardButtonStyle: ButtonStyle {
 // MARK: - Preview
 
 #Preview {
-    HomeViewPlaceholder()
+    HomeView()
         .environment(SessionStore.preview)
 }
