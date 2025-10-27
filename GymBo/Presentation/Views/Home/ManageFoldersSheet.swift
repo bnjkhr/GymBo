@@ -56,7 +56,6 @@ struct ManageFoldersSheet: View {
                             await store.deleteFolder(id: folder.id)
                             // Reload folders to update the list immediately
                             await store.loadFolders()
-                            print("🔄 ManageFoldersSheet: Folders reloaded after deletion")
                         }
                     }
                 }
@@ -66,7 +65,6 @@ struct ManageFoldersSheet: View {
             .task {
                 // Load folders when sheet appears
                 await store.loadFolders()
-                print("🔄 ManageFoldersSheet: Folders loaded on appear")
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -91,7 +89,6 @@ struct ManageFoldersSheet: View {
                 if !newValue && oldValue {
                     Task {
                         await store.loadFolders()
-                        print("🔄 ManageFoldersSheet: Folders reloaded after create sheet dismissed")
                     }
                 }
             }
@@ -103,7 +100,6 @@ struct ManageFoldersSheet: View {
                 if newValue == nil && oldValue != nil {
                     Task {
                         await store.loadFolders()
-                        print("🔄 ManageFoldersSheet: Folders reloaded after edit sheet dismissed")
                     }
                 }
             }

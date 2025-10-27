@@ -86,12 +86,10 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
                 throw WorkoutRepositoryError.workoutNotFound(workoutId)
             }
 
-            print("🔄 BEFORE Reorder: Workout '\(entity.name)'")
             for ex in entity.exercises.sorted(by: { $0.order < $1.order }) {
                 print("   - Order \(ex.order): \(ex.id)")
             }
 
-            print("🔄 NEW ORDER requested:")
             for (idx, id) in exerciseOrder.enumerated() {
                 print("   - \(idx): \(id)")
             }
@@ -109,12 +107,10 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
                 }
             }
 
-            print("🔄 Updated \(foundCount) of \(exerciseOrder.count) exercises")
 
             // Save changes to SwiftData
             try modelContext.save()
 
-            print("🔄 AFTER Save: Workout '\(entity.name)'")
             for ex in entity.exercises.sorted(by: { $0.order < $1.order }) {
                 print("   - Order \(ex.order): \(ex.id)")
             }
@@ -124,13 +120,11 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
                 predicate: #Predicate { $0.id == workoutId }
             )
             if let verifiedEntity = try modelContext.fetch(verifyDescriptor).first {
-                print("🔄 VERIFICATION Fetch from DB:")
                 for ex in verifiedEntity.exercises.sorted(by: { $0.order < $1.order }) {
                     print("   - Order \(ex.order): \(ex.id)")
                 }
             }
 
-            print("✅ Exercise order saved to SwiftData")
         } catch let error as WorkoutRepositoryError {
             throw error
         } catch {
@@ -242,7 +236,6 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
                 )
             }
             let domains = folderMapper.toDomain(entities)
-            print("✅ [Repository] Converted to \(domains.count) domain folders")
             return domains
         } catch {
             print("❌ [Repository] Failed to fetch folders: \(error)")
@@ -260,7 +253,6 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
             modelContext.insert(entity)
             print("💾 [Repository] Entity inserted into context")
             try modelContext.save()
-            print("✅ [Repository] ModelContext saved successfully")
 
             // Verify the save worked
             let folderId = folder.id
@@ -293,7 +285,6 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
 
     func deleteFolder(id: UUID) async throws {
         do {
-            print("🗑️ [Repository] Deleting folder \(id)")
             guard let entity = try await fetchFolderEntity(id: id) else {
                 throw WorkoutRepositoryError.workoutNotFound(id)
             }
@@ -309,7 +300,6 @@ final class SwiftDataWorkoutRepository: WorkoutRepositoryProtocol {
 
             modelContext.delete(entity)
             try modelContext.save()
-            print("✅ [Repository] Folder deleted and changes saved")
         } catch let error as WorkoutRepositoryError {
             throw error
         } catch {

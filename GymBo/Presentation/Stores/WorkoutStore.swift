@@ -123,7 +123,6 @@ final class WorkoutStore {
 
         do {
             workouts = try await getAllWorkoutsUseCase.execute()
-            print("✅ Loaded \(workouts.count) workouts")
         } catch {
             self.error = error
             print("❌ Failed to load workouts: \(error.localizedDescription)")
@@ -140,7 +139,6 @@ final class WorkoutStore {
 
         do {
             selectedWorkout = try await getWorkoutByIdUseCase.execute(id: id)
-            print("✅ Loaded workout: \(selectedWorkout?.name ?? "Unknown")")
         } catch {
             self.error = error
             print("❌ Failed to load workout: \(error.localizedDescription)")
@@ -160,38 +158,28 @@ final class WorkoutStore {
     /// Load all workout folders
     func loadFolders() async {
         do {
-            print("🔄 [WorkoutStore] Loading folders...")
             folders = try await workoutRepository.fetchAllFolders()
-            print("✅ [WorkoutStore] Loaded \(folders.count) folders")
-            for folder in folders {
-                print("  - \(folder.name) (id: \(folder.id), color: \(folder.color))")
-            }
         } catch {
             self.error = error
-            print("❌ [WorkoutStore] Failed to load folders: \(error.localizedDescription)")
+            print("❌ Failed to load folders: \(error.localizedDescription)")
         }
     }
 
     /// Create a new workout folder
     func createFolder(name: String, color: String) async {
         do {
-            print("📝 [WorkoutStore] Creating folder: name=\(name), color=\(color)")
             let maxOrder = folders.map { $0.order }.max() ?? -1
-            print("📝 [WorkoutStore] Current max order: \(maxOrder), new order: \(maxOrder + 1)")
             let folder = WorkoutFolder(
                 name: name,
                 color: color,
                 order: maxOrder + 1
             )
-            print("📝 [WorkoutStore] Folder object created: \(folder)")
             try await workoutRepository.createFolder(folder)
-            print("✅ [WorkoutStore] Folder created in repository, reloading folders...")
             await loadFolders()
             showSuccessMessage("Kategorie erstellt")
-            print("✅ [WorkoutStore] Create folder complete")
         } catch {
             self.error = error
-            print("❌ [WorkoutStore] Failed to create folder: \(error)")
+            print("❌ Failed to create folder: \(error)")
         }
     }
 
@@ -201,7 +189,6 @@ final class WorkoutStore {
             try await workoutRepository.updateFolder(folder)
             await loadFolders()
             showSuccessMessage("Kategorie aktualisiert")
-            print("✅ Updated folder: \(folder.name)")
         } catch {
             self.error = error
             print("❌ Failed to update folder: \(error)")
@@ -211,44 +198,25 @@ final class WorkoutStore {
     /// Delete a folder
     func deleteFolder(id: UUID) async {
         do {
-            print("🗑️ [WorkoutStore] Deleting folder \(id)")
             try await workoutRepository.deleteFolder(id: id)
-            print("✅ [WorkoutStore] Folder deleted from repository")
             await loadFolders()
             await loadWorkouts()  // Reload workouts to update their folder references
-            print("✅ [WorkoutStore] Reloaded folders and workouts after deletion")
-            // Debug: Print workout folder assignments
-            for workout in workouts {
-                print(
-                    "  - Workout '\(workout.name)': folderId=\(workout.folderId?.uuidString ?? "nil")"
-                )
-            }
             showSuccessMessage("Kategorie gelöscht")
         } catch {
             self.error = error
-            print("❌ [WorkoutStore] Failed to delete folder: \(error)")
+            print("❌ Failed to delete folder: \(error)")
         }
     }
 
     /// Move workout to a folder
     func moveWorkoutToFolder(workoutId: UUID, folderId: UUID?) async {
         do {
-            print(
-                "📦 [WorkoutStore] Moving workout \(workoutId) to folder \(folderId?.uuidString ?? "none")"
-            )
             try await workoutRepository.moveWorkoutToFolder(
                 workoutId: workoutId, folderId: folderId)
             await loadWorkouts()
-            print("✅ [WorkoutStore] Moved workout to folder, reloaded workouts")
-            // Debug: Print workout folder assignments
-            for workout in workouts {
-                print(
-                    "  - Workout '\(workout.name)': folderId=\(workout.folderId?.uuidString ?? "nil")"
-                )
-            }
         } catch {
             self.error = error
-            print("❌ [WorkoutStore] Failed to move workout: \(error)")
+            print("❌ Failed to move workout: \(error)")
         }
     }
 
@@ -303,7 +271,6 @@ final class WorkoutStore {
             // Set as selected workout
             selectedWorkout = workout
 
-            print("✅ Created workout: \(workout.name)")
             return workout
 
         } catch {
@@ -330,7 +297,6 @@ final class WorkoutStore {
                 selectedWorkout = nil
             }
 
-            print("✅ Deleted workout")
             showSuccess("Workout gelöscht")
 
         } catch {
@@ -372,9 +338,7 @@ final class WorkoutStore {
                 print(
                     "📝 WorkoutStore: Created new array, workouts[\(index)].name = '\(workouts[index].name)'"
                 )
-                print("📝 WorkoutStore: New array identity, workouts.count = \(workouts.count)")
             } else {
-                print("⚠️ WorkoutStore: Workout not found in local array!")
             }
 
             // Update selection if updated workout was selected
@@ -382,7 +346,6 @@ final class WorkoutStore {
                 selectedWorkout = updatedWorkout
             }
 
-            print("✅ Updated workout: \(updatedWorkout.name)")
             showSuccess("Workout aktualisiert")
 
         } catch {
@@ -407,7 +370,6 @@ final class WorkoutStore {
                 selectedWorkout = updatedWorkout
             }
 
-            print("✅ Toggled favorite: \(updatedWorkout.name) → \(updatedWorkout.isFavorite)")
         } catch {
             self.error = error
             print("❌ Failed to toggle favorite: \(error.localizedDescription)")
@@ -436,7 +398,6 @@ final class WorkoutStore {
             }
 
             showSuccess("Übung hinzugefügt")
-            print("✅ Added exercise to workout: \(updatedWorkout.name)")
         } catch {
             self.error = error
             print("❌ Failed to add exercise: \(error.localizedDescription)")
@@ -465,7 +426,6 @@ final class WorkoutStore {
             }
 
             showSuccess("Übung entfernt")
-            print("✅ Removed exercise from workout: \(updatedWorkout.name)")
         } catch {
             self.error = error
             print("❌ Failed to remove exercise: \(error.localizedDescription)")
@@ -486,7 +446,6 @@ final class WorkoutStore {
             // Reload all workouts from database to get fresh data
             await loadWorkouts()
 
-            print("✅ Reordered exercises in workout: \(updatedWorkout.name)")
         } catch {
             self.error = error
             print("❌ Failed to reorder exercises: \(error.localizedDescription)")
@@ -524,7 +483,6 @@ final class WorkoutStore {
             }
 
             showSuccess("Übung aktualisiert")
-            print("✅ Updated exercise in workout: \(updatedWorkout.name)")
         } catch {
             self.error = error
             print("❌ Failed to update exercise: \(error.localizedDescription)")

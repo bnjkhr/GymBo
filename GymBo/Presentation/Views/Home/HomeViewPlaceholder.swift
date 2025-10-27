@@ -194,13 +194,11 @@ struct HomeViewPlaceholder: View {
             .onChange(of: showActiveWorkout) { oldValue, newValue in
                 // When Active Workout sheet is dismissed, reload workouts
                 if !newValue && oldValue {
-                    print("🔄 HomeView: Active workout sheet dismissed, reloading workouts")
                     Task {
                         if let store = workoutStore {
                             await store.refresh()
                             workouts = store.workouts
                             updateWorkoutsHash()
-                            print("✅ HomeView: Workouts reloaded, count=\(workouts.count)")
                         }
                     }
                 }
@@ -208,9 +206,6 @@ struct HomeViewPlaceholder: View {
             .onChange(of: workoutStore?.workouts) { oldValue, newValue in
                 // Sync local workouts array when store changes (e.g., favorite toggle, folder deletion)
                 if let updatedWorkouts = newValue {
-                    print(
-                        "🔄 HomeView: WorkoutStore.workouts changed, syncing local array, count=\(updatedWorkouts.count)"
-                    )
                     workouts = updatedWorkouts
                     updateWorkoutsHash()
                 }
@@ -218,9 +213,6 @@ struct HomeViewPlaceholder: View {
             .onChange(of: workoutStore?.folders) { oldValue, newValue in
                 // Sync local folders array when store changes (e.g., folder deletion)
                 if let updatedFolders = newValue {
-                    print(
-                        "🔄 HomeView: WorkoutStore.folders changed, syncing local array, count=\(updatedFolders.count)"
-                    )
                     folders = updatedFolders
                     foldersUpdateTrigger += 1
                 }
@@ -229,12 +221,10 @@ struct HomeViewPlaceholder: View {
                 // Reload workouts every time view appears to catch updates
                 Task {
                     if let store = workoutStore {
-                        print("🔄 HomeView: Reloading workouts on appear")
                         await store.refresh()
                         // Copy to local @State to force SwiftUI update
                         workouts = store.workouts
                         updateWorkoutsHash()
-                        print("🔄 HomeView: Updated local workouts array, count=\(workouts.count)")
                     }
                 }
             }
@@ -598,7 +588,6 @@ struct HomeViewPlaceholder: View {
                     if let store = workoutStore {
                         workouts = store.workouts
                         updateWorkoutsHash()
-                        print("🔄 HomeView: Workouts reloaded after moving to 'Ohne Kategorie'")
                     }
                 }
             } label: {
@@ -719,7 +708,6 @@ struct HomeViewPlaceholder: View {
             workouts = store.workouts
             updateWorkoutsHash()
 
-            print("✅ Quick-Setup workout saved: \(name) with \(exercises.count) exercises")
         } catch {
             print("❌ Failed to save Quick-Setup workout: \(error)")
         }
