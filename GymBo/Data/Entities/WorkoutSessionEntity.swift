@@ -50,6 +50,9 @@ final class WorkoutSessionEntity {
     /// Workout name (cached for display)
     var workoutName: String?
 
+    /// HealthKit workout session ID (for Apple Health sync)
+    var healthKitSessionId: String?
+
     /// Exercises in this session
     @Relationship(deleteRule: .cascade, inverse: \SessionExerciseEntity.session)
     var exercises: [SessionExerciseEntity]
@@ -63,6 +66,7 @@ final class WorkoutSessionEntity {
         endDate: Date? = nil,
         state: String = "active",
         workoutName: String? = nil,
+        healthKitSessionId: String? = nil,
         exercises: [SessionExerciseEntity] = []
     ) {
         self.id = id
@@ -71,6 +75,7 @@ final class WorkoutSessionEntity {
         self.endDate = endDate
         self.state = state
         self.workoutName = workoutName
+        self.healthKitSessionId = healthKitSessionId
         self.exercises = exercises
     }
 }

@@ -44,14 +44,16 @@ final class DefaultEndSessionUseCase: EndSessionUseCase {
     // MARK: - Properties
 
     private let sessionRepository: SessionRepositoryProtocol
-
-    // TODO: Sprint 1.4 - Add HealthKitService for export
-    // private let healthKitService: HealthKitServiceProtocol?
+    private let healthKitService: HealthKitServiceProtocol
 
     // MARK: - Initialization
 
-    init(sessionRepository: SessionRepositoryProtocol) {
+    init(
+        sessionRepository: SessionRepositoryProtocol,
+        healthKitService: HealthKitServiceProtocol
+    ) {
         self.sessionRepository = sessionRepository
+        self.healthKitService = healthKitService
     }
 
     // MARK: - Execute
@@ -80,18 +82,62 @@ final class DefaultEndSessionUseCase: EndSessionUseCase {
             throw UseCaseError.updateFailed(error)
         }
 
-        // TODO: Sprint 1.4 - Export to HealthKit
-        // if let healthKitService = healthKitService {
-        //     try? await healthKitService.exportWorkout(session)
-        // }
+        // Export to HealthKit (background, non-blocking)
+        if let healthKitSessionId = session.healthKitSessionId {
+            Task.detached(priority: .background) { [weak self] in
+                guard let self = self else { return }
 
-        // TODO: Sprint 1.4 - Post notification for UI update
-        // NotificationCenter.default.post(
-        //     name: .sessionCompleted,
-        //     object: session
-        // )
+                print("🔵 EndSessionUseCase: Ending HealthKit session")
+
+                // Calculate estimated calories (simple formula)
+                let duration = session.duration  // seconds
+                let totalVolume = session.totalVolume  // kg
+                let estimatedCalories = self.calculateCalories(
+                    duration: duration,
+                    volume: totalVolume
+                )
+
+                // Prepare metadata
+                let metadata: [String: Any] = [
+                    "totalVolume": totalVolume,
+                    "exerciseCount": session.exercises.count,
+                    "workoutName": session.workoutName ?? "Workout",
+                ]
+
+                let result = await self.healthKitService.endWorkoutSession(
+                    sessionId: healthKitSessionId,
+                    endDate: session.endDate!,
+                    totalEnergyBurned: estimatedCalories,
+                    totalDistance: nil,
+                    metadata: metadata
+                )
+
+                switch result {
+                case .success:
+                    print("✅ HealthKit workout saved successfully")
+                case .failure(let error):
+                    print("⚠️ HealthKit save failed: \(error.localizedDescription)")
+                }
+            }
+        }
 
         return session
+    }
+
+    // MARK: - Private Helpers
+
+    /// Simplified calorie estimation
+    /// Source: MET (Metabolic Equivalent of Task) for strength training
+    /// MET for strength training: ~6.0 (moderate) to 8.0 (vigorous)
+    private func calculateCalories(duration: TimeInterval, volume: Double) -> Double {
+        let hours = duration / 3600.0
+        let met: Double = 6.0  // Conservative estimate
+        let bodyWeight: Double = 80.0  // TODO: Get from user profile
+
+        // Formula: Calories = MET × body weight (kg) × time (hours)
+        let calories = met * bodyWeight * hours
+
+        return calories
     }
 }
 
@@ -164,7 +210,6 @@ final class DefaultResumeSessionUseCase: ResumeSessionUseCase {
         try await sessionRepository.update(session)
     }
 }
-
 
 // MARK: - Tests
 // TODO: Move inline tests to separate Test target file

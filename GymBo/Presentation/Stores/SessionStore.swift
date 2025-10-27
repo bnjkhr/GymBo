@@ -965,14 +965,19 @@ extension SessionStore {
             let repository = MockSessionRepository()
             let exerciseRepository = MockExerciseRepository()
             let workoutRepository = MockWorkoutRepository()
+            let healthKitService = MockHealthKitService()
             return SessionStore(
                 startSessionUseCase: DefaultStartSessionUseCase(
                     sessionRepository: repository,
                     exerciseRepository: exerciseRepository,
-                    workoutRepository: workoutRepository
+                    workoutRepository: workoutRepository,
+                    healthKitService: healthKitService
                 ),
                 completeSetUseCase: DefaultCompleteSetUseCase(sessionRepository: repository),
-                endSessionUseCase: DefaultEndSessionUseCase(sessionRepository: repository),
+                endSessionUseCase: DefaultEndSessionUseCase(
+                    sessionRepository: repository,
+                    healthKitService: healthKitService
+                ),
                 cancelSessionUseCase: DefaultCancelSessionUseCase(sessionRepository: repository),
                 pauseSessionUseCase: DefaultPauseSessionUseCase(sessionRepository: repository),
                 resumeSessionUseCase: DefaultResumeSessionUseCase(sessionRepository: repository),

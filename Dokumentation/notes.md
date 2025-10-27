@@ -25,4 +25,5 @@ Benachrichtigungen:
     -> Live Activiy ja / nein
 ---
 Jetzt brauche ich die Anbindung an Apple Heath.
-Checke das Konzept, da haben wir schon alles beschrieben.
+Checke das Konzept, da haben wir schon alles beschrieben. Ändere noch nichts, erstelle nur einen Implementierungsvorschlag für die Anbindung an Apple Health.
+---

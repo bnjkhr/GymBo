@@ -36,6 +36,11 @@ final class DependencyContainer {
     /// SwiftData ModelContext for persistence operations
     private let modelContext: ModelContext
 
+    /// Singleton HealthKit Service (shared across app)
+    private lazy var _healthKitService: HealthKitServiceProtocol = {
+        HealthKitService()
+    }()
+
     /// Singleton SessionStore (shared across app)
     private lazy var _sessionStore: SessionStore = {
         SessionStore(
@@ -84,6 +89,14 @@ final class DependencyContainer {
         self.modelContext = modelContext
     }
 
+    // MARK: - Services (Infrastructure Layer)
+
+    /// Returns the singleton HealthKit Service instance
+    /// - Returns: Shared HealthKit Service instance
+    func makeHealthKitService() -> HealthKitServiceProtocol {
+        return _healthKitService
+    }
+
     // MARK: - Repositories (Data Layer)
 
     /// Creates SessionRepository implementation
@@ -119,7 +132,8 @@ final class DependencyContainer {
         return DefaultStartSessionUseCase(
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository(),
-            workoutRepository: makeWorkoutRepository()
+            workoutRepository: makeWorkoutRepository(),
+            healthKitService: makeHealthKitService()
         )
     }
 
@@ -137,7 +151,8 @@ final class DependencyContainer {
     func makeEndSessionUseCase() -> EndSessionUseCase {
         // ✅ Sprint 1.2 COMPLETE
         return DefaultEndSessionUseCase(
-            sessionRepository: makeSessionRepository()
+            sessionRepository: makeSessionRepository(),
+            healthKitService: makeHealthKitService()
         )
     }
 
