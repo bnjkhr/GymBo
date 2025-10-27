@@ -272,7 +272,7 @@ struct ProfileView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "sparkles")
                         .font(.title2)
-                        .foregroundStyle(.appOrange)
+                        .foregroundColor(.appOrange)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Profil wird weiter ausgebaut")
