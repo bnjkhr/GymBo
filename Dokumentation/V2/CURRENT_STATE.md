@@ -1,14 +1,48 @@
 # GymBo V2 - Aktueller Stand (2025-10-27)
 
-**Status:** ✅ MVP PRODUCTION-READY! Apple Health Integration Complete (Phase 1-4)
+**Status:** ✅ PRODUCTION-READY! Apple Health Integration + V1.0 Migration Complete
 **Version:** 2.4.0
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
 **Design:** Modern iOS 26 mit Brand Color #F77E2D
 
+✅ **NEW:** V1.0 → V2.4.0 Clean Slate Migration! User-freundliche Warnung, automatische DB-Reset
 ✅ **NEW:** SwiftData Migration V1→V2 implementiert! Custom migration mit UserProfile creation
 ✅ **NEW:** Apple Health Integration! Workouts automatisch synchronisiert, Body Metrics Import
 
-**Letzte Session (2025-10-27 - Session 22 - APPLE HEALTH INTEGRATION PHASE 1-4):**
+**Letzte Session (2025-10-27 - Session 22 - APPLE HEALTH + V1.0 MIGRATION):**
+- ✅ **V1.0 → V2.4.0 Migration Strategy** (CRITICAL FEATURE)
+  - **AppVersionManager:** Version-Tracking via UserDefaults
+    - Erkennt v1.0 User automatisch (`lastVersion.starts(with: "1.")`)
+    - `needsDatabaseReset()` → true wenn Upgrade von v1.0
+    - `markV2MigrationComplete()` → verhindert wiederholte Migration
+    - Debug-Helpers für Testing
+  - **MigrationAlertView:** User-freundliche Info über v2.0
+    - Zeigt neue Features: Workout-Ordner, Apple Health, Pausenzeiten, Quick-Setup, neues Design
+    - Erklärt, dass alte Daten nicht übernommen werden können
+    - Positives Framing (neue Features statt "Datenverlust")
+    - Single Button: "Verstanden, weiter"
+  - **GymBoApp Migration Logic:**
+    - Prüft bei App-Start ob v1.0 User
+    - Löscht alte Datenbank VOR Container-Erstellung
+    - Zeigt MigrationAlertView als Overlay
+    - Nach User-Bestätigung: Migration als "complete" markieren
+    - `deleteDatabase()` helper Funktion
+  - **Migration Flow:**
+    - Fresh Install: Keine Migration, normale DB-Erstellung
+    - v1.0 → v2.4.0: DB-Reset + Alert + Seed-Daten
+    - v2.x → v2.x+1: Normale SwiftData Migration (keine Datenverlust)
+  - **User Experience:**
+    - Kein unerwarteter Datenverlust
+    - Klare Kommunikation über Änderungen
+    - TestFlight-Ready: User wurden vorab informiert
+- ✅ **ProfileView Improvements**
+  - "Coming Soon" Notice mit Sparkles Icon
+  - Liste geplanter Features mit Beschreibungen
+  - Clock Icon statt Chevron (zeigt "noch nicht verfügbar")
+  - 60% Opacity für Platzhalter
+- ✅ **UI Polish**
+  - TabBar tint color jetzt Orange statt Blau
+  - Konsistente Brand Color überall
 - ✅ **Apple Health (HealthKit) Integration** (MAJOR FEATURE - Phase 1-4 Complete)
   - **Phase 1: Core Integration**
     - HealthKitServiceProtocol in Domain Layer (protocol abstraction)

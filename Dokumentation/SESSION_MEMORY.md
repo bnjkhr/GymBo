@@ -19,7 +19,7 @@
 
 ## 📊 Projekt-Status (Stand: 2025-10-27)
 
-### Version: 2.4.0 - Apple Health Integration (Phase 1-4 Complete)
+### Version: 2.4.0 - Apple Health Integration + V1.0 Migration Complete
 
 **Alle Core Features implementiert:**
 - ✅ Workout Management (Create/Edit/Delete/Favorite)
@@ -31,22 +31,145 @@
 - ✅ Per-Set Rest Times - Individuelle Pausenzeiten pro Satz
 - ✅ Quick-Setup Workout Creation - Schnelles Workout-Erstellen
 - ✅ **Apple Health Integration** (NEU) - Workouts & Body Metrics synchronisieren
+- ✅ **V1.0 → V2.4.0 Migration** (NEU) - Clean Slate mit User-Warnung
 - ✅ UI/UX (Brand Color #F77E2D, iOS 26 Design, TabBar Auto-Hide)
 - ✅ Architecture (Clean Architecture, 30+ Use Cases, 4 Repositories)
 
 **Dokumentation aktualisiert:**
 - APPLE_HEALTH_IMPLEMENTATION_PLAN.md → Phase 1-4 complete
-- SESSION_MEMORY.md → Session 22 dokumentiert
-- CURRENT_STATE.md → Apple Health Features dokumentiert
+- SESSION_MEMORY.md → Session 22 dokumentiert (inkl. Migration)
+- CURRENT_STATE.md → Apple Health + Migration Features dokumentiert
 
 ---
 
-## ✅ Session 2025-10-27 (Session 22) - Apple Health Integration (Phase 1-4)
+## ✅ Session 2025-10-27 (Session 22) - Apple Health Integration + V1.0 Migration
+
+### V1.0 → V2.4.0 Clean Slate Migration - Komplett implementiert
+**Status:** ✅ Production-Ready - TestFlight-Ready
+
+**Problem:**
+- SchemaV1 in Codebase stimmt NICHT mit echter v1.0 Datenbank überein
+- Echte v1.0 hatte keine UserProfileEntity, WorkoutFolderEntity, ExerciseRecordEntity
+- SwiftData Migration würde fehlschlagen → **kompletter Datenverlust ohne Warnung**
+- User würde App öffnen und alle Workouts wären weg
+
+**Lösung: Clean Slate mit User-Kommunikation**
+- User wurden vorab informiert (TestFlight-Beta-Kommunikation)
+- Implementierung: Option B (Clean Slate mit freundlicher Warnung)
+
+**Implementierte Komponenten:**
+
+**1. AppVersionManager.swift (neu)**
+- Version-Tracking via UserDefaults
+- Speichert `lastAppVersion`, `hasPerformedV2Migration`, `isFirstLaunch`
+- `needsDatabaseReset()` → true wenn v1.0 → v2.4.0 Upgrade
+  - Prüft: `lastVersion.starts(with: "1.")`
+  - Prüft: `hasPerformedV2Migration == false`
+- `markV2MigrationComplete()` → verhindert wiederholte Migration
+- `updateStoredVersion()` → speichert aktuelle Version nach Startup
+- Debug-Helpers: `resetVersionTracking()`, `printVersionInfo()`
+
+**2. MigrationAlertView.swift (neu)**
+- Freundliche Alert-UI als Fullscreen-Overlay
+- **Inhalt:**
+  - Sparkles Icon mit Pulse-Effect (Orange)
+  - "GymBo 2.0 - Willkommen zur neuen Version!"
+  - Feature-Liste (Workout-Ordner, Apple Health, Pausenzeiten, Quick-Setup, neues Design)
+  - Erklärung: "Daten können leider nicht übernommen werden"
+  - Positives Framing (neue Features statt "Datenverlust")
+- **UX:**
+  - Single Button: "Verstanden, weiter"
+  - Keine Auswahl (User weiß was kommt)
+  - Clean, modern design mit Brand Color
+
+**3. GymBoApp.swift (aktualisiert)**
+- Migration-Check bei App-Start:
+  ```swift
+  let versionManager = AppVersionManager.shared
+  versionManager.printVersionInfo()
+  let needsReset = versionManager.needsDatabaseReset()
+  
+  if needsReset {
+      Self.deleteDatabase()  // Löscht DB VOR Container-Erstellung
+      _showMigrationAlert = State(initialValue: true)
+  }
+  ```
+- `@State private var showMigrationAlert = false`
+- `@State private var migrationCompleted = false`
+- ZStack mit MigrationAlertView als Overlay
+- Nach User-Bestätigung:
+  - `AppVersionManager.shared.markV2MigrationComplete()`
+  - Alert wird dismissed
+  - Seed-Daten werden geladen
+- `deleteDatabase()` helper Funktion:
+  - Löscht default.store + .store-shm + .store-wal
+  - Wird NUR bei v1.0 → v2.4.0 Upgrade aufgerufen
+
+**Migration Flows:**
+
+**Flow 1: Fresh Install (neuer User)**
+```
+1. needsDatabaseReset() → false (kein lastVersion)
+2. Erstellt v2.4.0 Datenbank
+3. Seed-Daten werden geladen
+4. Kein Alert → direkt zur App
+5. ✅ Normal start
+```
+
+**Flow 2: v1.0 → v2.4.0 Update (Bestandsuser)**
+```
+1. needsDatabaseReset() → true (lastVersion = "1.x")
+2. deleteDatabase() → alte DB wird gelöscht
+3. Erstellt neue v2.4.0 Datenbank
+4. MigrationAlertView erscheint (Fullscreen-Overlay)
+5. User liest neue Features
+6. User klickt "Verstanden, weiter"
+7. markV2MigrationComplete() → hasPerformedV2Migration = true
+8. Alert dismissed
+9. Seed-Daten werden geladen (145 Übungen, 6 Sample Workouts)
+10. ✅ App läuft mit frischer DB
+```
+
+**Flow 3: v2.4.0 → v2.4.1 Update (zukünftig)**
+```
+1. needsDatabaseReset() → false (hasPerformedV2Migration = true)
+2. Normale SwiftData Migration (V2→V3 etc.)
+3. Kein Alert
+4. ✅ Keine Daten verloren
+```
+
+**Technische Details:**
+- UserDefaults Keys: `lastAppVersion`, `hasPerformedV2Migration`, `isFirstLaunch`
+- Migration läuft EINMALIG (Flag verhindert Wiederholung)
+- Version wird nach Startup aktualisiert (für nächsten Launch)
+- Debug-Testing möglich: `AppVersionManager.shared.resetVersionTracking()`
+- Simuliere v1.0 User: `defaults write com.yourteam.GymBo lastAppVersion "1.0.0"`
+
+**Neue Files:**
+- `GymBo/Infrastructure/Utilities/AppVersionManager.swift`
+- `GymBo/Presentation/Views/Migration/MigrationAlertView.swift`
+
+**Updated Files:**
+- `GymBo/GymBoApp.swift` (Migration-Check, Alert-Overlay, deleteDatabase)
+
+**Commits:**
+1. `feat: Implement v1.0 to v2.4.0 clean slate migration`
+2. `feat: Add coming soon notice to ProfileView`
+3. `fix: Change TabBar tint color to orange and fix ProfileView color`
+
+**User Communication (TestFlight):**
+- User wurden vorab über v2.0 Redesign informiert
+- Ankündigung: "Alte Daten können nicht übernommen werden"
+- User wissen Bescheid → Keine böse Überraschung
+
+**Production Status:** ✅ Ready for TestFlight Release
+
+---
 
 ### Apple Health (HealthKit) Integration - Komplett implementiert
 **Status:** ✅ Phase 1-4 abgeschlossen (Phase 3 deferred to Live Activity)
 
-**Branch:** `feature/apple-health-integration`
+**Branch:** `feature/apple-health-integration` (merged to main)
 
 ### Phase 1: Core HealthKit Integration ✅
 
