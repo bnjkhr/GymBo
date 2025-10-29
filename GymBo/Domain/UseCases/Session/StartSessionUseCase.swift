@@ -189,6 +189,7 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
             // Create session exercise - use explicit orderIndex from workout template
             let sessionExercise = DomainSessionExercise(
                 exerciseId: workoutExercise.exerciseId,
+                exerciseName: exerciseEntity?.name ?? "Übung",
                 sets: sets,
                 notes: workoutExercise.notes,
                 restTimeToNext: workoutExercise.restTime,

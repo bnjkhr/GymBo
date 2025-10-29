@@ -37,6 +37,10 @@ struct DomainSessionExercise: Identifiable, Equatable {
     /// Reference to the exercise template/definition
     let exerciseId: UUID
 
+    /// Cached exercise name for display purposes
+    /// Loaded from exercise repository and cached here to avoid repeated lookups
+    var exerciseName: String
+
     /// List of sets for this exercise
     var sets: [DomainSessionSet]
 
@@ -116,12 +120,14 @@ struct DomainSessionExercise: Identifiable, Equatable {
     /// - Parameters:
     ///   - id: Unique identifier (defaults to new UUID)
     ///   - exerciseId: ID of the exercise template
+    ///   - exerciseName: Name of the exercise for display
     ///   - sets: List of sets (defaults to empty)
     ///   - notes: Optional user notes
     ///   - restTimeToNext: Optional rest time in seconds
     init(
         id: UUID = UUID(),
         exerciseId: UUID,
+        exerciseName: String,
         sets: [DomainSessionSet] = [],
         notes: String? = nil,
         restTimeToNext: TimeInterval? = nil,
@@ -130,6 +136,7 @@ struct DomainSessionExercise: Identifiable, Equatable {
     ) {
         self.id = id
         self.exerciseId = exerciseId
+        self.exerciseName = exerciseName
         self.sets = sets
         self.notes = notes
         self.restTimeToNext = restTimeToNext
@@ -186,6 +193,7 @@ struct DomainSessionExercise: Identifiable, Equatable {
         static var preview: DomainSessionExercise {
             DomainSessionExercise(
                 exerciseId: UUID(),
+                exerciseName: "Bench Press",
                 sets: [
                     DomainSessionSet(weight: 100, reps: 8, completed: true),
                     DomainSessionSet(weight: 100, reps: 8, completed: true),
@@ -199,6 +207,7 @@ struct DomainSessionExercise: Identifiable, Equatable {
         static var previewWithNotes: DomainSessionExercise {
             DomainSessionExercise(
                 exerciseId: UUID(),
+                exerciseName: "Squat",
                 sets: [
                     DomainSessionSet(weight: 80, reps: 10, completed: true),
                     DomainSessionSet(weight: 80, reps: 9, completed: false),
@@ -212,6 +221,7 @@ struct DomainSessionExercise: Identifiable, Equatable {
         static var previewCompleted: DomainSessionExercise {
             DomainSessionExercise(
                 exerciseId: UUID(),
+                exerciseName: "Deadlift",
                 sets: [
                     DomainSessionSet(weight: 120, reps: 6, completed: true),
                     DomainSessionSet(weight: 120, reps: 6, completed: true),

@@ -91,6 +91,7 @@ final class DefaultAddExerciseToSessionUseCase: AddExerciseToSessionUseCase {
         // 6. Create new session exercise
         let newSessionExercise = DomainSessionExercise(
             exerciseId: exerciseId,
+            exerciseName: catalogExercise.name,
             sets: defaultSets,
             notes: nil,
             restTimeToNext: catalogExercise.lastUsedRestTime ?? 90.0,

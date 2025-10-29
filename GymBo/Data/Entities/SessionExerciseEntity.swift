@@ -27,6 +27,9 @@ final class SessionExerciseEntity {
     /// Reference to exercise template
     var exerciseId: UUID
 
+    /// Cached exercise name for display (loaded from exercise repository)
+    var exerciseName: String = "Übung"
+
     /// Optional user notes
     var notes: String?
 
@@ -51,6 +54,7 @@ final class SessionExerciseEntity {
     init(
         id: UUID = UUID(),
         exerciseId: UUID,
+        exerciseName: String = "Übung",
         notes: String? = nil,
         restTimeToNext: TimeInterval? = nil,
         orderIndex: Int = 0,
@@ -59,6 +63,7 @@ final class SessionExerciseEntity {
     ) {
         self.id = id
         self.exerciseId = exerciseId
+        self.exerciseName = exerciseName
         self.notes = notes
         self.restTimeToNext = restTimeToNext
         self.orderIndex = orderIndex

@@ -4,6 +4,7 @@
 //
 //  Created on 2025-10-22.
 //  V2 Clean Architecture - Main Tab Navigation
+//  Updated on 2025-10-29 - Added Session History & Statistics
 //
 
 import SwiftUI
@@ -13,11 +14,13 @@ import SwiftUI
 /// **Tabs:**
 /// 1. Home - Workout list, quick start, calendar
 /// 2. Exercises - Browse exercise library
-/// 3. Progress - Statistics and analytics
+/// 3. Verlauf - Session history and statistics
 struct MainTabView: View {
 
     @Environment(SessionStore.self) private var sessionStore
+    @Environment(\.dependencyContainer) private var dependencyContainer
     @State private var selectedTab = 0
+    @State private var sessionHistoryStore: SessionHistoryStore?
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -33,14 +36,27 @@ struct MainTabView: View {
                 }
                 .tag(1)
 
-            ProgressViewPlaceholder()
-                .tabItem {
-                    Label("Fortschritt", systemImage: "chart.line.uptrend.xyaxis")
+            Group {
+                if let historyStore = sessionHistoryStore {
+                    SessionHistoryView()
+                        .environment(historyStore)
+                } else {
+                    ProgressView()
                 }
-                .tag(2)
+            }
+            .tabItem {
+                Label("Verlauf", systemImage: "clock.arrow.circlepath")
+            }
+            .tag(2)
         }
         .tint(.appOrange)
         .tabBarMinimizeBehavior(.onScrollDown)
+        .task {
+            // Initialize SessionHistoryStore on first load
+            if sessionHistoryStore == nil, let container = dependencyContainer {
+                sessionHistoryStore = container.makeSessionHistoryStore()
+            }
+        }
     }
 }
 

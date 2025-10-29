@@ -1,9 +1,9 @@
 # GymBo V2 - TODO Liste
 
 **Stand:** 2025-10-29
-**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.3.0)
+**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.4.0)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 26 - Feature Flags System Complete
+**Letzte Änderungen:** Session 27 - Session History & Statistics Complete
 
 ---
 
@@ -87,17 +87,26 @@
 - Difficulty badges (grayscale) removed from Exercise List
 - **Configurable Weekly Workout Goal** (Profile Settings with 1-7 range)
 
-**6. Architecture** ✅
+**6. Session History & Statistics** ✅
+- Session History View (list of past workouts)
+- Statistics Card (workouts, duration, volume, streak)
+- Session Detail View (read-only workout details)
+- Filter by time period (week, month, year, all-time)
+- Grouped by month/date
+- Pull-to-refresh support
+- Empty state handling
+
+**7. Architecture** ✅
 - Clean Architecture (4 Layers)
-- **25 Use Cases** (12 Session + 11 Workout + 2 Exercise)
+- **27 Use Cases** (14 Session + 11 Workout + 2 Exercise)
 - **3 Repositories** (Workout with folder support, Session, Exercise)
-- **11 SwiftData Entities** + **7 Domain Entities**
-- 2 Stores @Observable (SessionStore, WorkoutStore)
+- **11 SwiftData Entities** + **8 Domain Entities**
+- 3 Stores @Observable (SessionStore, WorkoutStore, SessionHistoryStore)
 - DI Container
 - SwiftData Migration Plan (V1 → V2)
 - @Bindable + local @State for UI reactivity
 
-**7. Code Quality** ✅
+**8. Code Quality** ✅
 - Debug logging removed (72 lines cleaned)
 - Legacy code removed (Item.swift)
 - Proper file naming (HomeViewPlaceholder → HomeView)
@@ -354,6 +363,32 @@
 ---
 
 ## ✅ ABGESCHLOSSEN
+
+### Session 27 (2025-10-29) - Session History & Statistics
+- ✅ **Domain Layer - Business Logic**
+  - `WorkoutStatistics.swift`: Complete statistics entity with streak calculation
+  - `GetSessionHistoryUseCase.swift`: Fetch history with multiple filters (week, month, year, etc.)
+  - `CalculateStatisticsUseCase.swift`: Compute statistics from sessions (multi-period support)
+- ✅ **Presentation Layer - UI & State**
+  - `SessionHistoryStore.swift`: State management for history & statistics
+  - `SessionHistoryView.swift`: History list with statistics card, filter options, pull-to-refresh
+  - `SessionDetailView.swift`: Read-only session details with all exercises and sets
+- ✅ **Data Layer - Persistence**
+  - Extended `DomainSessionExercise` with `exerciseName` property for display
+  - Extended `SessionExerciseEntity` with cached `exerciseName`
+  - Updated `SessionMapper` to map exercise names correctly
+- ✅ **Infrastructure & Integration**
+  - `DependencyContainer+History.swift`: DI extension for history use cases and store
+  - `MainTabView.swift`: Integrated SessionHistoryView in "Verlauf" tab
+  - Updated `StartSessionUseCase` and `AddExerciseToSessionUseCase` to include exercise names
+- ✅ **Features Implemented**
+  - Statistics: Total workouts, duration, volume, sets, reps
+  - Streak calculation: Current streak and longest streak
+  - Time period filters: Week, Month, 3 Months, Year, All-Time, Recent N
+  - Session grouping: By month or by date
+  - Empty state with helpful message
+  - Modern dark UI matching app design
+- Commits: 7 new files, 4 modified files
 
 ### Session 26 (2025-10-29) - Feature Flags System
 - ✅ **Feature Flags Infrastruktur & Integration**

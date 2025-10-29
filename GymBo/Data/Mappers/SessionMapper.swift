@@ -173,6 +173,7 @@ struct SessionMapper {
         DomainSessionExercise(
             id: entity.id,
             exerciseId: entity.exerciseId,
+            exerciseName: entity.exerciseName,  // Gets name from relationship or fallback
             sets: entity.sets.sorted(by: { $0.orderIndex < $1.orderIndex }).map { toDomain($0) },
             notes: entity.notes,
             restTimeToNext: entity.restTimeToNext,
