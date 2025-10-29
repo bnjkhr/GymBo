@@ -34,6 +34,7 @@ struct HomeView: View {
     @State private var workoutStore: WorkoutStore?
     @State private var workouts: [Workout] = []  // LOCAL state instead of store
     @State private var folders: [WorkoutFolder] = []  // LOCAL state for folders
+    @State private var userProfile: DomainUserProfile?  // User profile for personalized greeting
     @State private var showActiveWorkout = false
     @State private var showWorkoutSummary = false
     @State private var showCreateWorkout = false
@@ -67,6 +68,7 @@ struct HomeView: View {
                         showWorkoutSummary: $showWorkoutSummary,
                         quickSetupPreviewData: $quickSetupPreviewData,
                         navigateToNewWorkout: $navigateToNewWorkout,
+                        userProfile: $userProfile,
                         workoutStore: workoutStore,
                         sessionStore: sessionStore,
                         dependencyContainer: dependencyContainer,
@@ -140,7 +142,8 @@ struct HomeView: View {
         VStack(spacing: 0) {
             GreetingHeaderView(
                 showProfile: $showProfile,
-                showLockerInput: $showLockerInput
+                showLockerInput: $showLockerInput,
+                userProfile: userProfile
             )
             continueSessionView
         }
@@ -162,7 +165,8 @@ struct HomeView: View {
         VStack(spacing: 0) {
             GreetingHeaderView(
                 showProfile: $showProfile,
-                showLockerInput: $showLockerInput
+                showLockerInput: $showLockerInput,
+                userProfile: userProfile
             )
             ProgressView("Loading...")
         }
@@ -205,7 +209,8 @@ struct HomeView: View {
             // Fixed Header (outside ScrollView, like ExercisesView)
             GreetingHeaderView(
                 showProfile: $showProfile,
-                showLockerInput: $showLockerInput
+                showLockerInput: $showLockerInput,
+                userProfile: userProfile
             )
 
             // Workout Calendar Strip (outside ScrollView, like ExercisesView)
@@ -553,6 +558,16 @@ struct HomeView: View {
             workoutStore = container.makeWorkoutStore()
         }
 
+        // Load user profile for personalized greeting
+        if let container = dependencyContainer {
+            let repository = container.makeUserProfileRepository()
+            do {
+                userProfile = try await repository.fetchOrCreate()
+            } catch {
+                print("❌ Failed to load user profile: \(error)")
+            }
+        }
+
         // Load active session
         await sessionStore.loadActiveSession()
 
@@ -809,6 +824,7 @@ struct SheetsModifier: ViewModifier {
     @Binding var showWorkoutSummary: Bool
     @Binding var quickSetupPreviewData: QuickSetupPreviewData?
     @Binding var navigateToNewWorkout: Workout?
+    @Binding var userProfile: DomainUserProfile?
 
     let workoutStore: WorkoutStore?
     let sessionStore: SessionStore
@@ -867,9 +883,21 @@ struct SheetsModifier: ViewModifier {
                 if let container = dependencyContainer {
                     ProfileView(
                         userProfileRepository: container.makeUserProfileRepository(),
-                        importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase(),
-                        appSettings: appSettings
+                        importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase()
                     )
+                    .onDisappear {
+                        // Reload profile when ProfileView closes
+                        Task {
+                            if let container = dependencyContainer {
+                                let repository = container.makeUserProfileRepository()
+                                do {
+                                    userProfile = try await repository.fetchOrCreate()
+                                } catch {
+                                    print("❌ Failed to reload user profile: \(error)")
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .sheet(isPresented: $showLockerInput) {

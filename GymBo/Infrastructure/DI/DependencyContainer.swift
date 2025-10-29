@@ -171,7 +171,8 @@ final class DependencyContainer {
     /// - Returns: Use case for canceling (discarding) a workout session
     func makeCancelSessionUseCase() -> CancelSessionUseCase {
         return DefaultCancelSessionUseCase(
-            sessionRepository: makeSessionRepository()
+            sessionRepository: makeSessionRepository(),
+            healthKitService: makeHealthKitService()
         )
     }
 

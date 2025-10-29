@@ -1008,7 +1008,10 @@ extension SessionStore {
                     healthKitService: healthKitService,
                     userProfileRepository: MockUserProfileRepository()
                 ),
-                cancelSessionUseCase: DefaultCancelSessionUseCase(sessionRepository: repository),
+                cancelSessionUseCase: DefaultCancelSessionUseCase(
+                    sessionRepository: repository,
+                    healthKitService: MockHealthKitService()
+                ),
                 pauseSessionUseCase: DefaultPauseSessionUseCase(sessionRepository: repository),
                 resumeSessionUseCase: DefaultResumeSessionUseCase(sessionRepository: repository),
                 updateSetUseCase: DefaultUpdateSetUseCase(

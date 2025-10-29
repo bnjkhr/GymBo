@@ -37,6 +37,9 @@ protocol HealthKitServiceProtocol {
         metadata: [String: Any]
     ) async -> Result<Void, HealthKitError>
 
+    /// Cancel workout session (discard without saving)
+    func cancelWorkoutSession(sessionId: String) async -> Result<Void, HealthKitError>
+
     /// Pause workout (für Pause-Feature)
     func pauseWorkoutSession(sessionId: String) async -> Result<Void, HealthKitError>
 
@@ -131,6 +134,10 @@ enum HealthKitError: LocalizedError {
             totalDistance: Double?,
             metadata: [String: Any]
         ) async -> Result<Void, HealthKitError> {
+            return .success(())
+        }
+
+        func cancelWorkoutSession(sessionId: String) async -> Result<Void, HealthKitError> {
             return .success(())
         }
 

@@ -21,9 +21,6 @@ struct ProfileView: View {
     @State private var userProfile: DomainUserProfile?
     @State private var isLoading = false
 
-    // Bindable wrapper for reactive theme updates
-    @Bindable private var appSettings: AppSettings
-
     // Image Picker
     @State private var showImageSourcePicker = false
     @State private var showCameraPicker = false
@@ -36,12 +33,10 @@ struct ProfileView: View {
 
     init(
         userProfileRepository: UserProfileRepositoryProtocol,
-        importBodyMetricsUseCase: ImportBodyMetricsUseCase,
-        appSettings: AppSettings
+        importBodyMetricsUseCase: ImportBodyMetricsUseCase
     ) {
         self.userProfileRepository = userProfileRepository
         self.importBodyMetricsUseCase = importBodyMetricsUseCase
-        self.appSettings = appSettings
     }
 
     var body: some View {
@@ -373,55 +368,12 @@ struct ProfileView: View {
                             get: { userProfile?.healthKitEnabled ?? false },
                             set: { newValue in
                                 Task {
-                                    await updateSettings(healthKitEnabled: newValue)
+                                    await updateHealthKitEnabled(newValue)
                                 }
                             }
                         )
                     )
                     .labelsHidden()
-                }
-                .padding()
-                .background(Color(.secondarySystemGroupedBackground))
-
-                Divider()
-                    .padding(.leading, 48)
-
-                // App Theme
-                HStack {
-                    Image(systemName: "paintbrush.fill")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 24)
-
-                    Text("App-Darstellung")
-                        .font(.body)
-
-                    Spacer()
-
-                    Menu {
-                        ForEach(AppTheme.allCases, id: \.self) { theme in
-                            Button {
-                                Task {
-                                    await appSettings.updateTheme(theme)
-                                }
-                            } label: {
-                                HStack {
-                                    Text(theme.rawValue)
-                                    if appSettings.currentTheme == theme {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(appSettings.currentTheme.rawValue)
-                                .foregroundStyle(.secondary)
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
                 }
                 .padding()
                 .background(Color(.secondarySystemGroupedBackground))
@@ -556,19 +508,16 @@ struct ProfileView: View {
         }
     }
 
-    private func updateSettings(
-        healthKitEnabled: Bool? = nil,
-        appTheme: AppTheme? = nil
-    ) async {
+    private func updateHealthKitEnabled(_ enabled: Bool) async {
         do {
             try await userProfileRepository.updateSettings(
-                healthKitEnabled: healthKitEnabled,
-                appTheme: appTheme
+                healthKitEnabled: enabled,
+                appTheme: nil
             )
             await loadUserProfile()
-            print("✅ Settings updated")
+            print("✅ HealthKit setting updated")
         } catch {
-            print("❌ Failed to update settings: \(error)")
+            print("❌ Failed to update HealthKit setting: \(error)")
         }
     }
 
@@ -661,8 +610,7 @@ struct ProfileView: View {
 
     return ProfileView(
         userProfileRepository: mockRepository,
-        importBodyMetricsUseCase: mockUseCase,
-        appSettings: mockSettings
+        importBodyMetricsUseCase: mockUseCase
     )
 }
 

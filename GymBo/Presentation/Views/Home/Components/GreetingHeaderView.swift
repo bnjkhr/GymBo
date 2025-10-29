@@ -14,14 +14,24 @@ struct GreetingHeaderView: View {
     @Binding var showLockerInput: Bool
     @AppStorage("lockerNumber") private var lockerNumber: String?
 
+    let userProfile: DomainUserProfile?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Greeting + Right Side Actions (Locker & Profile)
             HStack(alignment: .center) {
-                Text(greeting)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.primary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(greeting)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
+
+                    if let timeOfDay = timeOfDayGreeting {
+                        Text(timeOfDay)
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                    }
+                }
 
                 Spacer()
 
@@ -31,13 +41,25 @@ struct GreetingHeaderView: View {
                     showLockerInput: $showLockerInput
                 )
 
-                // Profile Button
+                // Profile Button with Image or Icon
                 Button {
                     showProfile = true
                 } label: {
-                    Image(systemName: "person.circle")
-                        .font(.title2)
-                        .foregroundStyle(.primary)
+                    if let imageData = userProfile?.profileImageData,
+                        let uiImage = UIImage(data: imageData)
+                    {
+                        // Show profile image
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 32, height: 32)
+                            .clipShape(Circle())
+                    } else {
+                        // Show default icon
+                        Image(systemName: "person.circle")
+                            .font(.title2)
+                            .foregroundStyle(.primary)
+                    }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Profil öffnen")
@@ -52,14 +74,36 @@ struct GreetingHeaderView: View {
     // MARK: - Computed Properties
 
     private var greeting: String {
+        if let name = userProfile?.name, !name.isEmpty {
+            return "Hey \(name)"
+        } else {
+            return "Hey"
+        }
+    }
+
+    private var timeOfDayGreeting: String? {
+        // Only show time-of-day greeting if name is set
+        guard userProfile?.name != nil else {
+            // Fallback to old full greeting
+            let hour = Calendar.current.component(.hour, from: Date())
+            switch hour {
+            case 5..<12:
+                return "guten Morgen!"
+            case 18..<24, 0..<5:
+                return "guten Abend!"
+            default:
+                return nil
+            }
+        }
+
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
         case 5..<12:
-            return "Hey, guten Morgen!"
+            return "guten Morgen"
         case 18..<24, 0..<5:
-            return "Hey, guten Abend!"
+            return "guten Abend"
         default:
-            return "Hey!"
+            return nil
         }
     }
 }
@@ -138,20 +182,26 @@ private struct ScaleButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
-#Preview("With Locker Number") {
+#Preview("With Profile & Locker") {
     GreetingHeaderView(
         showProfile: .constant(false),
-        showLockerInput: .constant(false)
+        showLockerInput: .constant(false),
+        userProfile: DomainUserProfile(
+            name: "Max",
+            age: 28,
+            healthKitEnabled: false
+        )
     )
     .onAppear {
         UserDefaults.standard.set("127", forKey: "lockerNumber")
     }
 }
 
-#Preview("Without Locker Number") {
+#Preview("Without Profile") {
     GreetingHeaderView(
         showProfile: .constant(false),
-        showLockerInput: .constant(false)
+        showLockerInput: .constant(false),
+        userProfile: nil
     )
     .onAppear {
         UserDefaults.standard.removeObject(forKey: "lockerNumber")

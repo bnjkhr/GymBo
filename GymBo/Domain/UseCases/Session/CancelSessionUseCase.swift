@@ -40,11 +40,16 @@ final class DefaultCancelSessionUseCase: CancelSessionUseCase {
     // MARK: - Properties
 
     private let sessionRepository: SessionRepositoryProtocol
+    private let healthKitService: HealthKitServiceProtocol
 
     // MARK: - Initialization
 
-    init(sessionRepository: SessionRepositoryProtocol) {
+    init(
+        sessionRepository: SessionRepositoryProtocol,
+        healthKitService: HealthKitServiceProtocol
+    ) {
         self.sessionRepository = sessionRepository
+        self.healthKitService = healthKitService
     }
 
     // MARK: - Execute
@@ -60,6 +65,20 @@ final class DefaultCancelSessionUseCase: CancelSessionUseCase {
             throw UseCaseError.invalidOperation(
                 "Cannot cancel session in state: \(session.state). Session must be active or paused."
             )
+        }
+
+        // Cancel HealthKit session if active (to close Dynamic Island)
+        if let healthKitSessionId = session.healthKitSessionId {
+            print("🔵 CancelSessionUseCase: Cancelling HealthKit session")
+            let result = await healthKitService.cancelWorkoutSession(sessionId: healthKitSessionId)
+
+            switch result {
+            case .success:
+                print("✅ HealthKit session cancelled (Dynamic Island closed)")
+            case .failure(let error):
+                print("⚠️ Failed to cancel HealthKit session: \(error)")
+            // Continue anyway - still delete from DB
+            }
         }
 
         // Delete session from repository (no save, no statistics)
