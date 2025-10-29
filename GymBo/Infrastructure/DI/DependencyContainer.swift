@@ -41,6 +41,11 @@ final class DependencyContainer {
         HealthKitService()
     }()
 
+    /// Singleton FeatureFlag Service (shared across app)
+    private lazy var _featureFlagService: FeatureFlagServiceProtocol = {
+        FeatureFlagService()
+    }()
+
     /// Singleton SessionStore (shared across app)
     private lazy var _sessionStore: SessionStore = {
         SessionStore(
@@ -96,6 +101,12 @@ final class DependencyContainer {
     /// - Returns: Shared HealthKit Service instance
     func makeHealthKitService() -> HealthKitServiceProtocol {
         return _healthKitService
+    }
+
+    /// Returns the singleton FeatureFlag Service instance
+    /// - Returns: Shared FeatureFlag Service instance
+    func makeFeatureFlagService() -> FeatureFlagServiceProtocol {
+        return _featureFlagService
     }
 
     // MARK: - Repositories (Data Layer)

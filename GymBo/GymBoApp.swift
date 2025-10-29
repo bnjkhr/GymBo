@@ -173,7 +173,8 @@ struct GymBoApp: App {
         // Initialize app settings
         _appSettings = State(
             initialValue: AppSettings(
-                userProfileRepository: dependencyContainer.makeUserProfileRepository()
+                userProfileRepository: dependencyContainer.makeUserProfileRepository(),
+                featureFlagService: dependencyContainer.makeFeatureFlagService()
             ))
 
         AppLogger.app.info("🚀 GymBo V2.0 initialized")

@@ -18,6 +18,7 @@ import SwiftUI
 struct ProfileView: View {
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppSettings.self) private var appSettings
     @State private var userProfile: DomainUserProfile?
     @State private var isLoading = false
 
@@ -54,6 +55,11 @@ struct ProfileView: View {
 
                     // Notifications Section
                     notificationsSection
+
+#if DEBUG
+                    // Developer Section (Feature Flags)
+                    developerSection
+#endif
                 }
                 .padding()
             }
@@ -461,6 +467,55 @@ struct ProfileView: View {
         }
     }
 
+#if DEBUG
+    // MARK: - Developer Section (DEBUG only)
+
+    private var developerSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Developer")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 0) {
+                ForEach(Array(FeatureFlag.allCases.enumerated()), id: \.offset) { index, flag in
+                    HStack {
+                        Image(systemName: "flag")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24)
+
+                        Text(flag.rawValue)
+                            .font(.body)
+
+                        Spacer()
+
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: { appSettings.isFeatureEnabled(flag) },
+                                set: { newValue in
+                                    appSettings.setFeature(flag, enabled: newValue)
+                                }
+                            )
+                        )
+                        .labelsHidden()
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemGroupedBackground))
+
+                    if index < FeatureFlag.allCases.count - 1 {
+                        Divider()
+                            .padding(.leading, 48)
+                    }
+                }
+            }
+            .cornerRadius(12)
+        }
+    }
+#endif
+
     // MARK: - Helper Methods
 
     private func loadUserProfile() async {
@@ -606,12 +661,17 @@ struct ProfileView: View {
 #Preview {
     let mockRepository = MockUserProfileRepository()
     let mockUseCase = MockImportBodyMetricsUseCase()
-    let mockSettings = AppSettings(userProfileRepository: mockRepository)
+    let mockFeatureFlags = FeatureFlagService()
+    let mockSettings = AppSettings(
+        userProfileRepository: mockRepository,
+        featureFlagService: mockFeatureFlags
+    )
 
-    return ProfileView(
+    ProfileView(
         userProfileRepository: mockRepository,
         importBodyMetricsUseCase: mockUseCase
     )
+    .environment(mockSettings)
 }
 
 // MARK: - Mock Implementation

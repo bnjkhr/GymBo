@@ -14,16 +14,25 @@ final class AppSettings {
 
     var colorScheme: ColorScheme?
     var currentTheme: AppTheme = .system
+    var featureFlagStates: [FeatureFlag: Bool] = [:]
 
     private let userProfileRepository: UserProfileRepositoryProtocol
+    private let featureFlagService: FeatureFlagServiceProtocol
 
-    init(userProfileRepository: UserProfileRepositoryProtocol) {
+    init(
+        userProfileRepository: UserProfileRepositoryProtocol,
+        featureFlagService: FeatureFlagServiceProtocol
+    ) {
         self.userProfileRepository = userProfileRepository
+        self.featureFlagService = featureFlagService
 
         // Load theme from profile
         Task {
             await loadTheme()
         }
+
+        // Load feature flags
+        loadFeatureFlags()
     }
 
     func loadTheme() async {
@@ -68,5 +77,24 @@ final class AppSettings {
         } catch {
             print("❌ Failed to update theme: \(error)")
         }
+    }
+
+    // MARK: - Feature Flags
+
+    func isFeatureEnabled(_ flag: FeatureFlag) -> Bool {
+        featureFlagStates[flag] ?? featureFlagService.isEnabled(flag)
+    }
+
+    func setFeature(_ flag: FeatureFlag, enabled: Bool) {
+        featureFlagService.setEnabled(flag, enabled: enabled)
+        featureFlagStates[flag] = enabled
+    }
+
+    func loadFeatureFlags() {
+        var map: [FeatureFlag: Bool] = [:]
+        for entry in featureFlagService.allFlags() {
+            map[entry.flag] = entry.enabled
+        }
+        featureFlagStates = map
     }
 }

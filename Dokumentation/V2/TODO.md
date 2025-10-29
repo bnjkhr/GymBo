@@ -1,9 +1,9 @@
 # GymBo V2 - TODO Liste
 
-**Stand:** 2025-10-27
+**Stand:** 2025-10-29
 **Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.3.0)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 24 - Weekly Workout Goal Feature Complete
+**Letzte Änderungen:** Session 26 - Feature Flags System Complete
 
 ---
 
@@ -14,7 +14,7 @@
 ### 🔴 High Priority
 
 - [ ] **Übungen tauschen bei aktivem Workout** - Lange auf Übung drücken → Alternative vorschlagen
-- [ ] **Feature Flags** - System für experimentelle Features implementieren
+- [x] ~~Feature Flags~~ - Implementiert (Session 26)
 - [ ] **Live Activities** - Lock Screen Integration für aktive Sessions
 
 ### 🟡 Medium Priority
@@ -138,7 +138,7 @@
 ---
 
 ### 2. Feature Flags System (Low Effort - 2-3 Std)
-**Status:** 🔴 High Priority (Kanban)
+**Status:** ✅ DONE (Session 26)
 **Ziel:** System für experimentelle Features
 
 **Features:**
@@ -147,10 +147,12 @@
 - Developer menu für Testing
 - A/B Testing Unterstützung
 
-**Dateien:**
-- `/Infrastructure/FeatureFlags/FeatureFlagService.swift` - NEW
-- `/Infrastructure/FeatureFlags/FeatureFlag.swift` - NEW
-- Settings View Integration
+**Implementiert:**
+- Infrastruktur: `/Infrastructure/FeatureFlags/FeatureFlagService.swift` (Enum, Protocol, Service)
+- DI: `DependencyContainer.makeFeatureFlagService()` (Singleton)
+- AppStart: `GymBoApp` injiziert `FeatureFlagService` in `AppSettings`
+- AppSettings: Flag-States laden/setzen, persistente Defaults
+- Profile (DEBUG): Developer‑Section mit Toggles
 
 ---
 
@@ -352,6 +354,15 @@
 ---
 
 ## ✅ ABGESCHLOSSEN
+
+### Session 26 (2025-10-29) - Feature Flags System
+- ✅ **Feature Flags Infrastruktur & Integration**
+  - `FeatureFlag` Enum + `FeatureFlagServiceProtocol` + `FeatureFlagService` (UserDefaults)
+  - DI: `DependencyContainer` stellt Singleton bereit
+  - `GymBoApp`: injiziert Service in `AppSettings`
+  - `AppSettings`: `isFeatureEnabled`, `setFeature`, persistente Defaults
+  - `ProfileView` (DEBUG): Developer‑Section mit Flag‑Toggles
+- Defaults: Alle Flags initial auf false (Swap/Widgets/Live Activities/Dynamic Island)
 
 ### Session 25 (2025-10-27) - ProfileView Complete Implementation & Theme Switching Fix
 - ✅ **Complete ProfileView Implementation**
@@ -615,4 +626,4 @@ catch {
 
 ---
 
-**Last Updated:** 2025-10-27 - Session 22 Complete + Kanban Integration
+**Last Updated:** 2025-10-29 - Session 26 Feature Flags Complete
