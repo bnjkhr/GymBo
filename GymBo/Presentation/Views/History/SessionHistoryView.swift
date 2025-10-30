@@ -27,6 +27,7 @@ struct SessionHistoryView: View {
     @State private var selectedFilter: SessionHistoryFilter = .recent(limit: 20)
     @State private var selectedSession: DomainWorkoutSession?
     @State private var showFilterPicker = false
+    @State private var currentPeriod: WorkoutStatistics.TimePeriod = .week
 
     var body: some View {
         NavigationStack {
@@ -50,10 +51,11 @@ struct SessionHistoryView: View {
                 }
             }
             .task {
-                await historyStore.loadAll(filter: selectedFilter, period: .week)
+                await historyStore.loadAll(filter: selectedFilter, period: currentPeriod)
             }
             .refreshable {
                 await historyStore.refreshHistory()
+                await historyStore.refreshStatistics()
             }
             .sheet(item: $selectedSession) { session in
                 SessionDetailView(session: session)
@@ -142,8 +144,25 @@ struct SessionHistoryView: View {
 
     // MARK: - Actions
 
+    private func sessionHistoryFilterToPeriod(_ filter: SessionHistoryFilter) -> WorkoutStatistics.TimePeriod {
+        // Map filters to periods (update if new cases are added)
+        switch filter {
+        case .all, .lastYear:
+            return .year
+        case .lastThreeMonths, .lastMonth:
+            return .month
+        case .lastWeek:
+            return .week
+        case .dateRange:
+            return .allTime // Or derive based on range?
+        case .forWorkout, .recent:
+            return .week // Or decide on default
+        }
+    }
+
     private func selectFilter(_ filter: SessionHistoryFilter) {
         selectedFilter = filter
+        currentPeriod = sessionHistoryFilterToPeriod(filter)
         Task {
             await historyStore.loadHistory(filter: filter)
         }
@@ -159,7 +178,7 @@ struct StatisticsCard: View {
         VStack(spacing: 16) {
             // Header
             HStack {
-                Text("Diese Woche")
+                Text(statistics.period.localizedDisplayName)
                     .font(.title3)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)

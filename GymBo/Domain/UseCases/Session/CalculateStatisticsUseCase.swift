@@ -45,6 +45,10 @@ final class CalculateStatisticsUseCase: CalculateStatisticsUseCaseProtocol {
     ) async throws -> WorkoutStatistics {
         // Get date range for the period
         let dateRange = period.dateRange(from: referenceDate)
+        guard let dateRange = dateRange else {
+            // Handle this as needed: for now we throw.
+            throw NSError(domain: "CalculateStatisticsUseCase", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not compute the date range for period \(period)"])
+        }
 
         // Fetch all completed sessions in this period
         let sessions = try await repository.fetchCompletedSessions(

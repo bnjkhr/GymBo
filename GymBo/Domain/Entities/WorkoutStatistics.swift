@@ -76,6 +76,8 @@ struct WorkoutStatistics: Equatable {
     let mostFrequentWorkout: String?
 
     /// Personal records achieved in this period
+    ///
+    /// TODO: Intentionally unimplemented. See V2-CLEAN-START#53 for future personal records calculation logic and proper exposure via API. This is currently a placeholder and always returns an empty array.
     let personalRecords: [PersonalRecord]
 
     // MARK: - Nested Types
@@ -85,29 +87,52 @@ struct WorkoutStatistics: Equatable {
         case month = "Month"
         case year = "Year"
         case allTime = "All Time"
+        
+        /// Returns a localized display name for this period
+        var localizedDisplayName: String {
+            switch self {
+            case .week:
+                // Key: period_week, e.g. "Diese Woche"
+                return NSLocalizedString("period_week", comment: "Label for 'This Week'")
+            case .month:
+                // Key: period_month, e.g. "Dieser Monat"
+                return NSLocalizedString("period_month", comment: "Label for 'This Month'")
+            case .year:
+                // Key: period_year, e.g. "Dieses Jahr"
+                return NSLocalizedString("period_year", comment: "Label for 'This Year'")
+            case .allTime:
+                // Key: period_all_time, e.g. "Gesamtzeitraum"
+                return NSLocalizedString("period_all_time", comment: "Label for 'All Time'")
+            }
+        }
 
         /// Get date range for this period from current date
-        func dateRange(from referenceDate: Date = Date()) -> (start: Date, end: Date) {
+        func dateRange(from referenceDate: Date = Date()) -> (start: Date, end: Date)? {
             let calendar = Calendar.current
 
             switch self {
             case .week:
-                let startOfWeek = calendar.date(
-                    from: calendar.dateComponents(
-                        [.yearForWeekOfYear, .weekOfYear], from: referenceDate))!
-                let endOfWeek = calendar.date(byAdding: .day, value: 7, to: startOfWeek)!
+                guard let startOfWeek = calendar.date(
+                        from: calendar.dateComponents([
+                            .yearForWeekOfYear, .weekOfYear
+                        ], from: referenceDate)) else { return nil }
+                guard let endOfWeek = calendar.date(byAdding: .day, value: 7, to: startOfWeek) else { return nil }
                 return (startOfWeek, endOfWeek)
 
             case .month:
-                let startOfMonth = calendar.date(
-                    from: calendar.dateComponents([.year, .month], from: referenceDate))!
-                let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
+                guard let startOfMonth = calendar.date(
+                        from: calendar.dateComponents([
+                            .year, .month
+                        ], from: referenceDate)) else { return nil }
+                guard let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth) else { return nil }
                 return (startOfMonth, endOfMonth)
 
             case .year:
-                let startOfYear = calendar.date(
-                    from: calendar.dateComponents([.year], from: referenceDate))!
-                let endOfYear = calendar.date(byAdding: .year, value: 1, to: startOfYear)!
+                guard let startOfYear = calendar.date(
+                        from: calendar.dateComponents([
+                            .year
+                        ], from: referenceDate)) else { return nil }
+                guard let endOfYear = calendar.date(byAdding: .year, value: 1, to: startOfYear) else { return nil }
                 return (startOfYear, endOfYear)
 
             case .allTime:
@@ -170,6 +195,25 @@ struct WorkoutStatistics: Equatable {
         from sessions: [DomainWorkoutSession], period: TimePeriod, referenceDate: Date = Date()
     ) -> WorkoutStatistics {
         let dateRange = period.dateRange(from: referenceDate)
+        guard let dateRange = dateRange else {
+            // You may want to handle this differently, e.g. throw, fatalError, or return placeholder stats.
+            // To keep similar behavior, we use distantPast/distantFuture.
+            return WorkoutStatistics(
+                period: period,
+                startDate: Date.distantPast,
+                endDate: Date.distantFuture,
+                totalWorkouts: 0,
+                totalDuration: 0,
+                totalVolume: 0,
+                totalSets: 0,
+                totalReps: 0,
+                currentStreak: 0,
+                longestStreak: 0,
+                activeDays: 0,
+                mostFrequentWorkout: nil,
+                personalRecords: []
+            )
+        }
 
         // Filter sessions for this period and only completed ones
         let filteredSessions = sessions.filter { session in
