@@ -493,6 +493,75 @@ final class SessionStore {
         }
     }
 
+    /// Add warmup sets to an exercise
+    /// - Parameters:
+    ///   - exerciseId: ID of the exercise
+    ///   - warmupSets: Array of warmup sets to add
+    func addWarmupSets(
+        exerciseId: UUID,
+        warmupSets: [WarmupCalculator.WarmupSet]
+    ) async {
+        guard let sessionId = currentSession?.id,
+            var session = currentSession
+        else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        // Find the exercise
+        guard let exerciseIndex = session.exercises.firstIndex(where: { $0.id == exerciseId })
+        else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Exercise not found"]
+            )
+            return
+        }
+
+        var exercise = session.exercises[exerciseIndex]
+
+        // Create warmup set entities
+        let newSets = warmupSets.enumerated().map { index, warmupSet in
+            DomainSessionSet(
+                weight: warmupSet.weight,
+                reps: warmupSet.reps,
+                completed: false,
+                orderIndex: index,  // Warmup sets come first
+                isWarmup: true
+            )
+        }
+
+        // Update orderIndex for existing sets (shift them down)
+        var updatedExistingSets = exercise.sets.map { set in
+            var updatedSet = set
+            updatedSet.orderIndex += warmupSets.count  // Shift down by number of warmup sets
+            return updatedSet
+        }
+
+        // Combine warmup + existing sets
+        exercise.sets = newSets + updatedExistingSets
+        session.exercises[exerciseIndex] = exercise
+
+        // Save to repository
+        do {
+            try await sessionRepository.update(session)
+
+            // Force UI update
+            currentSession = nil
+            currentSession = try await sessionRepository.fetch(id: sessionId)
+
+            showSuccessMessage("Aufwärmsätze hinzugefügt")
+            print("✅ Added \(warmupSets.count) warmup sets")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to add warmup sets: \(error)")
+        }
+    }
+
     /// Remove a set from an exercise
     /// - Parameters:
     ///   - exerciseId: ID of the exercise

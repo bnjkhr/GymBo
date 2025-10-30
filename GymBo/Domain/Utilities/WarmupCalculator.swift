@@ -27,7 +27,7 @@ import Foundation
 struct WarmupCalculator {
 
     /// Warmup progression strategy
-    enum Strategy {
+    enum Strategy: Equatable {
         /// Standard 3-set progression: 40%, 60%, 80%
         case standard
 
