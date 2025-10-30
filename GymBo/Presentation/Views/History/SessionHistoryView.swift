@@ -94,6 +94,10 @@ struct SessionHistoryView: View {
                 )
                 .padding(.horizontal, 16)
 
+                // Progression Card
+                ProgressionCard(sessions: historyStore.sessions)
+                    .padding(.horizontal, 16)
+
                 // Session List with new timeline cards
                 sessionsListSection
 
