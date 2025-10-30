@@ -8,6 +8,13 @@
 
 import SwiftUI
 
+/// Info for exercise swap sheet
+struct ExerciseSwapInfo: Identifiable {
+    let id = UUID()
+    let workoutExercise: WorkoutExercise
+    let exercise: ExerciseEntity
+}
+
 /// Detail view for a workout template showing all exercises
 ///
 /// **Features:**
@@ -41,8 +48,7 @@ struct WorkoutDetailView: View {
     @State private var exerciseToEdit: WorkoutExercise?
     @State private var showEditWorkout = false
     @State private var showDeleteConfirmation = false
-    @State private var exerciseToSwap: (workoutExercise: WorkoutExercise, exercise: ExerciseEntity)?
-    @State private var showExerciseSwapSheet = false
+    @State private var exerciseToSwap: ExerciseSwapInfo?
 
     // MARK: - Initialization
 
@@ -187,29 +193,20 @@ struct WorkoutDetailView: View {
                 .environment(workoutStore)
             }
         }
-        .sheet(isPresented: $showExerciseSwapSheet) {
-            Group {
-                if let swapInfo = exerciseToSwap {
-                    ExerciseSwapSheet(
-                        currentExercise: swapInfo.exercise,
-                        currentWorkoutExercise: swapInfo.workoutExercise,
-                        onSwap: { newExercise in
-                            Task {
-                                await swapExercise(
-                                    oldExercise: swapInfo.workoutExercise,
-                                    newExercise: newExercise
-                                )
-                            }
-                        }
-                    )
-                    .environment(\.dependencyContainer, dependencyContainer)
-                } else {
-                    Text("Loading...")
-                        .onAppear {
-                            print("❌ Sheet opened but exerciseToSwap is nil!")
-                        }
+        .sheet(item: $exerciseToSwap) { swapInfo in
+            ExerciseSwapSheet(
+                currentExercise: swapInfo.exercise,
+                currentWorkoutExercise: swapInfo.workoutExercise,
+                onSwap: { newExercise in
+                    Task {
+                        await swapExercise(
+                            oldExercise: swapInfo.workoutExercise,
+                            newExercise: newExercise
+                        )
+                    }
                 }
-            }
+            )
+            .environment(\.dependencyContainer, dependencyContainer)
         }
         .confirmationDialog(
             "Workout löschen?",
@@ -460,19 +457,12 @@ struct WorkoutDetailView: View {
             if let exerciseEntity = try await repository.fetch(id: exercise.exerciseId) {
                 print("✅ WorkoutDetailView: Exercise loaded: \(exerciseEntity.name)")
 
-                // Ensure state is set on MainActor
-                await MainActor.run {
-                    exerciseToSwap = (workoutExercise: exercise, exercise: exerciseEntity)
-                    print("🔵 WorkoutDetailView: exerciseToSwap set: \(exerciseToSwap != nil)")
-                }
-
-                // Small delay to ensure state is committed before showing sheet
-                try? await Task.sleep(nanoseconds: 100_000_000)  // 0.1 seconds
-
-                await MainActor.run {
-                    showExerciseSwapSheet = true
-                    print("🔵 WorkoutDetailView: showExerciseSwapSheet = \(showExerciseSwapSheet)")
-                }
+                // Set exerciseToSwap - sheet will open automatically via .sheet(item:)
+                exerciseToSwap = ExerciseSwapInfo(
+                    workoutExercise: exercise,
+                    exercise: exerciseEntity
+                )
+                print("🔵 WorkoutDetailView: exerciseToSwap set, sheet should open")
             } else {
                 print("⚠️ Exercise not found: \(exercise.exerciseId)")
             }
