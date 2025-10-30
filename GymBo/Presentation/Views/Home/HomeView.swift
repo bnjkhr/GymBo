@@ -213,12 +213,6 @@ struct HomeView: View {
                 userProfile: userProfile
             )
 
-            // Workout Calendar Strip (outside ScrollView, like ExercisesView)
-            WorkoutCalendarStripView()
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 12)
-
             // Scrollable Content (like exerciseList in ExercisesView)
             if store.isLoading {
                 ProgressView("Lade Workouts...")

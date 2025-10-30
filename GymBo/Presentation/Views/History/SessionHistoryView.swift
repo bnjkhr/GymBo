@@ -77,13 +77,17 @@ struct SessionHistoryView: View {
     private var historyListView: some View {
         ScrollView {
             VStack(spacing: 24) {
+                // Workout Calendar Strip
+                WorkoutCalendarStripView()
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+
                 // Hero Stats Card
                 HeroStatsCard(
                     weekStats: historyStore.weekStats,
                     previousWeekStats: historyStore.previousWeekStats
                 )
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
 
                 // Quick Stats Grid
                 QuickStatsGrid(
