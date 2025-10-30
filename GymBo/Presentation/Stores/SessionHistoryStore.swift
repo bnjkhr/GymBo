@@ -45,6 +45,12 @@ final class SessionHistoryStore {
     /// All-time statistics (for QuickStats)
     private(set) var allTimeStats: WorkoutStatistics?
 
+    /// Personal records count (all time)
+    private(set) var personalRecordsCount: Int = 0
+
+    /// Recent personal records count (this week)
+    private(set) var personalRecordsThisWeek: Int = 0
+
     /// Current filter
     private(set) var currentFilter: SessionHistoryFilter = .recent(limit: 20)
 
@@ -64,6 +70,7 @@ final class SessionHistoryStore {
 
     private let getHistoryUseCase: GetSessionHistoryUseCaseProtocol
     private let calculateStatsUseCase: CalculateStatisticsUseCaseProtocol
+    private let prService: PersonalRecordService
 
     // MARK: - Initialization
 
@@ -73,6 +80,7 @@ final class SessionHistoryStore {
     ) {
         self.getHistoryUseCase = getHistoryUseCase
         self.calculateStatsUseCase = calculateStatsUseCase
+        self.prService = PersonalRecordService()
     }
 
     // MARK: - Public Interface
@@ -156,6 +164,9 @@ final class SessionHistoryStore {
                 period: .allTime,
                 referenceDate: Date()
             )
+
+            // Calculate personal records
+            updatePersonalRecords()
         } catch {
             self.error = error
             weekStats = nil
@@ -164,6 +175,15 @@ final class SessionHistoryStore {
         }
 
         isLoadingStatistics = false
+    }
+
+    /// Update personal records counts from current sessions
+    private func updatePersonalRecords() {
+        let allPRs = prService.detectPersonalRecords(in: sessions)
+        personalRecordsCount = allPRs.count
+
+        let recentPRs = prService.getRecentPRs(from: sessions, days: 7)
+        personalRecordsThisWeek = recentPRs.count
     }
 
     /// Clear error state

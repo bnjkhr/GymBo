@@ -89,8 +89,8 @@ struct SessionHistoryView: View {
                 QuickStatsGrid(
                     allTimeStats: historyStore.allTimeStats,
                     weekStats: historyStore.weekStats,
-                    personalRecordsCount: 0,  // TODO: Implement PR tracking
-                    personalRecordsThisWeek: 0  // TODO: Implement PR tracking
+                    personalRecordsCount: historyStore.personalRecordsCount,
+                    personalRecordsThisWeek: historyStore.personalRecordsThisWeek
                 )
                 .padding(.horizontal, 16)
 

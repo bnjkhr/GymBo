@@ -38,6 +38,7 @@ struct ProgressionCard: View {
 
     let sessions: [DomainWorkoutSession]
     @State private var selectedTab: ProgressionTab = .weight
+    private let prService = PersonalRecordService()
 
     enum ProgressionTab: String, CaseIterable {
         case weight = "Gewicht"
@@ -356,20 +357,27 @@ struct ProgressionCard: View {
     }
 
     private func getTopLifts(type: LiftType) -> [TopLift] {
-        // TODO: Calculate from actual session data
-        // For now, return placeholder data
         switch type {
         case .weight:
-            return [
-                TopLift(exercise: "Bankdrücken", value: "100 kg", delta: "+5 kg", isPR: false),
-                TopLift(exercise: "Kniebeugen", value: "140 kg", delta: "+10 kg", isPR: false),
-                TopLift(exercise: "Kreuzheben", value: "160 kg", delta: "+15 kg", isPR: true),
-            ]
+            let topLifts = prService.getTopLiftsByWeight(from: sessions, limit: 3)
+            return topLifts.map { lift in
+                TopLift(
+                    exercise: lift.exerciseName,
+                    value: String(format: "%.0f kg", lift.weight),
+                    delta: "",  // TODO: Calculate delta from previous weeks
+                    isPR: false
+                )
+            }
         case .pr:
-            return [
-                TopLift(exercise: "Kreuzheben", value: "160 kg", delta: "Neuer PR!", isPR: true),
-                TopLift(exercise: "Bankdrücken", value: "100 kg", delta: "Neuer PR!", isPR: true),
-            ]
+            let recentPRs = prService.getRecentPRs(from: sessions, days: 7)
+            return recentPRs.prefix(3).map { pr in
+                TopLift(
+                    exercise: pr.exerciseName,
+                    value: String(format: "%.0f kg", pr.value),
+                    delta: "Neuer PR!",
+                    isPR: true
+                )
+            }
         }
     }
 
@@ -406,13 +414,13 @@ struct ProgressionCard: View {
     }
 
     private func getTotalPRs() -> Int {
-        // TODO: Get from actual PR tracking
-        return 12
+        let allPRs = prService.detectPersonalRecords(in: sessions)
+        return allPRs.count
     }
 
     private func getRecentPRs() -> Int {
-        // TODO: Get from actual PR tracking
-        return 2
+        let recentPRs = prService.getRecentPRs(from: sessions, days: 7)
+        return recentPRs.count
     }
 
     private func generateSampleData() -> [Double] {
