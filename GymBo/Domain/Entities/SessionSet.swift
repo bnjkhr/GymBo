@@ -51,6 +51,9 @@ struct DomainSessionSet: Identifiable, Equatable {
     /// Rest time after this set in seconds (from workout template)
     var restTime: TimeInterval?
 
+    /// Whether this is a warmup set (defaults to false)
+    var isWarmup: Bool
+
     // MARK: - Computed Properties
 
     /// Volume for this set (weight × reps)
@@ -103,7 +106,8 @@ struct DomainSessionSet: Identifiable, Equatable {
         completed: Bool = false,
         completedAt: Date? = nil,
         orderIndex: Int = 0,
-        restTime: TimeInterval? = nil
+        restTime: TimeInterval? = nil,
+        isWarmup: Bool = false
     ) {
         self.id = id
         self.weight = weight
@@ -112,6 +116,7 @@ struct DomainSessionSet: Identifiable, Equatable {
         self.completedAt = completedAt
         self.orderIndex = orderIndex
         self.restTime = restTime
+        self.isWarmup = isWarmup
     }
 
     // MARK: - Mutating Methods
@@ -222,6 +227,27 @@ extension DomainSessionSet {
                 reps: 5,
                 completed: true,
                 completedAt: Date().addingTimeInterval(-2)  // 2 seconds ago
+            )
+        }
+
+        /// Sample warmup set for previews/testing
+        static var previewWarmup: DomainSessionSet {
+            DomainSessionSet(
+                weight: 40.0,
+                reps: 5,
+                completed: false,
+                isWarmup: true
+            )
+        }
+
+        /// Sample completed warmup set for previews/testing
+        static var previewWarmupCompleted: DomainSessionSet {
+            DomainSessionSet(
+                weight: 60.0,
+                reps: 5,
+                completed: true,
+                completedAt: Date().addingTimeInterval(-30),
+                isWarmup: true
             )
         }
     }

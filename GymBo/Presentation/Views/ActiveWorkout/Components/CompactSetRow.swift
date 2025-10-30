@@ -22,6 +22,16 @@ struct CompactSetRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
+            // Warmup Badge (optional)
+            if set.isWarmup {
+                Text("W")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.orange)
+                    .frame(width: 24, height: 24)
+                    .background(Color.orange.opacity(0.1))
+                    .clipShape(Circle())
+            }
+
             // Weight (Tappable)
             Button {
                 if !set.completed {

@@ -142,6 +142,8 @@ struct SessionMapper {
         entity.completed = domain.completed
         entity.completedAt = domain.completedAt
         entity.orderIndex = domain.orderIndex
+        entity.restTime = domain.restTime
+        entity.isWarmup = domain.isWarmup
     }
 
     // MARK: - DomainSessionExercise Mapping
@@ -193,7 +195,8 @@ struct SessionMapper {
             completed: domain.completed,
             completedAt: domain.completedAt,
             orderIndex: domain.orderIndex,
-            restTime: domain.restTime
+            restTime: domain.restTime,
+            isWarmup: domain.isWarmup
         )
     }
 
@@ -206,7 +209,8 @@ struct SessionMapper {
             completed: entity.completed,
             completedAt: entity.completedAt,
             orderIndex: entity.orderIndex,
-            restTime: entity.restTime
+            restTime: entity.restTime,
+            isWarmup: entity.isWarmup
         )
     }
 }

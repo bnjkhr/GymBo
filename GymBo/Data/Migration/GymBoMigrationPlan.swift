@@ -44,8 +44,9 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
             SchemaV1.self,
             SchemaV2.self,  // ✅ Added: exerciseId field to WorkoutExerciseEntity
             SchemaV3.self,  // ✅ Added: Expanded UserProfileEntity with full profile data
+            SchemaV4.self,  // ✅ Added: isWarmup and restTime to SessionSetEntity
             // Future versions will be added here:
-            // SchemaV4.self,
+            // SchemaV5.self,
             // ...
         ]
     }
@@ -59,8 +60,9 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
         [
             migrateV1toV2,
             migrateV2toV3,
+            migrateV3toV4,
             // Future migrations will be added here:
-            // migrateV3toV4,
+            // migrateV4toV5,
             // ...
         ]
     }
@@ -114,6 +116,20 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     static let migrateV2toV3 = MigrationStage.lightweight(
         fromVersion: SchemaV2.self,
         toVersion: SchemaV3.self
+    )
+
+    // MARK: - V3 → V4 Migration
+
+    /// Migration from V3 to V4: Add warmup set tracking
+    ///
+    /// **Changes:**
+    /// - SessionSetEntity: Add isWarmup field (defaults to false)
+    /// - SessionSetEntity: Add restTime field (optional)
+    ///
+    /// **Why:** Enable warmup set tracking for better training structure
+    static let migrateV3toV4 = MigrationStage.lightweight(
+        fromVersion: SchemaV3.self,
+        toVersion: SchemaV4.self
     )
 
     // MARK: - Future Migration Stages (Examples)

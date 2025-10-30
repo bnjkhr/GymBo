@@ -41,6 +41,9 @@ final class SessionSetEntity {
     /// Rest time after this set in seconds (copied from workout template)
     var restTime: TimeInterval?
 
+    /// Whether this is a warmup set (defaults to false)
+    var isWarmup: Bool
+
     /// Parent exercise (inverse relationship)
     var exercise: SessionExerciseEntity?
 
@@ -53,7 +56,8 @@ final class SessionSetEntity {
         completed: Bool = false,
         completedAt: Date? = nil,
         orderIndex: Int = 0,
-        restTime: TimeInterval? = nil
+        restTime: TimeInterval? = nil,
+        isWarmup: Bool = false
     ) {
         self.id = id
         self.weight = weight
@@ -62,5 +66,6 @@ final class SessionSetEntity {
         self.completedAt = completedAt
         self.orderIndex = orderIndex
         self.restTime = restTime
+        self.isWarmup = isWarmup
     }
 }
