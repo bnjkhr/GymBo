@@ -78,37 +78,126 @@ struct SessionHistoryView: View {
     private var historyListView: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Statistics Card
-                if let stats = historyStore.statistics {
-                    StatisticsCard(statistics: stats)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
-                }
+                // Hero Stats Card
+                HeroStatsCard(
+                    weekStats: historyStore.weekStats,
+                    previousWeekStats: historyStore.previousWeekStats
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
 
-                // Session List
-                VStack(spacing: 16) {
-                    ForEach(historyStore.sessionsByMonth, id: \.0) { month, sessions in
-                        VStack(alignment: .leading, spacing: 12) {
-                            // Month Header
-                            Text(month)
-                                .font(.headline)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 16)
+                // Quick Stats Grid
+                QuickStatsGrid(
+                    allTimeStats: historyStore.allTimeStats,
+                    weekStats: historyStore.weekStats,
+                    personalRecordsCount: 0,  // TODO: Implement PR tracking
+                    personalRecordsThisWeek: 0  // TODO: Implement PR tracking
+                )
+                .padding(.horizontal, 16)
 
-                            // Sessions for this month
-                            ForEach(sessions) { session in
-                                SessionHistoryCard(session: session)
-                                    .padding(.horizontal, 16)
-                                    .onTapGesture {
-                                        selectedSession = session
-                                    }
-                            }
-                        }
-                    }
-                }
-                .padding(.bottom, 24)
+                // Session List with new timeline cards
+                sessionsListSection
+
+                    .padding(.bottom, 24)
             }
         }
+    }
+
+    private var sessionsListSection: some View {
+        VStack(spacing: 16) {
+            ForEach(groupedSessions, id: \.section) { group in
+                VStack(alignment: .leading, spacing: 12) {
+                    // Sticky Section Header
+                    sectionHeader(group.section, count: group.sessions.count)
+                        .padding(.horizontal, 16)
+
+                    // Sessions for this section
+                    ForEach(group.sessions) { session in
+                        SessionTimelineCard(session: session)
+                            .padding(.horizontal, 16)
+                            .onTapGesture {
+                                selectedSession = session
+                            }
+                    }
+                }
+            }
+        }
+    }
+
+    private func sectionHeader(_ title: String, count: Int) -> some View {
+        HStack {
+            Text(title)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+
+            Text("(\(count))")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+        }
+        .padding(.vertical, 8)
+        .background(Color.black.opacity(0.5))
+    }
+
+    /// Group sessions by relative time (Heute, Gestern, Diese Woche, etc.)
+    private var groupedSessions: [SessionGroup] {
+        let calendar = Calendar.current
+        let now = Date()
+        let today = calendar.startOfDay(for: now)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: today)!
+
+        var groups: [SessionGroup] = []
+
+        // Group 1: Heute
+        let todaySessions = historyStore.sessions.filter {
+            calendar.isDate($0.startDate, inSameDayAs: now)
+        }
+        if !todaySessions.isEmpty {
+            groups.append(SessionGroup(section: "Heute", sessions: todaySessions))
+        }
+
+        // Group 2: Gestern
+        let yesterdaySessions = historyStore.sessions.filter {
+            calendar.isDate($0.startDate, inSameDayAs: yesterday)
+        }
+        if !yesterdaySessions.isEmpty {
+            groups.append(SessionGroup(section: "Gestern", sessions: yesterdaySessions))
+        }
+
+        // Group 3: Diese Woche (excluding today and yesterday)
+        let thisWeekSessions = historyStore.sessions.filter { session in
+            session.startDate >= weekAgo && session.startDate < yesterday
+                && !calendar.isDate(session.startDate, inSameDayAs: now)
+        }
+        if !thisWeekSessions.isEmpty {
+            groups.append(SessionGroup(section: "Diese Woche", sessions: thisWeekSessions))
+        }
+
+        // Group 4+: By month for older sessions
+        let olderSessions = historyStore.sessions.filter { $0.startDate < weekAgo }
+        let monthGroups = Dictionary(grouping: olderSessions) { session -> String in
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: session.startDate)
+        }
+
+        for (month, sessions) in monthGroups.sorted(by: {
+            $0.value.first!.startDate > $1.value.first!.startDate
+        }) {
+            groups.append(
+                SessionGroup(
+                    section: month, sessions: sessions.sorted { $0.startDate > $1.startDate }))
+        }
+
+        return groups
+    }
+
+    private struct SessionGroup {
+        let section: String
+        let sessions: [DomainWorkoutSession]
     }
 
     private var emptyStateView: some View {
@@ -144,7 +233,9 @@ struct SessionHistoryView: View {
 
     // MARK: - Actions
 
-    private func sessionHistoryFilterToPeriod(_ filter: SessionHistoryFilter) -> WorkoutStatistics.TimePeriod {
+    private func sessionHistoryFilterToPeriod(_ filter: SessionHistoryFilter)
+        -> WorkoutStatistics.TimePeriod
+    {
         // Map filters to periods (update if new cases are added)
         switch filter {
         case .all, .lastYear:
@@ -154,9 +245,9 @@ struct SessionHistoryView: View {
         case .lastWeek:
             return .week
         case .dateRange:
-            return .allTime // Or derive based on range?
+            return .allTime  // Or derive based on range?
         case .forWorkout, .recent:
-            return .week // Or decide on default
+            return .week  // Or decide on default
         }
     }
 
@@ -166,167 +257,6 @@ struct SessionHistoryView: View {
         Task {
             await historyStore.loadHistory(filter: filter)
         }
-    }
-}
-
-// MARK: - Statistics Card
-
-struct StatisticsCard: View {
-    let statistics: WorkoutStatistics
-
-    var body: some View {
-        VStack(spacing: 16) {
-            // Header
-            HStack {
-                Text(statistics.period.localizedDisplayName)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-
-                Spacer()
-
-                Image(systemName: "chart.bar.fill")
-                    .foregroundStyle(Color.appOrange)
-            }
-
-            // Stats Grid
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                ], spacing: 12
-            ) {
-                StatItem(
-                    icon: "figure.run",
-                    label: "Workouts",
-                    value: "\(statistics.totalWorkouts)"
-                )
-
-                StatItem(
-                    icon: "clock.fill",
-                    label: "Dauer",
-                    value: statistics.formattedTotalDuration
-                )
-
-                StatItem(
-                    icon: "flame.fill",
-                    label: "Volumen",
-                    value: statistics.formattedTotalVolume
-                )
-
-                StatItem(
-                    icon: "checkmark.circle.fill",
-                    label: "Streak",
-                    value: "\(statistics.currentStreak) Tage"
-                )
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.05))
-        )
-    }
-}
-
-struct StatItem: View {
-    let icon: String
-    let label: String
-    let value: String
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(Color.appOrange)
-
-            Text(value)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundStyle(.white)
-
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.03))
-        )
-    }
-}
-
-// MARK: - Session History Card
-
-struct SessionHistoryCard: View {
-    let session: DomainWorkoutSession
-
-    private var completionPercentage: Double {
-        session.progress * 100
-    }
-
-    var body: some View {
-        HStack(spacing: 16) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(Color.appOrange.opacity(0.2))
-                    .frame(width: 50, height: 50)
-
-                Image(systemName: "figure.strengthtraining.traditional")
-                    .font(.title3)
-                    .foregroundStyle(Color.appOrange)
-            }
-
-            // Info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(session.workoutName ?? "Workout")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-
-                HStack(spacing: 12) {
-                    Label(session.formattedDuration, systemImage: "clock")
-                    Label("\(session.completedSets) Sets", systemImage: "checkmark.circle")
-                    Label(String(format: "%.0f kg", session.totalVolume), systemImage: "scalemass")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            // Time
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(formatDate(session.startDate))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Text(formatTime(session.startDate))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.white)
-        )
-    }
-
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter.string(from: date)
-    }
-
-    private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .none
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
     }
 }
 

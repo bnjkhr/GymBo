@@ -36,6 +36,15 @@ final class SessionHistoryStore {
     /// Current statistics
     private(set) var statistics: WorkoutStatistics?
 
+    /// Week statistics (for HeroCard and QuickStats)
+    private(set) var weekStats: WorkoutStatistics?
+
+    /// Previous week statistics (for delta calculations)
+    private(set) var previousWeekStats: WorkoutStatistics?
+
+    /// All-time statistics (for QuickStats)
+    private(set) var allTimeStats: WorkoutStatistics?
+
     /// Current filter
     private(set) var currentFilter: SessionHistoryFilter = .recent(limit: 20)
 
@@ -115,9 +124,46 @@ final class SessionHistoryStore {
     func loadAll(filter: SessionHistoryFilter, period: WorkoutStatistics.TimePeriod) async {
         async let historyTask = loadHistory(filter: filter)
         async let statsTask = loadStatistics(period: period)
+        async let multiStatsTask = loadMultiPeriodStatistics()
 
         await historyTask
         await statsTask
+        await multiStatsTask
+    }
+
+    /// Load statistics for multiple periods (week, previous week, all-time)
+    func loadMultiPeriodStatistics() async {
+        isLoadingStatistics = true
+        error = nil
+
+        do {
+            // Load current week
+            weekStats = try await calculateStatsUseCase.execute(
+                period: .week,
+                referenceDate: Date()
+            )
+
+            // Load previous week (7 days ago)
+            let previousWeekDate =
+                Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+            previousWeekStats = try await calculateStatsUseCase.execute(
+                period: .week,
+                referenceDate: previousWeekDate
+            )
+
+            // Load all-time stats
+            allTimeStats = try await calculateStatsUseCase.execute(
+                period: .allTime,
+                referenceDate: Date()
+            )
+        } catch {
+            self.error = error
+            weekStats = nil
+            previousWeekStats = nil
+            allTimeStats = nil
+        }
+
+        isLoadingStatistics = false
     }
 
     /// Clear error state
@@ -153,7 +199,8 @@ final class SessionHistoryStore {
         }
         let grouped = Dictionary(grouping: dateSessionPairs, by: { $0.0 })
 
-        return grouped
+        return
+            grouped
             .sorted { $0.key > $1.key }
             .map {
                 (
