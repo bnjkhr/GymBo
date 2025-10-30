@@ -188,20 +188,27 @@ struct WorkoutDetailView: View {
             }
         }
         .sheet(isPresented: $showExerciseSwapSheet) {
-            if let swapInfo = exerciseToSwap {
-                ExerciseSwapSheet(
-                    currentExercise: swapInfo.exercise,
-                    currentWorkoutExercise: swapInfo.workoutExercise,
-                    onSwap: { newExercise in
-                        Task {
-                            await swapExercise(
-                                oldExercise: swapInfo.workoutExercise,
-                                newExercise: newExercise
-                            )
+            Group {
+                if let swapInfo = exerciseToSwap {
+                    ExerciseSwapSheet(
+                        currentExercise: swapInfo.exercise,
+                        currentWorkoutExercise: swapInfo.workoutExercise,
+                        onSwap: { newExercise in
+                            Task {
+                                await swapExercise(
+                                    oldExercise: swapInfo.workoutExercise,
+                                    newExercise: newExercise
+                                )
+                            }
                         }
-                    }
-                )
-                .environment(\.dependencyContainer, dependencyContainer)
+                    )
+                    .environment(\.dependencyContainer, dependencyContainer)
+                } else {
+                    Text("Loading...")
+                        .onAppear {
+                            print("❌ Sheet opened but exerciseToSwap is nil!")
+                        }
+                }
             }
         }
         .confirmationDialog(
