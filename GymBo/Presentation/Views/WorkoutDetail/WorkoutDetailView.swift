@@ -439,13 +439,21 @@ struct WorkoutDetailView: View {
 
     /// Show swap sheet for an exercise
     private func showSwapSheet(for exercise: WorkoutExercise) async {
+        print("🔵 WorkoutDetailView: showSwapSheet called for exercise \(exercise.exerciseId)")
+
         // Load the exercise entity to show in the sheet
-        guard let container = dependencyContainer else { return }
+        guard let container = dependencyContainer else {
+            print("❌ WorkoutDetailView: dependencyContainer is nil")
+            return
+        }
         let repository = container.makeExerciseRepository()
 
         do {
+            print("🔵 WorkoutDetailView: Fetching exercise from repository...")
             if let exerciseEntity = try await repository.fetch(id: exercise.exerciseId) {
+                print("✅ WorkoutDetailView: Exercise loaded: \(exerciseEntity.name)")
                 exerciseToSwap = (workoutExercise: exercise, exercise: exerciseEntity)
+                print("🔵 WorkoutDetailView: Setting showExerciseSwapSheet = true")
                 showExerciseSwapSheet = true
             } else {
                 print("⚠️ Exercise not found: \(exercise.exerciseId)")

@@ -55,6 +55,13 @@ struct ExerciseSwapSheet: View {
                         CurrentExerciseCard(exercise: currentExercise)
                             .padding(.horizontal, 16)
                     }
+                    .onAppear {
+                        print("🟢 ExerciseSwapSheet: Body rendered")
+                        print("🟢 Current exercise: \(currentExercise.name)")
+                        print(
+                            "🟢 DependencyContainer: \(dependencyContainer != nil ? "Present" : "NIL")"
+                        )
+                    }
 
                     // Search Bar
                     SearchBar(text: $searchText, placeholder: "Alternativen suchen...")
