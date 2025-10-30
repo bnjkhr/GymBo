@@ -22,6 +22,7 @@ struct Workout: Identifiable, Equatable, Hashable {
     var equipmentType: String?  // "Maschine", "Freie Gewichte", "Gemischt"
     var folderId: UUID?  // Reference to WorkoutFolder
     var orderInFolder: Int
+    var warmupStrategy: WarmupCalculator.Strategy?  // Preferred warmup strategy for this workout
 
     var exerciseCount: Int {
         exercises.count
@@ -43,7 +44,8 @@ struct Workout: Identifiable, Equatable, Hashable {
         difficultyLevel: String? = nil,
         equipmentType: String? = nil,
         folderId: UUID? = nil,
-        orderInFolder: Int = 0
+        orderInFolder: Int = 0,
+        warmupStrategy: WarmupCalculator.Strategy? = nil
     ) {
         self.id = id
         self.name = name
@@ -57,6 +59,7 @@ struct Workout: Identifiable, Equatable, Hashable {
         self.equipmentType = equipmentType
         self.folderId = folderId
         self.orderInFolder = orderInFolder
+        self.warmupStrategy = warmupStrategy
     }
 
     static func == (lhs: Workout, rhs: Workout) -> Bool {

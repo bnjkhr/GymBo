@@ -73,6 +73,9 @@ struct WorkoutDetailView: View {
                         // Stats Section
                         statsSection(for: workout)
 
+                        // Warmup Strategy Picker
+                        warmupStrategyPicker(for: workout)
+
                         // Start Button (directly below stats)
                         startButton
 
@@ -268,6 +271,98 @@ struct WorkoutDetailView: View {
             )
         }
         .padding(.horizontal)
+    }
+
+    /// Warmup strategy picker
+    @ViewBuilder
+    private func warmupStrategyPicker(for workout: Workout) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Aufwärm-Strategie", systemImage: "flame.fill")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    strategyButton(
+                        title: "Keine",
+                        icon: "xmark.circle",
+                        strategy: .none,
+                        currentStrategy: workout.warmupStrategy
+                    )
+
+                    strategyButton(
+                        title: "Standard",
+                        icon: "flame",
+                        strategy: .standard,
+                        currentStrategy: workout.warmupStrategy,
+                        detail: "40%, 60%, 80%"
+                    )
+
+                    strategyButton(
+                        title: "Konservativ",
+                        icon: "flame.fill",
+                        strategy: .conservative,
+                        currentStrategy: workout.warmupStrategy,
+                        detail: "30%, 50%, 70%, 85%"
+                    )
+
+                    strategyButton(
+                        title: "Minimal",
+                        icon: "flame",
+                        strategy: .minimal,
+                        currentStrategy: workout.warmupStrategy,
+                        detail: "50%, 75%"
+                    )
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func strategyButton(
+        title: String,
+        icon: String,
+        strategy: WarmupCalculator.Strategy,
+        currentStrategy: WarmupCalculator.Strategy?,
+        detail: String? = nil
+    ) -> some View {
+        let isSelected = currentStrategy == strategy
+
+        Button {
+            Task {
+                await updateWarmupStrategy(strategy)
+            }
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(isSelected ? .white : .orange)
+
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(isSelected ? .white : .primary)
+
+                if let detail = detail {
+                    Text(detail)
+                        .font(.caption2)
+                        .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
+                }
+            }
+            .frame(width: 100)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? Color.orange : Color(uiColor: .secondarySystemBackground))
+            )
+        }
     }
 
     /// List of exercises in the workout (Modern Compact Design)
@@ -580,6 +675,23 @@ struct WorkoutDetailView: View {
         )
 
         // Update local workout from store
+        if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
+            workout = updatedWorkout
+        }
+    }
+
+    /// Update warmup strategy for this workout
+    private func updateWarmupStrategy(_ strategy: WarmupCalculator.Strategy) async {
+        guard var currentWorkout = workout else { return }
+
+        // Update local workout optimistically
+        currentWorkout.warmupStrategy = strategy
+        workout = currentWorkout
+
+        // Persist to store
+        await workoutStore.updateWarmupStrategy(workoutId: workoutId, strategy: strategy)
+
+        // Refresh from store
         if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
         }

@@ -167,6 +167,10 @@ final class WorkoutEntity {
     @Relationship(deleteRule: .nullify) var folder: WorkoutFolderEntity? = nil
     var orderInFolder: Int = 0
 
+    /// Preferred warmup strategy for this workout
+    /// Values: "standard", "conservative", "minimal", "none", or nil for no default
+    var warmupStrategy: String? = nil
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -180,7 +184,8 @@ final class WorkoutEntity {
         difficultyLevel: String? = nil,
         equipmentType: String? = nil,
         folder: WorkoutFolderEntity? = nil,
-        orderInFolder: Int = 0
+        orderInFolder: Int = 0,
+        warmupStrategy: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -196,6 +201,7 @@ final class WorkoutEntity {
         self.exerciseCount = exercises.count
         self.folder = folder
         self.orderInFolder = orderInFolder
+        self.warmupStrategy = warmupStrategy
     }
 
     /// Performance: Update cached exercise count

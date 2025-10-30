@@ -126,7 +126,7 @@ struct GymBoApp: App {
 
         #else
             // PRODUCTION: Use versioned schema with migration plan
-            let schema = Schema(versionedSchema: SchemaV4.self)
+            let schema = Schema(versionedSchema: SchemaV5.self)
 
             do {
                 container = try ModelContainer(

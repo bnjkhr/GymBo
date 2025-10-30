@@ -49,7 +49,8 @@ struct WorkoutMapper {
             difficultyLevel: domain.difficultyLevel,
             equipmentType: domain.equipmentType,
             folder: nil,  // Will be set by repository when folder relationship is needed
-            orderInFolder: domain.orderInFolder
+            orderInFolder: domain.orderInFolder,
+            warmupStrategy: domain.warmupStrategy?.rawValue
         )
 
         // Map exercises
@@ -83,7 +84,10 @@ struct WorkoutMapper {
             difficultyLevel: entity.difficultyLevel,
             equipmentType: entity.equipmentType,
             folderId: entity.folder?.id,
-            orderInFolder: entity.orderInFolder
+            orderInFolder: entity.orderInFolder,
+            warmupStrategy: entity.warmupStrategy.flatMap {
+                WarmupCalculator.Strategy(rawValue: $0)
+            }
         )
     }
 
@@ -98,6 +102,7 @@ struct WorkoutMapper {
         entity.isFavorite = domain.isFavorite
         entity.difficultyLevel = domain.difficultyLevel
         entity.equipmentType = domain.equipmentType
+        entity.warmupStrategy = domain.warmupStrategy?.rawValue
         entity.orderInFolder = domain.orderInFolder
         entity.date = domain.updatedAt
         // Note: folder relationship is updated separately by repository

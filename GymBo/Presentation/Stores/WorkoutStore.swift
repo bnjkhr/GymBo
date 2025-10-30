@@ -346,6 +346,45 @@ final class WorkoutStore {
     }
 
     /// Update workout name and/or rest time
+    /// Update warmup strategy for a workout
+    func updateWarmupStrategy(workoutId: UUID, strategy: WarmupCalculator.Strategy) async {
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            // Get current workout
+            guard var workout = workouts.first(where: { $0.id == workoutId }) else {
+                throw NSError(
+                    domain: "WorkoutStore", code: 404,
+                    userInfo: [NSLocalizedDescriptionKey: "Workout not found"])
+            }
+
+            // Update warmup strategy
+            workout.warmupStrategy = strategy
+
+            // Persist via repository
+            try await workoutRepository.update(workout)
+
+            // Update in local array
+            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                var newWorkouts: [Workout] = []
+                for (i, w) in workouts.enumerated() {
+                    if i == index {
+                        newWorkouts.append(workout)  // Use the updated workout
+                    } else {
+                        newWorkouts.append(w)
+                    }
+                }
+                workouts = newWorkouts
+            }
+        } catch {
+            self.error = error
+            print(
+                "❌ WorkoutStore: Failed to update warmup strategy - \(error.localizedDescription)")
+        }
+    }
+
     func updateWorkout(workoutId: UUID, name: String?, defaultRestTime: TimeInterval?) async {
         isLoading = true
         error = nil

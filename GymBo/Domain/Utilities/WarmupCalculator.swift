@@ -27,7 +27,7 @@ import Foundation
 struct WarmupCalculator {
 
     /// Warmup progression strategy
-    enum Strategy: Equatable {
+    enum Strategy: Equatable, Hashable, RawRepresentable {
         /// Standard 3-set progression: 40%, 60%, 80%
         case standard
 
@@ -39,6 +39,48 @@ struct WarmupCalculator {
 
         /// Custom percentages
         case custom([Double])
+
+        /// No warmup sets
+        case none
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            switch self {
+            case .standard: return "standard"
+            case .conservative: return "conservative"
+            case .minimal: return "minimal"
+            case .custom(let percentages):
+                return "custom:\(percentages.map { String($0) }.joined(separator: ","))"
+            case .none: return "none"
+            }
+        }
+
+        public init?(rawValue: String) {
+            switch rawValue {
+            case "standard":
+                self = .standard
+            case "conservative":
+                self = .conservative
+            case "minimal":
+                self = .minimal
+            case "none":
+                self = .none
+            default:
+                // Parse custom format: "custom:40.0,60.0,80.0"
+                if rawValue.hasPrefix("custom:") {
+                    let percentagesString = String(rawValue.dropFirst("custom:".count))
+                    let percentages = percentagesString.split(separator: ",").compactMap {
+                        Double($0)
+                    }
+                    if !percentages.isEmpty {
+                        self = .custom(percentages)
+                        return
+                    }
+                }
+                return nil
+            }
+        }
     }
 
     /// Calculated warmup set
@@ -121,6 +163,8 @@ struct WarmupCalculator {
             return [0.50, 0.75]  // 50%, 75%
         case .custom(let percentages):
             return percentages
+        case .none:
+            return []  // No warmup sets
         }
     }
 
