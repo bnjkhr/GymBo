@@ -30,6 +30,10 @@ import SwiftData
 /// ```
 struct WorkoutMapper {
 
+    // MARK: - Dependencies
+
+    private let exerciseGroupMapper = ExerciseGroupMapper()
+
     // MARK: - Workout Mapping
 
     /// Convert Domain Workout to SwiftData Entity
@@ -50,14 +54,33 @@ struct WorkoutMapper {
             equipmentType: domain.equipmentType,
             folder: nil,  // Will be set by repository when folder relationship is needed
             orderInFolder: domain.orderInFolder,
-            warmupStrategy: domain.warmupStrategy?.rawValue
+            warmupStrategy: domain.warmupStrategy?.rawValue,
+            workoutType: domain.workoutType.rawValue,
+            exerciseGroups: nil  // Will be set below
         )
 
-        // Map exercises
-        entity.exercises = domain.exercises.enumerated().map { index, exercise in
-            let exerciseEntity = toEntity(exercise, orderIndex: index)
-            exerciseEntity.workout = entity
-            return exerciseEntity
+        // Map exercises based on workout type
+        if domain.workoutType == .standard {
+            // Standard workouts: exercises directly in workout
+            entity.exercises = domain.exercises.enumerated().map { index, exercise in
+                let exerciseEntity = toEntity(exercise, orderIndex: index)
+                exerciseEntity.workout = entity
+                return exerciseEntity
+            }
+        } else {
+            // Superset/Circuit workouts: exercises grouped in exerciseGroups
+            if let groups = domain.exerciseGroups {
+                entity.exerciseGroups = groups.map { group in
+                    let groupEntity = exerciseGroupMapper.toEntity(group)
+                    groupEntity.workout = entity
+                    // Link all exercises in group to workout
+                    for exercise in groupEntity.exercises {
+                        exercise.workout = entity
+                        entity.exercises.append(exercise)
+                    }
+                    return groupEntity
+                }
+            }
         }
 
         // Update cached exercise count
@@ -70,7 +93,14 @@ struct WorkoutMapper {
     /// - Parameter entity: SwiftData entity
     /// - Returns: Domain workout for business logic
     func toDomain(_ entity: WorkoutEntity) -> Workout {
-        Workout(
+        let workoutType = WorkoutType(rawValue: entity.workoutType) ?? .standard
+
+        // Map exercise groups if present
+        let exerciseGroups: [ExerciseGroup]? = entity.exerciseGroups?.sorted(by: {
+            $0.groupIndex < $1.groupIndex
+        }).map { exerciseGroupMapper.toDomain($0) }
+
+        return Workout(
             id: entity.id,
             name: entity.name,
             exercises: entity.exercises
@@ -87,7 +117,9 @@ struct WorkoutMapper {
             orderInFolder: entity.orderInFolder,
             warmupStrategy: entity.warmupStrategy.flatMap {
                 WarmupCalculator.Strategy(rawValue: $0)
-            }
+            },
+            workoutType: workoutType,
+            exerciseGroups: exerciseGroups
         )
     }
 
@@ -105,7 +137,36 @@ struct WorkoutMapper {
         entity.warmupStrategy = domain.warmupStrategy?.rawValue
         entity.orderInFolder = domain.orderInFolder
         entity.date = domain.updatedAt
+        entity.workoutType = domain.workoutType.rawValue
         // Note: folder relationship is updated separately by repository
+
+        // Update exercise groups if present
+        if let domainGroups = domain.exerciseGroups {
+            // Update exercise groups IN-PLACE
+            for domainGroup in domainGroups {
+                if let existingGroup = entity.exerciseGroups?.first(where: {
+                    $0.id == domainGroup.id
+                }) {
+                    // Update existing group
+                    exerciseGroupMapper.updateEntity(existingGroup, from: domainGroup)
+                } else {
+                    // Add new group
+                    let newGroup = exerciseGroupMapper.toEntity(domainGroup)
+                    newGroup.workout = entity
+                    if entity.exerciseGroups == nil {
+                        entity.exerciseGroups = []
+                    }
+                    entity.exerciseGroups?.append(newGroup)
+                }
+            }
+
+            // Remove groups that are no longer in domain
+            let domainGroupIds = Set(domainGroups.map { $0.id })
+            entity.exerciseGroups?.removeAll { !domainGroupIds.contains($0.id) }
+        } else {
+            // No groups - clear them if they exist
+            entity.exerciseGroups?.removeAll()
+        }
 
         // Update exercises IN-PLACE to preserve SwiftData relationships
         // Match by ID and update existing entities

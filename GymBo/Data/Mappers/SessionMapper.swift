@@ -30,6 +30,10 @@ import SwiftData
 /// ```
 struct SessionMapper {
 
+    // MARK: - Dependencies
+
+    private let sessionExerciseGroupMapper = SessionExerciseGroupMapper()
+
     // MARK: - DomainWorkoutSession Mapping
 
     /// Convert Domain DomainWorkoutSession to SwiftData Entity
@@ -44,7 +48,9 @@ struct SessionMapper {
             state: domain.state.rawValue,
             workoutName: domain.workoutName,
             healthKitSessionId: domain.healthKitSessionId,
-            exercises: []  // Will be set below
+            exercises: [],  // Will be set below
+            workoutType: domain.workoutType.rawValue,
+            exerciseGroups: nil  // Will be set below
         )
 
         // Map exercises
@@ -54,6 +60,19 @@ struct SessionMapper {
             return exerciseEntity
         }
 
+        // Map exercise groups if present
+        if let groups = domain.exerciseGroups {
+            entity.exerciseGroups = groups.map { group in
+                let groupEntity = sessionExerciseGroupMapper.toEntity(group)
+                groupEntity.session = entity
+                // Link all exercises in group to session
+                for exercise in groupEntity.exercises {
+                    exercise.session = entity
+                }
+                return groupEntity
+            }
+        }
+
         return entity
     }
 
@@ -61,7 +80,14 @@ struct SessionMapper {
     /// - Parameter entity: SwiftData entity
     /// - Returns: Domain entity for business logic
     func toDomain(_ entity: WorkoutSessionEntity) -> DomainWorkoutSession {
-        DomainWorkoutSession(
+        let workoutType = WorkoutType(rawValue: entity.workoutType) ?? .standard
+
+        // Map exercise groups if present
+        let exerciseGroups: [SessionExerciseGroup]? = entity.exerciseGroups?.sorted(by: {
+            $0.groupIndex < $1.groupIndex
+        }).map { sessionExerciseGroupMapper.toDomain($0) }
+
+        return DomainWorkoutSession(
             id: entity.id,
             workoutId: entity.workoutId,
             startDate: entity.startDate,
@@ -71,7 +97,9 @@ struct SessionMapper {
             },
             state: DomainWorkoutSession.SessionState(rawValue: entity.state) ?? .active,
             workoutName: entity.workoutName,
-            healthKitSessionId: entity.healthKitSessionId
+            healthKitSessionId: entity.healthKitSessionId,
+            workoutType: workoutType,
+            exerciseGroups: exerciseGroups
         )
     }
 
@@ -86,6 +114,35 @@ struct SessionMapper {
         entity.state = domain.state.rawValue
         entity.workoutName = domain.workoutName
         entity.healthKitSessionId = domain.healthKitSessionId
+        entity.workoutType = domain.workoutType.rawValue
+
+        // Update exercise groups if present
+        if let domainGroups = domain.exerciseGroups {
+            // Update exercise groups IN-PLACE
+            for domainGroup in domainGroups {
+                if let existingGroup = entity.exerciseGroups?.first(where: {
+                    $0.id == domainGroup.id
+                }) {
+                    // Update existing group
+                    sessionExerciseGroupMapper.updateEntity(existingGroup, from: domainGroup)
+                } else {
+                    // Add new group (shouldn't happen during normal workflow)
+                    let newGroup = sessionExerciseGroupMapper.toEntity(domainGroup)
+                    newGroup.session = entity
+                    if entity.exerciseGroups == nil {
+                        entity.exerciseGroups = []
+                    }
+                    entity.exerciseGroups?.append(newGroup)
+                }
+            }
+
+            // Remove groups that are no longer in domain
+            let domainGroupIds = Set(domainGroups.map { $0.id })
+            entity.exerciseGroups?.removeAll { !domainGroupIds.contains($0.id) }
+        } else {
+            // No groups - clear them if they exist
+            entity.exerciseGroups?.removeAll()
+        }
 
         // Update exercises IN-PLACE to preserve SwiftData relationships
         // Match by ID and update existing entities
