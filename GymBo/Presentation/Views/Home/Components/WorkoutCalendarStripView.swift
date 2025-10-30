@@ -33,30 +33,7 @@ struct WorkoutCalendarStripView: View {
     private let calendar = Calendar.current
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Stats Header (only show if workouts exist)
-            if !workoutDates.isEmpty {
-                HStack(spacing: 16) {
-                    // This week stats
-                    Text("Diese Woche: \(thisWeekWorkoutCount)/\(weeklyWorkoutGoal) Workouts")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
-
-                    Spacer()
-
-                    // Last workout
-                    if let lastDate = lastWorkoutDate {
-                        Text("Letztes Workout: \(formatDate(lastDate))")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.secondary)
-                            .textCase(.uppercase)
-                    }
-                }
-            }
-
+        VStack(spacing: 0) {
             // Calendar Strip
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
