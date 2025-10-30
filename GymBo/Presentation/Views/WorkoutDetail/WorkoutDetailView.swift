@@ -314,7 +314,7 @@ struct WorkoutDetailView: View {
 
                     strategyButton(
                         title: "Minimal",
-                        icon: "flame",
+                        icon: "bolt.fill",
                         strategy: .minimal,
                         currentStrategy: workout.warmupStrategy,
                         detail: "50%, 75%"
@@ -344,17 +344,20 @@ struct WorkoutDetailView: View {
                 Image(systemName: icon)
                     .font(.title3)
                     .foregroundStyle(isSelected ? .white : .orange)
+                    .frame(height: 22)  // Fixed height for icon
 
                 Text(title)
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(isSelected ? .white : .primary)
+                    .frame(height: 16)  // Fixed height for title
 
-                if let detail = detail {
-                    Text(detail)
-                        .font(.caption2)
-                        .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
-                }
+                // Always render detail text area, use invisible text if nil
+                Text(detail ?? " ")
+                    .font(.caption2)
+                    .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
+                    .frame(height: 14)  // Fixed height for detail
+                    .opacity(detail == nil ? 0 : 1)  // Hide if no detail
             }
             .frame(width: 100)
             .padding(.vertical, 12)
