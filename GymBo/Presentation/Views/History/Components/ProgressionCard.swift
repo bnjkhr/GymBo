@@ -38,6 +38,7 @@ struct ProgressionCard: View {
 
     let sessions: [DomainWorkoutSession]
     @State private var selectedTab: ProgressionTab = .weight
+    @State private var chartProgress: CGFloat = 0
     private let prService = PersonalRecordService()
 
     enum ProgressionTab: String, CaseIterable {
@@ -178,7 +179,9 @@ struct ProgressionCard: View {
                                 y: height - (CGFloat(points[0]) / CGFloat(maxValue)) * height
                             ))
 
-                        for (index, value) in points.dropFirst().enumerated() {
+                        let visiblePoints = Int(CGFloat(points.count - 1) * chartProgress) + 1
+                        for (index, value) in points.prefix(visiblePoints).dropFirst().enumerated()
+                        {
                             path.addLine(
                                 to: CGPoint(
                                     x: CGFloat(index + 1) * step,
@@ -194,6 +197,11 @@ struct ProgressionCard: View {
                         ),
                         style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round)
                     )
+                    .onAppear {
+                        withAnimation(AnimationHelper.chartDrawAnimation) {
+                            chartProgress = 1.0
+                        }
+                    }
                 }
                 .frame(height: 80)
             }
@@ -302,7 +310,12 @@ struct ProgressionCard: View {
         let action: () -> Void
 
         var body: some View {
-            Button(action: action) {
+            Button(action: {
+                AnimationHelper.selectionFeedback()
+                withAnimation(AnimationHelper.tabTransition) {
+                    action()
+                }
+            }) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(isSelected ? .semibold : .regular)

@@ -81,6 +81,7 @@ struct SessionHistoryView: View {
                 WorkoutCalendarStripView()
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
+                    .cardEntryAnimation(delay: 0.1)
 
                 // Hero Stats Card
                 HeroStatsCard(
@@ -88,6 +89,7 @@ struct SessionHistoryView: View {
                     previousWeekStats: historyStore.previousWeekStats
                 )
                 .padding(.horizontal, 16)
+                .cardEntryAnimation(delay: 0.2)
 
                 // Quick Stats Grid
                 QuickStatsGrid(
@@ -97,10 +99,12 @@ struct SessionHistoryView: View {
                     personalRecordsThisWeek: historyStore.personalRecordsThisWeek
                 )
                 .padding(.horizontal, 16)
+                .cardEntryAnimation(delay: 0.3)
 
                 // Progression Card
                 ProgressionCard(sessions: historyStore.sessions)
                     .padding(.horizontal, 16)
+                    .cardEntryAnimation(delay: 0.4)
 
                 // Session List with new timeline cards
                 sessionsListSection
@@ -122,7 +126,7 @@ struct SessionHistoryView: View {
                     ForEach(group.sessions) { session in
                         SessionTimelineCard(session: session)
                             .padding(.horizontal, 16)
-                            .onTapGesture {
+                            .scaleEffectTap {
                                 selectedSession = session
                             }
                     }
