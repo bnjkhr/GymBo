@@ -78,7 +78,7 @@ struct SessionTimelineCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(session.workoutName ?? "Workout")
                     .font(.headline)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
 
                 Text(formatDateTime(session.startDate))
                     .font(.caption)
@@ -151,7 +151,7 @@ struct SessionTimelineCard: View {
             Text("Highlights")
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.primary.opacity(0.8))
+                .foregroundStyle(.white.opacity(0.8))
 
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(insights.prefix(3)) { insight in
@@ -164,7 +164,7 @@ struct SessionTimelineCard: View {
 
                         Text(insight.message)
                             .font(.caption)
-                            .foregroundStyle(.primary.opacity(0.9))
+                            .foregroundStyle(.white.opacity(0.9))
                     }
                 }
             }
@@ -187,7 +187,7 @@ struct SessionTimelineCard: View {
                 Text(value)
                     .font(.callout)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
 
                 Text(label)
                     .font(.caption2)
@@ -303,7 +303,7 @@ struct WorkoutInsight: Identifiable {
 
 #Preview("Completed Session") {
     ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+        Color.black.ignoresSafeArea()
 
         VStack {
             SessionTimelineCard(session: .previewCompleted)
@@ -317,7 +317,7 @@ struct WorkoutInsight: Identifiable {
 
 #Preview("Active Session") {
     ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+        Color.black.ignoresSafeArea()
 
         VStack {
             SessionTimelineCard(session: .preview)
@@ -331,7 +331,7 @@ struct WorkoutInsight: Identifiable {
 
 #Preview("High Volume Session") {
     ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+        Color.black.ignoresSafeArea()
 
         VStack {
             SessionTimelineCard(

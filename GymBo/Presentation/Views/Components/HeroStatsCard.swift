@@ -109,7 +109,7 @@ struct HeroStatsCard: View {
                 Text("\(currentStreak) Tage Streak")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
 
                 if currentStreak > 0 {
                     Text(streakMessage)
@@ -128,7 +128,7 @@ struct HeroStatsCard: View {
                 Text("Diese Woche")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
 
                 Spacer()
 
@@ -207,7 +207,7 @@ struct HeroStatsCard: View {
                 Text(value)
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(valueColor == .white ? .primary : valueColor)
+                    .foregroundStyle(valueColor)
 
                 Text(label)
                     .font(.caption)
@@ -292,7 +292,7 @@ struct HeroStatsCard: View {
 
 #Preview("With Data") {
     ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+        Color.black.ignoresSafeArea()
 
         VStack {
             HeroStatsCard(
@@ -322,7 +322,7 @@ struct HeroStatsCard: View {
 
 #Preview("No Data") {
     ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+        Color.black.ignoresSafeArea()
 
         VStack {
             HeroStatsCard(
@@ -339,7 +339,7 @@ struct HeroStatsCard: View {
 
 #Preview("High Streak") {
     ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+        Color.black.ignoresSafeArea()
 
         VStack {
             HeroStatsCard(

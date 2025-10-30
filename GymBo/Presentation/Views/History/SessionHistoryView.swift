@@ -32,11 +32,10 @@ struct SessionHistoryView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color(uiColor: .systemBackground).ignoresSafeArea()
 
                 if historyStore.isLoadingHistory {
                     ProgressView("Lade Verlauf...")
-                        .tint(.white)
                 } else if !historyStore.hasHistory {
                     emptyStateView
                 } else {
@@ -129,7 +128,7 @@ struct SessionHistoryView: View {
             Text(title)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
 
             Text("(\(count))")
                 .font(.subheadline)
@@ -138,7 +137,7 @@ struct SessionHistoryView: View {
             Spacer()
         }
         .padding(.vertical, 8)
-        .background(Color.black.opacity(0.5))
+        .background(Color(uiColor: .systemBackground).opacity(0.95))
     }
 
     /// Group sessions by relative time (Heute, Gestern, Diese Woche, etc.)
@@ -209,7 +208,7 @@ struct SessionHistoryView: View {
             Text("Noch keine Workouts")
                 .font(.title2)
                 .fontWeight(.semibold)
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
 
             Text("Starte dein erstes Workout, um deinen Verlauf zu sehen")
                 .font(.body)
@@ -227,7 +226,7 @@ struct SessionHistoryView: View {
                 Image(systemName: "line.3.horizontal.decrease.circle")
                     .font(.body)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(.primary)
         }
     }
 

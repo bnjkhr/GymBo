@@ -146,7 +146,7 @@ struct StatTile: View {
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
 
@@ -184,7 +184,7 @@ struct StatTile: View {
 
 #Preview("With Data") {
     ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+        Color.black.ignoresSafeArea()
 
         VStack {
             QuickStatsGrid(
@@ -216,7 +216,7 @@ struct StatTile: View {
 
 #Preview("No Data") {
     ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+        Color.black.ignoresSafeArea()
 
         VStack {
             QuickStatsGrid(
