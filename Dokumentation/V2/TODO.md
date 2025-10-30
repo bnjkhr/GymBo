@@ -3,7 +3,7 @@
 **Stand:** 2025-10-30
 **Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.5.0)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 29 - ProfileView UI Polish & HealthKit Integration
+**Letzte Änderungen:** Session 30 - SessionHistoryView Phase 4 Animations & Polish
 
 ---
 
@@ -363,6 +363,25 @@
 ---
 
 ## ✅ ABGESCHLOSSEN
+
+### Session 30 (2025-10-30) - SessionHistoryView Phase 4 Animations & Polish
+- ✅ **Calendar Relocation**
+  - Removed WorkoutCalendarStripView from HomeView
+  - Added WorkoutCalendarStripView to SessionHistoryView (top position)
+  - Removed redundant stats text ("Diese Woche", "Letztes Workout") from calendar
+- ✅ **Greeting Time Fix**
+  - Fixed missing afternoon greeting (12:00-18:00)
+  - Added "guten Tag!" case for afternoon hours
+  - Simplified greeting logic
+- ✅ **Phase 4 - Animations & Haptic Feedback**
+  - Created AnimationHelper.swift with centralized animation constants
+  - Staggered card entry animations (0.1s, 0.2s, 0.3s, 0.4s delays)
+  - Chart draw animation (left to right over 1 second)
+  - Tab transitions with haptic feedback
+  - Scale effect on session cards (0.97 scale with haptic)
+  - View modifiers for reusable animations (CardEntryModifier, ScaleEffectModifier)
+- Files: AnimationHelper.swift (NEW), SessionHistoryView.swift, ProgressionCard.swift, GreetingHeaderView.swift, HomeView.swift, WorkoutCalendarStripView.swift
+- Commit: 7320621 "feat(animations): Phase 4 - Add animations and haptic feedback to SessionHistory"
 
 ### Session 29 (2025-10-30) - ProfileView UI Polish & HealthKit Integration
 - ✅ **Greeting Header Improvements**

@@ -1,6 +1,6 @@
 # GymBo - Session Memory
 
-**Letzte Aktualisierung:** 2025-10-30 (Session 29 - ProfileView UI Polish & HealthKit Integration)
+**Letzte Aktualisierung:** 2025-10-30 (Session 30 - SessionHistoryView Phase 4 Animations & Polish)
 
 ---
 
@@ -17,11 +17,11 @@
 
 ---
 
-## 📊 Projekt-Status (Stand: 2025-10-27)
+## 📊 Projekt-Status (Stand: 2025-10-30)
 
-### Version: 2.5.0 - Complete ProfileView & Theme System
+### Version: 2.5.0 - Complete ProfileView & Theme System + Session History Animations
 
-**Session 24:** Configurable weekly workout goal feature + ProfileView UI/UX consistency improvements.
+**Session 30:** Phase 4 animations for SessionHistoryView, calendar relocation, greeting fix.
 
 **Alle Core Features implementiert:**
 - ✅ Workout Management (Create/Edit/Delete/Favorite)
@@ -41,6 +41,333 @@
 - APPLE_HEALTH_IMPLEMENTATION_PLAN.md → Phase 1-4 complete
 - SESSION_MEMORY.md → Session 22 dokumentiert (inkl. Migration)
 - CURRENT_STATE.md → Apple Health + Migration Features dokumentiert
+
+---
+
+## ✅ Session 2025-10-30 (Session 30) - SessionHistoryView Phase 4 Animations & Polish
+
+**Status:** ✅ Feature Complete - Production Ready
+
+### Zusammenfassung
+Session 30 implementierte Phase 4 (Polish & Animations) für SessionHistoryView mit staggered card entry animations, chart draw animations, haptic feedback, sowie UI-Verbesserungen durch Calendar-Relokation und Greeting-Fix.
+
+### Part 1: Calendar Relocation ✅
+
+**Problem:** WorkoutCalendarStripView war in HomeView, wo es konzeptionell nicht hingehörte (Home ist für Workout-Auswahl, nicht History).
+
+**Lösung:**
+1. **Removed from HomeView:**
+   ```swift
+   // REMOVED:
+   // WorkoutCalendarStripView()
+   //     .padding(.horizontal, 16)
+   //     .padding(.top, 12)
+   //     .padding(.bottom, 12)
+   ```
+
+2. **Added to SessionHistoryView:**
+   ```swift
+   WorkoutCalendarStripView()
+       .padding(.horizontal, 16)
+       .padding(.top, 8)
+       .cardEntryAnimation(delay: 0.1)  // With animation
+   ```
+
+**Dateien:** `HomeView.swift`, `SessionHistoryView.swift`
+
+### Part 2: Greeting Time Fix ✅
+
+**Problem:** Keine Begrüßung zwischen 12:00-18:00 Uhr (afternoon missing).
+
+**Lösung:**
+```swift
+private var timeOfDayGreeting: String? {
+    let hour = Calendar.current.component(.hour, from: Date())
+    
+    switch hour {
+    case 5..<12:
+        return "guten Morgen!"
+    case 12..<18:
+        return "guten Tag!"  // ADDED - was missing
+    case 18..<24, 0..<5:
+        return "guten Abend!"
+    default:
+        return nil
+    }
+}
+```
+
+**Removed:** Unused `hasName` variable from greeting computation.
+
+**Dateien:** `GreetingHeaderView.swift`
+
+### Part 3: Redundant Stats Removal ✅
+
+**Problem:** WorkoutCalendarStripView zeigte "Diese Woche" und "Letztes Workout" Text, obwohl diese Infos bereits in Hero Stats Card und Timeline sichtbar waren.
+
+**Lösung:** Removed entire stats header section for cleaner, minimal design.
+
+```swift
+// REMOVED entire section:
+// if !workoutDates.isEmpty {
+//     HStack(spacing: 16) {
+//         Text("Diese Woche: \(thisWeekWorkoutCount)/\(weeklyWorkoutGoal) Workouts")
+//         Spacer()
+//         if let lastDate = lastWorkoutDate {
+//             Text("Letztes Workout: \(formatDate(lastDate))")
+//         }
+//     }
+// }
+
+// Now just shows calendar strip with dots
+```
+
+**Dateien:** `WorkoutCalendarStripView.swift`
+
+### Part 4: Phase 4 - Animations & Haptic Feedback ✅
+
+**Created: AnimationHelper.swift**
+
+Complete animation system for consistent UX across SessionHistory components:
+
+```swift
+struct AnimationHelper {
+    
+    // MARK: - Card Animations
+    
+    /// Slide up with fade animation for cards
+    static func cardEntryAnimation(delay: Double = 0) -> Animation {
+        .spring(response: 0.6, dampingFraction: 0.8, blendDuration: 0)
+            .delay(delay)
+    }
+    
+    /// Scale effect for tappable items
+    static let scaleAnimation: Animation = .spring(response: 0.3, dampingFraction: 0.6)
+    
+    // MARK: - Chart Animations
+    
+    /// Draw animation for charts (left to right)
+    static let chartDrawAnimation: Animation = .easeInOut(duration: 1.0)
+    
+    // MARK: - Tab Animations
+    
+    /// Smooth tab transition
+    static let tabTransition: Animation = .spring(response: 0.4, dampingFraction: 0.75)
+    
+    // MARK: - Haptic Feedback
+    
+    static func lightImpact() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+    }
+    
+    static func mediumImpact() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+    }
+    
+    static func successFeedback() {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+    }
+    
+    static func selectionFeedback() {
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
+    }
+}
+```
+
+**View Modifiers:**
+
+1. **CardEntryModifier** - Fade + slide up animation
+   ```swift
+   struct CardEntryModifier: ViewModifier {
+       let delay: Double
+       @State private var isVisible = false
+       
+       func body(content: Content) -> some View {
+           content
+               .opacity(isVisible ? 1 : 0)
+               .offset(y: isVisible ? 0 : 20)
+               .onAppear {
+                   withAnimation(AnimationHelper.cardEntryAnimation(delay: delay)) {
+                       isVisible = true
+                   }
+               }
+       }
+   }
+   ```
+
+2. **ScaleEffectModifier** - Scale + haptic on tap
+   ```swift
+   struct ScaleEffectModifier: ViewModifier {
+       @State private var isPressed = false
+       let action: () -> Void
+       
+       func body(content: Content) -> some View {
+           content
+               .scaleEffect(isPressed ? 0.97 : 1.0)
+               .onTapGesture {
+                   withAnimation(AnimationHelper.scaleAnimation) {
+                       isPressed = true
+                   }
+                   AnimationHelper.lightImpact()
+                   
+                   DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                       withAnimation(AnimationHelper.scaleAnimation) {
+                           isPressed = false
+                       }
+                       action()
+                   }
+               }
+       }
+   }
+   ```
+
+**View Extensions:**
+```swift
+extension View {
+    func cardEntryAnimation(delay: Double = 0) -> some View {
+        modifier(CardEntryModifier(delay: delay))
+    }
+    
+    func scaleEffectTap(action: @escaping () -> Void) -> some View {
+        modifier(ScaleEffectModifier(action: action))
+    }
+}
+```
+
+**Applied to SessionHistoryView:**
+
+Staggered card entry animations:
+```swift
+// Calendar - 0.1s delay
+WorkoutCalendarStripView()
+    .padding(.horizontal, 16)
+    .padding(.top, 8)
+    .cardEntryAnimation(delay: 0.1)
+
+// Hero Stats Card - 0.2s delay
+HeroStatsCard(...)
+    .padding(.horizontal, 16)
+    .cardEntryAnimation(delay: 0.2)
+
+// Quick Stats Grid - 0.3s delay
+QuickStatsGrid(...)
+    .padding(.horizontal, 16)
+    .cardEntryAnimation(delay: 0.3)
+
+// Progression Card - 0.4s delay
+ProgressionCard(sessions: historyStore.sessions)
+    .padding(.horizontal, 16)
+    .cardEntryAnimation(delay: 0.4)
+
+// Session cards - Scale effect with haptic
+SessionTimelineCard(session: session)
+    .padding(.horizontal, 16)
+    .scaleEffectTap {
+        selectedSession = session
+    }
+```
+
+**Applied to ProgressionCard:**
+
+1. **Chart Draw Animation:**
+   ```swift
+   @State private var chartProgress: CGFloat = 0
+   
+   Path { path in
+       // ... chart drawing code
+       
+       // Only draw visible points based on animation progress
+       let visiblePoints = Int(CGFloat(points.count - 1) * chartProgress) + 1
+       for (index, value) in points.prefix(visiblePoints).dropFirst().enumerated() {
+           path.addLine(to: CGPoint(x: ..., y: ...))
+       }
+   }
+   .onAppear {
+       withAnimation(AnimationHelper.chartDrawAnimation) {
+           chartProgress = 1.0
+       }
+   }
+   ```
+
+2. **Tab Transitions with Haptic:**
+   ```swift
+   Button(action: {
+       AnimationHelper.selectionFeedback()
+       withAnimation(AnimationHelper.tabTransition) {
+           selectedTab = tab
+       }
+   }) {
+       // button content
+   }
+   ```
+
+**Dateien:** 
+- `AnimationHelper.swift` (NEW)
+- `SessionHistoryView.swift` (animations applied)
+- `ProgressionCard.swift` (chart animation + haptic tabs)
+
+### Files Modified (Session 30)
+
+1. **AnimationHelper.swift** - NEW - Centralized animation system
+2. **SessionHistoryView.swift** - Staggered card animations, calendar added
+3. **ProgressionCard.swift** - Chart draw animation, tab haptics
+4. **HomeView.swift** - Removed WorkoutCalendarStripView
+5. **WorkoutCalendarStripView.swift** - Removed stats text header
+6. **GreetingHeaderView.swift** - Fixed afternoon greeting
+
+### User Experience
+
+**Before:**
+- Cards appeared instantly (no animation)
+- No feedback on tap
+- No chart animation (static)
+- Calendar in HomeView with redundant text
+- Missing afternoon greeting
+
+**After:**
+- Smooth staggered card entry (fade + slide up)
+- Haptic feedback on session card taps (feels responsive)
+- Chart animates drawing from left to right
+- Tab switches feel smooth with haptic selection feedback
+- Calendar in SessionHistoryView (contextually correct)
+- Calendar is minimal (just dots, no redundant text)
+- Greeting works all day (morning, afternoon, evening)
+
+### Technical Highlights
+
+1. **Centralized Animation System** - Single source of truth for timing/curves
+2. **Reusable View Modifiers** - Clean, composable animation patterns
+3. **Staggered Delays** - Creates professional cascade effect
+4. **Spring Animations** - Natural, bouncy feel (dampingFraction)
+5. **Haptic Feedback** - Multiple feedback types (light, medium, selection, success)
+6. **Chart Animation** - Progress-based path drawing
+7. **Non-Blocking** - All animations happen on main thread without blocking
+
+### Lessons Learned
+
+1. **ViewModifiers > Inline Animations** - More maintainable, reusable
+2. **Stagger Timing Matters** - 0.1s increments create smooth cascade
+3. **Haptics Enhance Responsiveness** - Even without visual change
+4. **Chart Animation Complexity** - Need to calculate visible points based on progress
+5. **Context Matters** - Calendar makes more sense in History than Home
+
+### Next Steps
+
+**Potential Enhancements:**
+1. Add shimmer effect to loading states
+2. Animate chart data updates (when switching tabs)
+3. Add pull-to-refresh animation
+4. Celebrate achievements with success feedback
+5. Animate empty state illustrations
+
+**Known Limitations:**
+- Chart animation only on initial load (not on tab switch)
+- No loading skeleton animations yet
+- Session timeline doesn't animate (could add scroll animations)
 
 ---
 
