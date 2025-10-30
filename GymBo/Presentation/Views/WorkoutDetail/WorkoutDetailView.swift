@@ -437,7 +437,9 @@ struct WorkoutDetailView: View {
     /// Start workout button (Modern iOS 26 Design)
     private var startButton: some View {
         Button(action: {
-            onStartWorkout()
+            Task {
+                await startWorkoutWithWarmup()
+            }
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         }) {
             HStack(spacing: 8) {
@@ -682,6 +684,50 @@ struct WorkoutDetailView: View {
         // Update local workout from store
         if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
+        }
+    }
+
+    /// Start workout with automatic warmup sets
+    private func startWorkoutWithWarmup() async {
+        guard let currentWorkout = workout else { return }
+
+        // Start the workout first
+        onStartWorkout()
+
+        // Wait a moment for session to be created
+        try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
+
+        // Apply warmup strategy if one is selected and not "none"
+        if let strategy = selectedWarmupStrategy, strategy != .none {
+            await applyWarmupStrategyToSession(strategy: strategy, workout: currentWorkout)
+        }
+    }
+
+    /// Apply warmup strategy to all exercises in the active session
+    private func applyWarmupStrategyToSession(strategy: WarmupCalculator.Strategy, workout: Workout)
+        async
+    {
+        guard let session = sessionStore.currentSession else { return }
+
+        // Add warmup sets to each exercise that has working sets
+        for exercise in session.exercises {
+            // Find the first working set (non-warmup) to base warmup calculations on
+            guard let firstWorkingSet = exercise.sets.first(where: { !$0.isWarmup }) else {
+                continue
+            }
+
+            // Calculate warmup sets
+            let warmupSets = WarmupCalculator.calculateWarmupSets(
+                workingWeight: firstWorkingSet.weight,
+                workingReps: firstWorkingSet.reps,
+                strategy: strategy
+            )
+
+            // Add warmup sets to this exercise
+            await sessionStore.addWarmupSets(
+                exerciseId: exercise.id,
+                warmupSets: warmupSets
+            )
         }
     }
 
