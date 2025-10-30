@@ -133,8 +133,8 @@ struct WorkoutMapper {
         entity.order = domain.orderIndex
         entity.notes = domain.notes
 
-        // Note: We don't update exerciseId, as the exercise reference is immutable
-        // The entity's exercise relationship is managed separately by the repository
+        // Update exerciseId (needed for exercise swap feature)
+        entity.exerciseId = domain.exerciseId
 
         // Update sets - for workout templates, sets represent target values
         // Clear and rebuild sets as they define the template structure

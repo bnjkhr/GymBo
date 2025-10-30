@@ -116,33 +116,30 @@
 ## 🚀 GEPLANTE FEATURES (Priorisiert)
 
 ### 1. Exercise Swap Feature (Medium Effort - 4-6 Std)
-**Status:** 🔴 High Priority (Kanban)
+**Status:** ✅ DONE (Session 31)
 **Ziel:** Lange auf Übung drücken → Alternative Übungen vorschlagen
 
 **User Story:**
 - User drückt lange auf Übung in Workout Detail
 - App zeigt Sheet mit gleichwertigen Alternativen (gleiche Muskelgruppe)
 - User kann auswählen oder selbst suchen
-- Toggle: "Änderung dauerhaft speichern" (in Template) oder nur für diese Session
+- Toggle: "Dauerhaft im Template ändern" (permanent) oder nur temporär für diese Ansicht
 
-**Implementation:**
-```swift
-// In WorkoutDetailView oder CompactExerciseCard
-.onLongPressGesture {
-    showExerciseSwapSheet = true
-}
-
-// ExerciseSwapSheet
-- Load alternatives from ExerciseRepository (same muscle groups)
-- Show list with search
-- Toggle: savePermanently
-- OnConfirm: Update workout template or session
-```
+**Implementiert:**
+- Long-press Gesture + Context Menu auf ExerciseCard
+- ExerciseSwapSheet mit Alternativen-Suche (gefiltert nach Muskelgruppen)
+- SwapExerciseUseCase (Domain Layer) - behält alle Settings (sets, reps, weight, rest)
+- Toggle für permanent/temporär direkt im Sheet sichtbar
+- Permanent: Update via Repository (persistiert)
+- Temporär: Nur lokaler State-Update (bis View geschlossen wird)
+- Fix: WorkoutMapper aktualisiert jetzt exerciseId korrekt
 
 **Dateien:**
 - `/Presentation/Views/WorkoutDetail/ExerciseSwapSheet.swift` - NEW
 - `/Domain/UseCases/Workout/SwapExerciseUseCase.swift` - NEW
-- Update `WorkoutDetailView.swift`
+- `/Presentation/Stores/WorkoutStore.swift` - swapExercise() mit dual-mode
+- `/Data/Mappers/WorkoutMapper.swift` - Fix: exerciseId Update
+- `/Presentation/Views/WorkoutDetail/WorkoutDetailView.swift` - Integration
 
 ---
 
@@ -363,6 +360,29 @@
 ---
 
 ## ✅ ABGESCHLOSSEN
+
+### Session 31 (2025-10-30) - Exercise Swap Feature
+- ✅ **Exercise Swap Implementation**
+  - Long-press gesture + context menu on ExerciseCard to trigger swap
+  - ExerciseSwapSheet with filtered alternatives (same muscle groups)
+  - Search & filter functionality for finding exercises
+  - SwapExerciseUseCase preserves all exercise settings (sets, reps, weight, rest times, notes, order)
+  - Toggle "Dauerhaft im Template ändern" positioned at top of sheet for visibility
+- ✅ **Dual-Mode Swap Logic**
+  - Permanent mode (toggle ON): Updates repository via SwapExerciseUseCase → persists to disk
+  - Temporary mode (toggle OFF): Updates only local View state → lasts until view is dismissed
+  - WorkoutStore.swapExercise() handles both modes
+  - Success messages: "Übung dauerhaft ersetzt" vs "Übung temporär ersetzt"
+- ✅ **Critical Bug Fixes**
+  - Fixed empty sheet issue: Changed from `.sheet(isPresented:)` to `.sheet(item:)` pattern with ExerciseSwapInfo struct
+  - Fixed permanent swap not persisting: WorkoutMapper now correctly updates exerciseId field
+  - WorkoutMapper.updateExerciseEntity() was treating exerciseId as immutable - now updates it
+- ✅ **Architecture**
+  - Clean separation: Domain (SwapExerciseUseCase) → Presentation (ExerciseSwapSheet, WorkoutDetailView) → Data (WorkoutMapper fix)
+  - Haptic feedback on exercise selection
+  - ExerciseSwapInfo: Identifiable wrapper for sheet state management
+- Files: ExerciseSwapSheet.swift (NEW), SwapExerciseUseCase.swift (NEW), WorkoutDetailView.swift, WorkoutStore.swift, WorkoutMapper.swift, DependencyContainer.swift
+- Commits: Multiple (swap feature implementation + bug fixes)
 
 ### Session 30 (2025-10-30) - SessionHistoryView Phase 4 Animations & Polish
 - ✅ **Calendar Relocation**

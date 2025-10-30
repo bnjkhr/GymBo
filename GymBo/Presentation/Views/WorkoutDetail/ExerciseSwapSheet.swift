@@ -26,7 +26,7 @@ struct ExerciseSwapSheet: View {
 
     let currentExercise: ExerciseEntity
     let currentWorkoutExercise: WorkoutExercise
-    let onSwap: (ExerciseEntity) -> Void
+    let onSwap: (ExerciseEntity, Bool) -> Void  // (newExercise, savePermanently)
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencyContainer) private var dependencyContainer
@@ -36,6 +36,7 @@ struct ExerciseSwapSheet: View {
     @State private var searchText = ""
     @State private var isLoading = true
     @State private var selectedExercise: ExerciseEntity?
+    @State private var savePermanently = true  // Default: save to template
 
     // MARK: - Body
 
@@ -62,6 +63,29 @@ struct ExerciseSwapSheet: View {
                             "🟢 DependencyContainer: \(dependencyContainer != nil ? "Present" : "NIL")"
                         )
                     }
+
+                    // Toggle Section (Save Permanently)
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Dauerhaft im Template ändern")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                Text("Übung wird auch in zukünftigen Workouts ersetzt")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            Toggle("", isOn: $savePermanently)
+                                .labelsHidden()
+                        }
+                        .padding(14)
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 16)
 
                     // Search Bar
                     SearchBar(text: $searchText, placeholder: "Alternativen suchen...")
@@ -120,7 +144,7 @@ struct ExerciseSwapSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Ersetzen") {
                         if let selected = selectedExercise {
-                            onSwap(selected)
+                            onSwap(selected, savePermanently)
                             dismiss()
                         }
                     }
@@ -371,8 +395,8 @@ private struct EmptyStateView: View {
             restTime: 90,
             orderIndex: 0
         ),
-        onSwap: { exercise in
-            print("Swapped to: \(exercise.name)")
+        onSwap: { exercise, savePermanently in
+            print("Swapped to: \(exercise.name), permanent: \(savePermanently)")
         }
     )
 }

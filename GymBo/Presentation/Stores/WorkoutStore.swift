@@ -39,6 +39,22 @@ import SwiftUI
 ///     }
 /// }
 /// ```
+
+/// Errors that can occur in WorkoutStore
+enum WorkoutStoreError: LocalizedError {
+    case workoutNotFound
+    case exerciseNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .workoutNotFound:
+            return "Workout nicht gefunden"
+        case .exerciseNotFound:
+            return "Übung nicht gefunden"
+        }
+    }
+}
+
 @MainActor
 @Observable
 final class WorkoutStore {
@@ -518,24 +534,67 @@ final class WorkoutStore {
     ///   - workoutId: Workout containing the exercise
     ///   - oldExerciseId: Exercise ID to replace
     ///   - newExerciseId: New exercise ID
+    ///   - savePermanently: If true, saves to template; if false, only updates current view
     func swapExercise(
         in workoutId: UUID,
         oldExerciseId: UUID,
-        newExerciseId: UUID
+        newExerciseId: UUID,
+        savePermanently: Bool
     ) async {
         do {
-            let updatedWorkout = try await swapExerciseUseCase.execute(
-                workoutId: workoutId,
-                oldExerciseId: oldExerciseId,
-                newExerciseId: newExerciseId
-            )
+            if savePermanently {
+                // Permanent swap: Update the template in repository
+                let updatedWorkout = try await swapExerciseUseCase.execute(
+                    workoutId: workoutId,
+                    oldExerciseId: oldExerciseId,
+                    newExerciseId: newExerciseId
+                )
 
-            // Update local workout list
-            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
-                workouts[index] = updatedWorkout
+                // Update local workout list
+                if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                    workouts[index] = updatedWorkout
+                }
+
+                showSuccess("Übung dauerhaft ersetzt")
+            } else {
+                // Temporary swap: Only update local workout list (not repository)
+                guard let workoutIndex = workouts.firstIndex(where: { $0.id == workoutId }) else {
+                    throw WorkoutStoreError.workoutNotFound
+                }
+
+                var workout = workouts[workoutIndex]
+
+                // Find the exercise to swap
+                guard
+                    let exerciseIndex = workout.exercises.firstIndex(where: {
+                        $0.exerciseId == oldExerciseId
+                    })
+                else {
+                    throw WorkoutStoreError.exerciseNotFound
+                }
+
+                let oldWorkoutExercise = workout.exercises[exerciseIndex]
+
+                // Create new WorkoutExercise with same settings but new exerciseId
+                let newWorkoutExercise = WorkoutExercise(
+                    id: oldWorkoutExercise.id,
+                    exerciseId: newExerciseId,
+                    targetSets: oldWorkoutExercise.targetSets,
+                    targetReps: oldWorkoutExercise.targetReps,
+                    targetTime: oldWorkoutExercise.targetTime,
+                    targetWeight: oldWorkoutExercise.targetWeight,
+                    restTime: oldWorkoutExercise.restTime,
+                    perSetRestTimes: oldWorkoutExercise.perSetRestTimes,
+                    orderIndex: oldWorkoutExercise.orderIndex,
+                    notes: oldWorkoutExercise.notes
+                )
+
+                // Replace in local workout list (no repository update)
+                workout.exercises[exerciseIndex] = newWorkoutExercise
+                workouts[workoutIndex] = workout
+
+                showSuccess("Übung temporär ersetzt")
             }
-
-            showSuccess("Übung ersetzt")
         } catch {
             self.error = error
             print("❌ Failed to swap exercise: \(error.localizedDescription)")

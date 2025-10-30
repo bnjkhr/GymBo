@@ -197,11 +197,12 @@ struct WorkoutDetailView: View {
             ExerciseSwapSheet(
                 currentExercise: swapInfo.exercise,
                 currentWorkoutExercise: swapInfo.workoutExercise,
-                onSwap: { newExercise in
+                onSwap: { newExercise, savePermanently in
                     Task {
                         await swapExercise(
                             oldExercise: swapInfo.workoutExercise,
-                            newExercise: newExercise
+                            newExercise: newExercise,
+                            savePermanently: savePermanently
                         )
                     }
                 }
@@ -472,16 +473,52 @@ struct WorkoutDetailView: View {
     }
 
     /// Swap exercise with an alternative
-    private func swapExercise(oldExercise: WorkoutExercise, newExercise: ExerciseEntity) async {
-        await workoutStore.swapExercise(
-            in: workoutId,
-            oldExerciseId: oldExercise.exerciseId,
-            newExerciseId: newExercise.id
-        )
+    private func swapExercise(
+        oldExercise: WorkoutExercise, newExercise: ExerciseEntity, savePermanently: Bool
+    ) async {
+        if savePermanently {
+            // Permanent: Update via store (persists to repository)
+            await workoutStore.swapExercise(
+                in: workoutId,
+                oldExerciseId: oldExercise.exerciseId,
+                newExerciseId: newExercise.id,
+                savePermanently: true
+            )
 
-        // Update local workout from store
-        if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
-            workout = updatedWorkout
+            // Update local workout from store
+            if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
+                workout = updatedWorkout
+            }
+        } else {
+            // Temporary: Only update local state (doesn't persist)
+            guard var currentWorkout = workout else { return }
+
+            // Find and replace the exercise
+            if let exerciseIndex = currentWorkout.exercises.firstIndex(where: {
+                $0.exerciseId == oldExercise.exerciseId
+            }) {
+                let oldWorkoutExercise = currentWorkout.exercises[exerciseIndex]
+
+                // Create new WorkoutExercise with same settings but new exerciseId
+                let newWorkoutExercise = WorkoutExercise(
+                    id: oldWorkoutExercise.id,
+                    exerciseId: newExercise.id,
+                    targetSets: oldWorkoutExercise.targetSets,
+                    targetReps: oldWorkoutExercise.targetReps,
+                    targetTime: oldWorkoutExercise.targetTime,
+                    targetWeight: oldWorkoutExercise.targetWeight,
+                    restTime: oldWorkoutExercise.restTime,
+                    perSetRestTimes: oldWorkoutExercise.perSetRestTimes,
+                    orderIndex: oldWorkoutExercise.orderIndex,
+                    notes: oldWorkoutExercise.notes
+                )
+
+                // Update only local state
+                currentWorkout.exercises[exerciseIndex] = newWorkoutExercise
+                workout = currentWorkout
+
+                workoutStore.showSuccess("Übung temporär ersetzt")
+            }
         }
 
         // Reload exercise names for the new exercise

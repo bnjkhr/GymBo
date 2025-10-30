@@ -1,6 +1,6 @@
 # GymBo - Session Memory
 
-**Letzte Aktualisierung:** 2025-10-30 (Session 30 - SessionHistoryView Phase 4 Animations & Polish)
+**Letzte Aktualisierung:** 2025-10-30 (Session 31 - Exercise Swap Feature Complete)
 
 ---
 
@@ -19,9 +19,9 @@
 
 ## 📊 Projekt-Status (Stand: 2025-10-30)
 
-### Version: 2.5.0 - Complete ProfileView & Theme System + Session History Animations
+### Version: 2.6.0 - Exercise Swap Feature Complete
 
-**Session 30:** Phase 4 animations for SessionHistoryView, calendar relocation, greeting fix.
+**Session 31:** Exercise Swap Feature - Long-press to swap exercises with alternatives (permanent or temporary).
 
 **Alle Core Features implementiert:**
 - ✅ Workout Management (Create/Edit/Delete/Favorite)
@@ -32,8 +32,9 @@
 - ✅ Active Workout Session (vollständig)
 - ✅ Per-Set Rest Times - Individuelle Pausenzeiten pro Satz
 - ✅ Quick-Setup Workout Creation - Schnelles Workout-Erstellen
-- ✅ **Apple Health Integration** (NEU) - Workouts & Body Metrics synchronisieren
-- ✅ **V1.0 → V2.4.0 Migration** (NEU) - Clean Slate mit User-Warnung
+- ✅ **Exercise Swap Feature** (NEU) - Übungen mit Alternativen ersetzen (permanent/temporär)
+- ✅ **Apple Health Integration** - Workouts & Body Metrics synchronisieren
+- ✅ **V1.0 → V2.4.0 Migration** - Clean Slate mit User-Warnung
 - ✅ UI/UX (Brand Color #F77E2D, iOS 26 Design, TabBar Auto-Hide)
 - ✅ Architecture (Clean Architecture, 30+ Use Cases, 4 Repositories)
 
@@ -41,6 +42,413 @@
 - APPLE_HEALTH_IMPLEMENTATION_PLAN.md → Phase 1-4 complete
 - SESSION_MEMORY.md → Session 22 dokumentiert (inkl. Migration)
 - CURRENT_STATE.md → Apple Health + Migration Features dokumentiert
+
+---
+
+## ✅ Session 2025-10-30 (Session 31) - Exercise Swap Feature Complete
+
+### Zusammenfassung
+
+**Feature:** Exercise Swap - Übungen in Workouts mit Alternativen ersetzen (permanent oder temporär)
+
+**Implementierung:**
+- Long-press Gesture + Context Menu auf ExerciseCard
+- ExerciseSwapSheet mit gefilterten Alternativen (gleiche Muskelgruppen)
+- SwapExerciseUseCase (Domain Layer) behält alle Exercise Settings
+- Toggle "Dauerhaft im Template ändern" für permanent/temporär Modus
+- Dual-Mode: Permanent (Repository) vs. Temporär (nur View State)
+
+**Critical Bugs Fixed:**
+1. Empty sheet → Wechsel zu `.sheet(item:)` Pattern
+2. Permanent swap nicht persistent → WorkoutMapper exerciseId Update Fix
+
+### Implementation Details
+
+#### 1. ExerciseSwapSheet.swift (NEW)
+
+**Struktur:**
+```swift
+struct ExerciseSwapSheet: View {
+    let currentExercise: ExerciseEntity
+    let currentWorkoutExercise: WorkoutExercise
+    let onSwap: (ExerciseEntity, Bool) -> Void  // (newExercise, savePermanently)
+    
+    @State private var allExercises: [ExerciseEntity] = []
+    @State private var filteredExercises: [ExerciseEntity] = []
+    @State private var searchText = ""
+    @State private var selectedExercise: ExerciseEntity?
+    @State private var savePermanently = true  // Default: permanent
+}
+```
+
+**UI Layout:**
+1. Current Exercise Card (orange highlight)
+2. **Toggle "Dauerhaft im Template ändern"** (top position for visibility)
+3. Search Bar
+4. Alternatives List (filtered by muscle groups)
+
+**Filtering Logic:**
+```swift
+// Filter alternatives by matching muscle groups
+let currentMuscleGroups = Set(currentExercise.muscleGroupsRaw)
+let alternatives = exercises.filter { exercise in
+    guard exercise.id != currentExercise.id else { return false }
+    let exerciseMuscleGroups = Set(exercise.muscleGroupsRaw)
+    return !currentMuscleGroups.isDisjoint(with: exerciseMuscleGroups)
+}
+```
+
+#### 2. SwapExerciseUseCase.swift (NEW - Domain Layer)
+
+```swift
+protocol SwapExerciseUseCase {
+    func execute(
+        workoutId: UUID,
+        oldExerciseId: UUID,
+        newExerciseId: UUID
+    ) async throws -> Workout
+}
+
+final class DefaultSwapExerciseUseCase: SwapExerciseUseCase {
+    private let workoutRepository: WorkoutRepositoryProtocol
+    private let exerciseRepository: ExerciseRepositoryProtocol
+    
+    func execute(...) async throws -> Workout {
+        // 1. Validate new exercise exists
+        guard let newExercise = try await exerciseRepository.fetch(id: newExerciseId) else {
+            throw UseCaseError.exerciseNotFound(newExerciseId)
+        }
+        
+        // 2. Fetch workout
+        guard var workout = try await workoutRepository.fetch(id: workoutId) else {
+            throw UseCaseError.workoutNotFound(workoutId)
+        }
+        
+        // 3. Find old exercise
+        guard let exerciseIndex = workout.exercises.firstIndex(where: { 
+            $0.exerciseId == oldExerciseId 
+        }) else {
+            throw UseCaseError.exerciseNotFound(oldExerciseId)
+        }
+        
+        let oldWorkoutExercise = workout.exercises[exerciseIndex]
+        
+        // 4. Create new WorkoutExercise with SAME settings but NEW exerciseId
+        let newWorkoutExercise = WorkoutExercise(
+            id: oldWorkoutExercise.id,  // Keep same ID
+            exerciseId: newExerciseId,  // NEW exerciseId
+            targetSets: oldWorkoutExercise.targetSets,
+            targetReps: oldWorkoutExercise.targetReps,
+            targetTime: oldWorkoutExercise.targetTime,
+            targetWeight: oldWorkoutExercise.targetWeight,
+            restTime: oldWorkoutExercise.restTime,
+            perSetRestTimes: oldWorkoutExercise.perSetRestTimes,
+            orderIndex: oldWorkoutExercise.orderIndex,
+            notes: oldWorkoutExercise.notes
+        )
+        
+        // 5. Replace and save
+        workout.exercises[exerciseIndex] = newWorkoutExercise
+        workout.updatedAt = Date()
+        try await workoutRepository.update(workout)
+        
+        return workout
+    }
+}
+```
+
+#### 3. WorkoutDetailView Integration
+
+**ExerciseSwapInfo (Identifiable wrapper):**
+```swift
+struct ExerciseSwapInfo: Identifiable {
+    let id = UUID()
+    let workoutExercise: WorkoutExercise
+    let exercise: ExerciseEntity
+}
+```
+
+**State:**
+```swift
+@State private var exerciseToSwap: ExerciseSwapInfo?
+```
+
+**Sheet (`.sheet(item:)` pattern):**
+```swift
+.sheet(item: $exerciseToSwap) { swapInfo in
+    ExerciseSwapSheet(
+        currentExercise: swapInfo.exercise,
+        currentWorkoutExercise: swapInfo.workoutExercise,
+        onSwap: { newExercise, savePermanently in
+            Task {
+                await swapExercise(
+                    oldExercise: swapInfo.workoutExercise,
+                    newExercise: newExercise,
+                    savePermanently: savePermanently
+                )
+            }
+        }
+    )
+    .environment(\.dependencyContainer, dependencyContainer)
+}
+```
+
+**Dual-Mode Swap Logic:**
+```swift
+private func swapExercise(
+    oldExercise: WorkoutExercise, 
+    newExercise: ExerciseEntity, 
+    savePermanently: Bool
+) async {
+    if savePermanently {
+        // PERMANENT: Update via store → repository
+        await workoutStore.swapExercise(
+            in: workoutId,
+            oldExerciseId: oldExercise.exerciseId,
+            newExerciseId: newExercise.id,
+            savePermanently: true
+        )
+        
+        // Update local workout from store
+        if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
+            workout = updatedWorkout
+        }
+    } else {
+        // TEMPORARY: Only update local state
+        guard var currentWorkout = workout else { return }
+        
+        if let exerciseIndex = currentWorkout.exercises.firstIndex(where: { 
+            $0.exerciseId == oldExercise.exerciseId 
+        }) {
+            let oldWorkoutExercise = currentWorkout.exercises[exerciseIndex]
+            
+            let newWorkoutExercise = WorkoutExercise(
+                id: oldWorkoutExercise.id,
+                exerciseId: newExercise.id,
+                // ... preserve all settings
+            )
+            
+            currentWorkout.exercises[exerciseIndex] = newWorkoutExercise
+            workout = currentWorkout  // Only local state update
+            
+            workoutStore.showSuccess("Übung temporär ersetzt")
+        }
+    }
+    
+    await loadExerciseNames()
+}
+```
+
+#### 4. WorkoutStore.swapExercise()
+
+```swift
+enum WorkoutStoreError: LocalizedError {
+    case workoutNotFound
+    case exerciseNotFound
+}
+
+func swapExercise(
+    in workoutId: UUID,
+    oldExerciseId: UUID,
+    newExerciseId: UUID,
+    savePermanently: Bool
+) async {
+    do {
+        if savePermanently {
+            // Permanent: Call use case → repository update
+            let updatedWorkout = try await swapExerciseUseCase.execute(
+                workoutId: workoutId,
+                oldExerciseId: oldExerciseId,
+                newExerciseId: newExerciseId
+            )
+            
+            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                workouts[index] = updatedWorkout
+            }
+            
+            showSuccess("Übung dauerhaft ersetzt")
+        } else {
+            // Temporary: Update local workouts array only
+            guard let workoutIndex = workouts.firstIndex(where: { $0.id == workoutId }) else {
+                throw WorkoutStoreError.workoutNotFound
+            }
+            
+            var workout = workouts[workoutIndex]
+            
+            guard let exerciseIndex = workout.exercises.firstIndex(where: { 
+                $0.exerciseId == oldExerciseId 
+            }) else {
+                throw WorkoutStoreError.exerciseNotFound
+            }
+            
+            let oldWorkoutExercise = workout.exercises[exerciseIndex]
+            
+            let newWorkoutExercise = WorkoutExercise(
+                id: oldWorkoutExercise.id,
+                exerciseId: newExerciseId,
+                // ... preserve settings
+            )
+            
+            workout.exercises[exerciseIndex] = newWorkoutExercise
+            workouts[workoutIndex] = workout
+            
+            showSuccess("Übung temporär ersetzt")
+        }
+    } catch {
+        self.error = error
+        print("❌ Failed to swap exercise: \(error.localizedDescription)")
+    }
+}
+```
+
+### Critical Bug Fixes
+
+#### Bug 1: Empty Sheet
+
+**Problem:**
+- `.sheet(isPresented: $showExerciseSwapSheet)` timing issue
+- `exerciseToSwap` was set, but sheet closure evaluated before state propagated
+- Result: Sheet opened but content was nil
+
+**Solution:**
+```swift
+// Before (BROKEN):
+@State private var exerciseToSwap: (workoutExercise: WorkoutExercise, exercise: ExerciseEntity)?
+@State private var showExerciseSwapSheet = false
+
+.sheet(isPresented: $showExerciseSwapSheet) {
+    if let swapInfo = exerciseToSwap {
+        ExerciseSwapSheet(...)
+    }
+}
+
+// After (WORKING):
+struct ExerciseSwapInfo: Identifiable {
+    let id = UUID()
+    let workoutExercise: WorkoutExercise
+    let exercise: ExerciseEntity
+}
+
+@State private var exerciseToSwap: ExerciseSwapInfo?
+
+.sheet(item: $exerciseToSwap) { swapInfo in
+    // swapInfo is GUARANTEED non-nil here
+    ExerciseSwapSheet(...)
+}
+```
+
+**Key Insight:** `.sheet(item:)` only evaluates closure when item is non-nil
+
+#### Bug 2: Permanent Swap Not Persisting
+
+**Problem:**
+- Permanent swap appeared to work initially
+- After leaving and returning to WorkoutDetailView → old exercise was back
+- `loadData()` loads workout directly from repository
+- SwapExerciseUseCase called `workoutRepository.update(workout)`
+- But `WorkoutMapper.updateExerciseEntity()` was NOT updating `exerciseId`
+
+**Root Cause:**
+```swift
+// WorkoutMapper.swift - updateExerciseEntity()
+private func updateExerciseEntity(_ entity: WorkoutExerciseEntity, from domain: WorkoutExercise) {
+    entity.order = domain.orderIndex
+    entity.notes = domain.notes
+
+    // Note: We don't update exerciseId, as the exercise reference is immutable
+    // ❌ BUG: This prevented swap from persisting!
+```
+
+**Solution:**
+```swift
+private func updateExerciseEntity(_ entity: WorkoutExerciseEntity, from domain: WorkoutExercise) {
+    entity.order = domain.orderIndex
+    entity.notes = domain.notes
+    
+    // ✅ FIX: Update exerciseId (needed for exercise swap feature)
+    entity.exerciseId = domain.exerciseId
+    
+    // Update sets...
+}
+```
+
+### Files Modified
+
+**New Files:**
+- `GymBo/Presentation/Views/WorkoutDetail/ExerciseSwapSheet.swift`
+- `GymBo/Domain/UseCases/Workout/SwapExerciseUseCase.swift`
+
+**Modified Files:**
+- `GymBo/Presentation/Views/WorkoutDetail/WorkoutDetailView.swift`
+  - Added ExerciseSwapInfo struct
+  - Added exerciseToSwap state
+  - Added .sheet(item:) with dual-mode swap logic
+  - Added long-press gesture + context menu
+- `GymBo/Presentation/Stores/WorkoutStore.swift`
+  - Added WorkoutStoreError enum
+  - Added swapExercise() with dual-mode support
+  - Updated initializer for swapExerciseUseCase
+- `GymBo/Data/Mappers/WorkoutMapper.swift`
+  - **CRITICAL FIX:** updateExerciseEntity() now updates exerciseId
+- `GymBo/Infrastructure/DependencyInjection/DependencyContainer.swift`
+  - Added makeSwapExerciseUseCase()
+  - Updated makeWorkoutStore() to inject swapExerciseUseCase
+
+### User Experience
+
+**Trigger:**
+- Long-press on exercise card → Haptic feedback + sheet opens
+- OR: Tap "..." context menu → "Übung ersetzen"
+
+**Flow:**
+1. Sheet opens showing current exercise
+2. Toggle "Dauerhaft im Template ändern" visible at top (default: ON)
+3. Search/browse filtered alternatives (same muscle groups)
+4. Select alternative → Card highlights with checkmark
+5. Tap "Ersetzen" → Exercise swapped with success message
+6. View updates immediately
+
+**Modes:**
+- **Permanent (Toggle ON):** "Übung dauerhaft ersetzt" → Template saved
+- **Temporary (Toggle OFF):** "Übung temporär ersetzt" → Only this view
+
+### Technical Highlights
+
+1. **Clean Architecture:**
+   - Domain (SwapExerciseUseCase) → Presentation (Views) → Data (Mapper fix)
+   - Use case preserves ALL exercise settings (sets, reps, weight, rest, notes, order)
+
+2. **State Management:**
+   - `.sheet(item:)` pattern prevents timing issues
+   - Identifiable wrapper (ExerciseSwapInfo) for reliable sheet state
+   - Dual-mode: Repository update vs. local state update
+
+3. **Data Integrity:**
+   - WorkoutMapper fix ensures exerciseId persists correctly
+   - SwiftData exerciseId field now properly updated on swap
+
+### Lessons Learned
+
+1. **SwiftUI Sheet Patterns:**
+   - `.sheet(isPresented:)` can have timing issues with complex state
+   - `.sheet(item:)` guarantees non-nil item in closure → more reliable
+
+2. **Mapper Assumptions:**
+   - Don't assume fields are "immutable" without checking requirements
+   - Exercise swap feature revealed exerciseId needs to be mutable
+   - Comment said "immutable" but feature needed it to change
+
+3. **Toggle Positioning:**
+   - Important controls should be visible without scrolling
+   - User feedback: Toggle at bottom → "sieht man ihm im Zweifel gar nicht"
+   - Solution: Moved to top, always visible
+
+### Next Steps
+
+- ✅ Exercise Swap Feature complete and tested
+- Consider: Add "Recently Swapped" section for quick re-swap?
+- Consider: Analytics for most swapped exercises?
+- Next feature: Check TODO.md for priorities
 
 ---
 
