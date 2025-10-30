@@ -133,12 +133,23 @@ struct ExerciseSwapSheet: View {
     // MARK: - Data Loading
 
     private func loadAlternatives() async {
-        guard let container = dependencyContainer else { return }
+        print("🔍 ExerciseSwapSheet: Loading alternatives for \(currentExercise.name)")
+        print("🔍 Current muscle groups: \(currentExercise.muscleGroupsRaw)")
+
+        guard let container = dependencyContainer else {
+            print("❌ ExerciseSwapSheet: dependencyContainer is nil!")
+            await MainActor.run {
+                isLoading = false
+            }
+            return
+        }
+
         let repository = container.makeExerciseRepository()
 
         do {
             // Load all exercises
             let exercises = try await repository.fetchAll()
+            print("🔍 Loaded \(exercises.count) total exercises from repository")
 
             // Filter by same muscle groups
             let currentMuscleGroups = Set(currentExercise.muscleGroupsRaw)
