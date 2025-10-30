@@ -96,8 +96,8 @@ final class DefaultSwapExerciseUseCase: SwapExerciseUseCase {
             targetWeight: oldWorkoutExercise.targetWeight,
             restTime: oldWorkoutExercise.restTime,
             perSetRestTimes: oldWorkoutExercise.perSetRestTimes,
-            notes: oldWorkoutExercise.notes,
-            orderIndex: oldWorkoutExercise.orderIndex
+            orderIndex: oldWorkoutExercise.orderIndex,
+            notes: oldWorkoutExercise.notes
         )
 
         // Replace the exercise
