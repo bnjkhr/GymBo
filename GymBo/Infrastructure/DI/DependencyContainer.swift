@@ -47,28 +47,7 @@ final class DependencyContainer {
     }()
 
     /// Singleton SessionStore (shared across app)
-    private lazy var _sessionStore: SessionStore = {
-        SessionStore(
-            startSessionUseCase: makeStartSessionUseCase(),
-            completeSetUseCase: makeCompleteSetUseCase(),
-            endSessionUseCase: makeEndSessionUseCase(),
-            cancelSessionUseCase: makeCancelSessionUseCase(),
-            pauseSessionUseCase: makePauseSessionUseCase(),
-            resumeSessionUseCase: makeResumeSessionUseCase(),
-            updateSetUseCase: makeUpdateSetUseCase(),
-            updateAllSetsUseCase: makeUpdateAllSetsUseCase(),
-            updateExerciseNotesUseCase: makeUpdateExerciseNotesUseCase(),
-            addSetUseCase: makeAddSetUseCase(),
-            removeSetUseCase: makeRemoveSetUseCase(),
-            reorderExercisesUseCase: makeReorderExercisesUseCase(),
-            finishExerciseUseCase: makeFinishExerciseUseCase(),
-            addExerciseToSessionUseCase: makeAddExerciseToSessionUseCase(),
-            sessionRepository: makeSessionRepository(),
-            exerciseRepository: makeExerciseRepository(),
-            workoutRepository: makeWorkoutRepository(),
-            healthKitService: makeHealthKitService()
-        )
-    }()
+    private var _sessionStore: SessionStore?
 
     /// Singleton WorkoutStore (shared across app)
     private lazy var _workoutStore: WorkoutStore = {
@@ -361,8 +340,34 @@ final class DependencyContainer {
 
     /// Returns the singleton SessionStore instance
     /// - Returns: Shared SessionStore instance
+    @MainActor
     func makeSessionStore() -> SessionStore {
-        return _sessionStore
+        if let store = _sessionStore {
+            return store
+        }
+
+        let store = SessionStore(
+            startSessionUseCase: makeStartSessionUseCase(),
+            completeSetUseCase: makeCompleteSetUseCase(),
+            endSessionUseCase: makeEndSessionUseCase(),
+            cancelSessionUseCase: makeCancelSessionUseCase(),
+            pauseSessionUseCase: makePauseSessionUseCase(),
+            resumeSessionUseCase: makeResumeSessionUseCase(),
+            updateSetUseCase: makeUpdateSetUseCase(),
+            updateAllSetsUseCase: makeUpdateAllSetsUseCase(),
+            updateExerciseNotesUseCase: makeUpdateExerciseNotesUseCase(),
+            addSetUseCase: makeAddSetUseCase(),
+            removeSetUseCase: makeRemoveSetUseCase(),
+            reorderExercisesUseCase: makeReorderExercisesUseCase(),
+            finishExerciseUseCase: makeFinishExerciseUseCase(),
+            addExerciseToSessionUseCase: makeAddExerciseToSessionUseCase(),
+            sessionRepository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository(),
+            workoutRepository: makeWorkoutRepository(),
+            healthKitService: makeHealthKitService()
+        )
+        _sessionStore = store
+        return store
     }
 
     /// Returns the singleton WorkoutStore instance

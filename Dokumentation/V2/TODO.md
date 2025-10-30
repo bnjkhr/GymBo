@@ -1,9 +1,9 @@
 # GymBo V2 - TODO Liste
 
-**Stand:** 2025-10-29
-**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.4.0)
+**Stand:** 2025-10-30
+**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.5.0)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 27 - Session History & Statistics Complete
+**Letzte Änderungen:** Session 29 - ProfileView UI Polish & HealthKit Integration
 
 ---
 
@@ -363,6 +363,38 @@
 ---
 
 ## ✅ ABGESCHLOSSEN
+
+### Session 29 (2025-10-30) - ProfileView UI Polish & HealthKit Integration
+- ✅ **Greeting Header Improvements**
+  - Added comma after name in greeting: "Hey Max," → new line → "guten Morgen."
+  - Moved locker number below greeting as text link (no icon)
+  - Increased profile picture size from 32x32 to 48x48
+  - Fixed profile image aspect ratio (now maintains proportions)
+- ✅ **ProfileView Enhancements**
+  - Added height field (100-250 cm with stepper)
+  - Added weight field (30-250 kg with 0.5kg steps)
+  - Fixed error handling for body metrics updates
+- ✅ **HealthKit Integration Fixes**
+  - Added dateOfBirth permission to HealthKit authorization
+  - Fixed authorization flow: Now requests permissions when toggle is enabled
+  - Added debug logging to import function
+  - Injected HealthKitService properly into ProfileView
+  - Created MockHealthKitService for preview
+- ✅ **ExerciseDetailView Improvements**
+  - Added description section (from CSV data)
+  - Added numbered instructions section with step-by-step guide
+  - Removed placeholder sections
+  - Updated preview with example data
+- ✅ **Actor Isolation Fixes**
+  - Fixed DependencyContainer: Made `makeSessionStore()` @MainActor
+  - Changed `_sessionStore` from lazy property to manual singleton pattern
+- Files Modified: 7 (GreetingHeaderView, ProfileView, HomeView, ExerciseDetailView, HealthKitService, DependencyContainer)
+
+### Session 28 (2025-10-30) - Bugfix: Grouping Crash in Session History
+- ✅ **Fixed Fatal Crash in SessionHistoryView**
+  - Safely handle invalid/nil dates in `sessionsByMonth` grouping
+  - Added fallback date (distant past) for sessions with nil startDate
+  - Prevents crash when grouping sessions by month
 
 ### Session 27 (2025-10-29) - Session History & Statistics
 - ✅ **Domain Layer - Business Logic**

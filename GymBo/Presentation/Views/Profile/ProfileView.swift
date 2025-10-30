@@ -6,6 +6,7 @@
 //  V2 Clean Architecture - Profile View (Complete Implementation)
 //
 
+import HealthKit
 import PhotosUI
 import SwiftUI
 
@@ -31,13 +32,16 @@ struct ProfileView: View {
 
     private let userProfileRepository: UserProfileRepositoryProtocol
     private let importBodyMetricsUseCase: ImportBodyMetricsUseCase
+    private let healthKitService: HealthKitServiceProtocol
 
     init(
         userProfileRepository: UserProfileRepositoryProtocol,
-        importBodyMetricsUseCase: ImportBodyMetricsUseCase
+        importBodyMetricsUseCase: ImportBodyMetricsUseCase,
+        healthKitService: HealthKitServiceProtocol
     ) {
         self.userProfileRepository = userProfileRepository
         self.importBodyMetricsUseCase = importBodyMetricsUseCase
+        self.healthKitService = healthKitService
     }
 
     var body: some View {
@@ -56,10 +60,10 @@ struct ProfileView: View {
                     // Notifications Section
                     notificationsSection
 
-#if DEBUG
-                    // Developer Section (Feature Flags)
-                    developerSection
-#endif
+                    #if DEBUG
+                        // Developer Section (Feature Flags)
+                        developerSection
+                    #endif
                 }
                 .padding()
             }
@@ -311,6 +315,100 @@ struct ProfileView: View {
                 }
                 .padding()
                 .background(Color(.secondarySystemGroupedBackground))
+
+                Divider()
+                    .padding(.leading, 48)
+
+                // Height
+                HStack {
+                    Image(systemName: "ruler")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 24)
+
+                    Text("Größe")
+                        .font(.body)
+
+                    Spacer()
+
+                    if let height = userProfile?.height {
+                        Text("\(Int(height)) cm")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Stepper(
+                        value: Binding(
+                            get: { userProfile?.height ?? 175 },
+                            set: { newValue in
+                                Task {
+                                    do {
+                                        try await userProfileRepository.updateBodyMetrics(
+                                            bodyMass: userProfile?.bodyMass,
+                                            height: newValue
+                                        )
+                                        await loadUserProfile()
+                                    } catch {
+                                        print("❌ Failed to update height: \(error)")
+                                    }
+                                }
+                            }
+                        ),
+                        in: 100...250,
+                        step: 1
+                    ) {
+                        EmptyView()
+                    }
+                    .labelsHidden()
+                }
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
+
+                Divider()
+                    .padding(.leading, 48)
+
+                // Weight
+                HStack {
+                    Image(systemName: "scalemass")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 24)
+
+                    Text("Gewicht")
+                        .font(.body)
+
+                    Spacer()
+
+                    if let bodyMass = userProfile?.bodyMass {
+                        Text(String(format: "%.1f kg", bodyMass))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Stepper(
+                        value: Binding(
+                            get: { userProfile?.bodyMass ?? 75 },
+                            set: { newValue in
+                                Task {
+                                    do {
+                                        try await userProfileRepository.updateBodyMetrics(
+                                            bodyMass: newValue,
+                                            height: userProfile?.height
+                                        )
+                                        await loadUserProfile()
+                                    } catch {
+                                        print("❌ Failed to update body mass: \(error)")
+                                    }
+                                }
+                            }
+                        ),
+                        in: 30...250,
+                        step: 0.5
+                    ) {
+                        EmptyView()
+                    }
+                    .labelsHidden()
+                }
+                .padding()
+                .background(Color(.secondarySystemGroupedBackground))
             }
             .cornerRadius(12)
 
@@ -467,54 +565,54 @@ struct ProfileView: View {
         }
     }
 
-#if DEBUG
-    // MARK: - Developer Section (DEBUG only)
+    #if DEBUG
+        // MARK: - Developer Section (DEBUG only)
 
-    private var developerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Developer")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
+        private var developerSection: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Developer")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
 
-            VStack(spacing: 0) {
-                ForEach(Array(FeatureFlag.allCases.enumerated()), id: \.offset) { index, flag in
-                    HStack {
-                        Image(systemName: "flag")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 24)
+                VStack(spacing: 0) {
+                    ForEach(Array(FeatureFlag.allCases.enumerated()), id: \.offset) { index, flag in
+                        HStack {
+                            Image(systemName: "flag")
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 24)
 
-                        Text(flag.rawValue)
-                            .font(.body)
+                            Text(flag.rawValue)
+                                .font(.body)
 
-                        Spacer()
+                            Spacer()
 
-                        Toggle(
-                            "",
-                            isOn: Binding(
-                                get: { appSettings.isFeatureEnabled(flag) },
-                                set: { newValue in
-                                    appSettings.setFeature(flag, enabled: newValue)
-                                }
+                            Toggle(
+                                "",
+                                isOn: Binding(
+                                    get: { appSettings.isFeatureEnabled(flag) },
+                                    set: { newValue in
+                                        appSettings.setFeature(flag, enabled: newValue)
+                                    }
+                                )
                             )
-                        )
-                        .labelsHidden()
-                    }
-                    .padding()
-                    .background(Color(.secondarySystemGroupedBackground))
+                            .labelsHidden()
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemGroupedBackground))
 
-                    if index < FeatureFlag.allCases.count - 1 {
-                        Divider()
-                            .padding(.leading, 48)
+                        if index < FeatureFlag.allCases.count - 1 {
+                            Divider()
+                                .padding(.leading, 48)
+                        }
                     }
                 }
+                .cornerRadius(12)
             }
-            .cornerRadius(12)
         }
-    }
-#endif
+    #endif
 
     // MARK: - Helper Methods
 
@@ -564,13 +662,27 @@ struct ProfileView: View {
     }
 
     private func updateHealthKitEnabled(_ enabled: Bool) async {
+        // If enabling HealthKit, request authorization first
+        if enabled {
+            let result = await healthKitService.requestAuthorization()
+
+            switch result {
+            case .success:
+                print("✅ HealthKit authorization granted")
+            case .failure(let error):
+                print("❌ HealthKit authorization failed: \(error)")
+                // Don't enable if authorization failed
+                return
+            }
+        }
+
         do {
             try await userProfileRepository.updateSettings(
                 healthKitEnabled: enabled,
                 appTheme: nil
             )
             await loadUserProfile()
-            print("✅ HealthKit setting updated")
+            print("✅ HealthKit setting updated to: \(enabled)")
         } catch {
             print("❌ Failed to update HealthKit setting: \(error)")
         }
@@ -603,6 +715,7 @@ struct ProfileView: View {
     }
 
     private func importFromHealthKit() async {
+        print("🔍 Import from HealthKit started...")
         isImportingHealthData = true
         defer { isImportingHealthData = false }
 
@@ -611,12 +724,17 @@ struct ProfileView: View {
 
         switch result {
         case .success(let metrics):
+            print(
+                "📊 Imported metrics - Weight: \(metrics.bodyMass?.description ?? "nil") kg, Height: \(metrics.height?.description ?? "nil") cm, Age: \(metrics.age?.description ?? "nil") years"
+            )
+
             do {
                 // Update profile with imported data
                 var updates: [() async throws -> Void] = []
 
                 // Update body metrics if available
                 if metrics.bodyMass != nil || metrics.height != nil {
+                    print("💾 Saving body metrics...")
                     updates.append {
                         try await self.userProfileRepository.updateBodyMetrics(
                             bodyMass: metrics.bodyMass,
@@ -627,6 +745,7 @@ struct ProfileView: View {
 
                 // Update age if available
                 if let age = metrics.age {
+                    print("💾 Saving age: \(age)")
                     updates.append {
                         try await self.userProfileRepository.updatePersonalInfo(
                             name: nil,
@@ -645,7 +764,7 @@ struct ProfileView: View {
                 // Reload profile to show new data
                 await loadUserProfile()
 
-                print("✅ HealthKit data imported successfully")
+                print("✅ HealthKit data imported and saved successfully")
             } catch {
                 print("❌ Failed to save HealthKit data: \(error)")
             }
@@ -669,7 +788,8 @@ struct ProfileView: View {
 
     ProfileView(
         userProfileRepository: mockRepository,
-        importBodyMetricsUseCase: mockUseCase
+        importBodyMetricsUseCase: mockUseCase,
+        healthKitService: MockHealthKitService()
     )
     .environment(mockSettings)
 }
@@ -714,3 +834,4 @@ private class MockImportBodyMetricsUseCase: ImportBodyMetricsUseCase {
         .success(BodyMetrics(bodyMass: 75.0, height: 180.0, age: 28))
     }
 }
+

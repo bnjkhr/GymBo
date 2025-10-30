@@ -67,8 +67,19 @@ struct ExerciseDetailView: View {
                     )
                 }
 
-                // Placeholder for future content
-                placeholderSections
+                // Description Section
+                if !exercise.descriptionText.isEmpty {
+                    infoSection(
+                        title: "Beschreibung",
+                        icon: "text.alignleft",
+                        content: exercise.descriptionText
+                    )
+                }
+
+                // Instructions Section
+                if !exercise.instructions.isEmpty {
+                    instructionsSection
+                }
             }
             .padding()
         }
@@ -194,52 +205,47 @@ struct ExerciseDetailView: View {
         }
     }
 
-    private var placeholderSections: some View {
+    private var instructionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Section Header
             HStack {
-                Image(systemName: "info.circle")
+                Image(systemName: "list.number")
                     .font(.body)
                     .foregroundStyle(.primary)
 
-                Text("Weitere Informationen")
+                Text("Anleitung")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.secondary)
                     .textCase(.uppercase)
             }
 
-            // Placeholder Content
+            // Instruction Steps
             VStack(alignment: .leading, spacing: 8) {
-                placeholderRow(icon: "text.alignleft", title: "Beschreibung")
-                placeholderRow(icon: "play.rectangle", title: "Video-Anleitung")
-                placeholderRow(icon: "lightbulb", title: "Tipps & Hinweise")
+                ForEach(Array(exercise.instructions.enumerated()), id: \.offset) {
+                    index, instruction in
+                    HStack(alignment: .top, spacing: 12) {
+                        // Step Number
+                        Text("\(index + 1)")
+                            .font(.body)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .frame(width: 24, height: 24)
+                            .background(Color.accentColor)
+                            .clipShape(Circle())
+
+                        // Step Text
+                        Text(instruction)
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
+                }
             }
-
-            Text("Wird in zukünftigen Updates hinzugefügt")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
-                .padding(.top, 4)
         }
-    }
-
-    private func placeholderRow(icon: String, title: String) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .frame(width: 24)
-
-            Text(title)
-                .font(.body)
-                .foregroundStyle(.secondary)
-
-            Spacer()
-        }
-        .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .cornerRadius(12)
     }
 
     // MARK: - Actions
@@ -362,7 +368,14 @@ struct FlowLayout: Layout {
                 name: "Bankdrücken",
                 muscleGroupsRaw: ["Brust", "Schultern", "Trizeps"],
                 equipmentTypeRaw: "Langhantel",
-                difficultyLevelRaw: "Fortgeschritten"
+                difficultyLevelRaw: "Fortgeschritten",
+                descriptionText: "Langhantel von der Brust nach oben drücken",
+                instructions: [
+                    "Auf flacher Bank liegen",
+                    "Langhantel etwas breiter als schulterbreit greifen",
+                    "Zur Brust absenken",
+                    "Nach oben drücken bis Arme gestreckt",
+                ]
             )
         )
     }

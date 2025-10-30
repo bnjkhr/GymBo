@@ -46,6 +46,7 @@ final class HealthKitService: HealthKitServiceProtocol {
             HKQuantityType(.bodyMass),
             HKQuantityType(.height),
             HKQuantityType(.restingHeartRate),
+            HKObjectType.characteristicType(forIdentifier: .dateOfBirth)!,
         ]
 
         // Request authorization

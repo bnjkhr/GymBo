@@ -1,6 +1,6 @@
 # GymBo - Session Memory
 
-**Letzte Aktualisierung:** 2025-10-27 (Session 25 - ProfileView Complete Implementation)
+**Letzte Aktualisierung:** 2025-10-30 (Session 29 - ProfileView UI Polish & HealthKit Integration)
 
 ---
 
@@ -41,6 +41,283 @@
 - APPLE_HEALTH_IMPLEMENTATION_PLAN.md → Phase 1-4 complete
 - SESSION_MEMORY.md → Session 22 dokumentiert (inkl. Migration)
 - CURRENT_STATE.md → Apple Health + Migration Features dokumentiert
+
+---
+
+## ✅ Session 2025-10-30 (Session 29) - ProfileView UI Polish & HealthKit Integration
+
+**Status:** ✅ Feature Complete - Production Ready
+
+### Zusammenfassung
+Session 29 fokussierte sich auf UI/UX Polish der ProfileView und GreetingHeaderView, vollständige HealthKit Integration (Alter, Größe, Gewicht), und ExerciseDetailView mit Beschreibungen und Anleitungen.
+
+### Part 1: GreetingHeaderView Redesign ✅
+
+**Änderungen:**
+1. **Greeting Format** - Komma nach Name und Punkt nach Tageszeit
+   ```swift
+   // Vorher: "Hey Max guten Morgen"
+   // Nachher: "Hey Max,\nguten Morgen."
+   ```
+
+2. **Locker Number als Textlink** - Unterhalb der Begrüßung, kein Icon
+   ```swift
+   private struct LockerNumberTextLink: View {
+       // Ohne Nummer: "Spintnummer hinterlegen" (blau)
+       // Mit Nummer: "Spintnummer: 127" (grau)
+   }
+   ```
+
+3. **Größeres Profilbild** - 32x32 → 48x48 Pixel
+   ```swift
+   .frame(width: 48, height: 48)
+   .font(.system(size: 48))  // für Icon
+   ```
+
+4. **Fixed Aspect Ratio** - Profilbild behält Proportionen
+   ```swift
+   .aspectRatio(contentMode: .fill)  // statt .scaledToFill()
+   ```
+
+**Dateien:** `GreetingHeaderView.swift`
+
+### Part 2: ProfileView Body Metrics ✅
+
+**Neue Felder:**
+
+1. **Größe (Height)**
+   ```swift
+   HStack {
+       Image(systemName: "ruler")
+       Text("Größe")
+       Spacer()
+       Text("\(Int(height)) cm")
+       Stepper(value: $height, in: 100...250, step: 1)
+   }
+   ```
+
+2. **Gewicht (Weight)**
+   ```swift
+   HStack {
+       Image(systemName: "scalemass")
+       Text("Gewicht")
+       Spacer()
+       Text(String(format: "%.1f kg", bodyMass))
+       Stepper(value: $bodyMass, in: 30...250, step: 0.5)
+   }
+   ```
+
+**Error Handling:** Beide Stepper mit `do-catch` für `updateBodyMetrics()` calls
+
+**Dateien:** `ProfileView.swift`
+
+### Part 3: HealthKit Integration Complete ✅
+
+**Problem:** Import-Button funktionierte nicht, weil:
+1. Keine Berechtigung für `dateOfBirth` angefordert
+2. Authorization nicht beim Toggle-Aktivieren angefordert
+
+**Fixes:**
+
+1. **HealthKitService Authorization**
+   ```swift
+   // HealthKitService.swift
+   let typesToRead: Set<HKObjectType> = [
+       // ... existing types
+       HKObjectType.characteristicType(forIdentifier: .dateOfBirth)!,  // NEW
+   ]
+   ```
+
+2. **ProfileView Authorization Flow**
+   ```swift
+   private let healthKitService: HealthKitServiceProtocol  // Injected
+   
+   private func updateHealthKitEnabled(_ enabled: Bool) async {
+       if enabled {
+           let result = await healthKitService.requestAuthorization()
+           // Only enable if authorization granted
+       }
+   }
+   ```
+
+3. **Dependency Injection**
+   ```swift
+   // ProfileView initializer
+   init(
+       userProfileRepository: UserProfileRepositoryProtocol,
+       importBodyMetricsUseCase: ImportBodyMetricsUseCase,
+       healthKitService: HealthKitServiceProtocol  // NEW
+   )
+   
+   // HomeView
+   ProfileView(
+       userProfileRepository: container.makeUserProfileRepository(),
+       importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase(),
+       healthKitService: container.makeHealthKitService()  // NEW
+   )
+   ```
+
+4. **Debug Logging**
+   ```swift
+   print("🔍 Import from HealthKit started...")
+   print("📊 Imported metrics - Weight: \(weight) kg, Height: \(height) cm, Age: \(age)")
+   print("💾 Saving body metrics...")
+   ```
+
+**Dateien:** `ProfileView.swift`, `HealthKitService.swift`, `HomeView.swift`
+
+### Part 4: ExerciseDetailView Content ✅
+
+**Hinzugefügt:**
+
+1. **Beschreibung Section**
+   ```swift
+   if !exercise.descriptionText.isEmpty {
+       infoSection(
+           title: "Beschreibung",
+           icon: "text.alignleft",
+           content: exercise.descriptionText
+       )
+   }
+   ```
+
+2. **Anleitung Section** - Nummerierte Schritte
+   ```swift
+   private var instructionsSection: some View {
+       VStack(alignment: .leading, spacing: 8) {
+           ForEach(Array(exercise.instructions.enumerated()), id: \.offset) { index, instruction in
+               HStack(alignment: .top, spacing: 12) {
+                   // Numbered badge (1, 2, 3, ...)
+                   Text("\(index + 1)")
+                       .frame(width: 24, height: 24)
+                       .background(Color.accentColor)
+                       .clipShape(Circle())
+                   
+                   Text(instruction)
+               }
+           }
+       }
+   }
+   ```
+
+**Entfernt:** Placeholder sections ("Wird in zukünftigen Updates hinzugefügt")
+
+**Dateien:** `ExerciseDetailView.swift`
+
+### Part 5: Actor Isolation Fixes ✅
+
+**Problem:** `SessionStore` ist `@MainActor`, aber `DependencyContainer` nicht
+
+**Fix:**
+```swift
+// DependencyContainer.swift
+
+// OLD: Lazy property (failed)
+private lazy var _sessionStore: SessionStore = { ... }()
+
+// NEW: Optional + manual initialization
+private var _sessionStore: SessionStore?
+
+@MainActor
+func makeSessionStore() -> SessionStore {
+    if let store = _sessionStore {
+        return store
+    }
+    
+    let store = SessionStore(...)
+    _sessionStore = store
+    return store
+}
+```
+
+**Dateien:** `DependencyContainer.swift`
+
+### Files Modified (Session 29)
+
+1. **GreetingHeaderView.swift** - Redesign, locker textlink, larger profile pic
+2. **ProfileView.swift** - Height/weight fields, HealthKit integration
+3. **HomeView.swift** - Pass healthKitService to ProfileView
+4. **ExerciseDetailView.swift** - Description & instructions sections
+5. **HealthKitService.swift** - Added dateOfBirth permission
+6. **DependencyContainer.swift** - Fixed @MainActor isolation for SessionStore
+7. **TODO.md** - Updated with Session 29
+8. **SESSION_MEMORY.md** - This file
+
+### Bugs Fixed
+
+1. ❌ → ✅ **Profile image aspect ratio** - Gestaucht → Proportionen erhalten
+2. ❌ → ✅ **HealthKit import button** - Tat nichts → Funktioniert vollständig
+3. ❌ → ✅ **Missing dateOfBirth permission** - Alter wurde nicht importiert
+4. ❌ → ✅ **Actor isolation error** - DependencyContainer compile error
+5. ❌ → ✅ **Missing body metrics UI** - Keine Größe/Gewicht Felder → Vollständig
+
+### Testing Notes
+
+**HealthKit Import Flow:**
+```
+1. Toggle "Apple Health Integration" EIN
+   → iOS Permissions Popup erscheint
+   → Alle Berechtigungen erlauben (Geburtsdatum, Größe, Gewicht)
+   
+2. "Aus Apple Health importieren" Button
+   → Console: "🔍 Import from HealthKit started..."
+   → Console: "📊 Imported metrics - Weight: 75.0 kg, Height: 180.0 cm, Age: 28 years"
+   → Console: "💾 Saving body metrics..."
+   → Console: "✅ HealthKit data imported and saved successfully"
+   
+3. Verify in UI
+   → Alter: 28 Jahre
+   → Größe: 180 cm
+   → Gewicht: 75.0 kg
+```
+
+### User Experience
+
+**Before:**
+- Greeting: "Hey Max guten Morgen"
+- Locker: Small blue pill with icon
+- Profile pic: 32x32, distorted
+- Body metrics: Missing fields
+- HealthKit import: Broken (permission issues)
+- Exercise details: Only basic info, no descriptions
+
+**After:**
+- Greeting: "Hey Max,\nguten Morgen." (cleaner, professional)
+- Locker: "Spintnummer: 127" text link (minimalist)
+- Profile pic: 48x48, perfect aspect ratio
+- Body metrics: Full height/weight with steppers
+- HealthKit import: Fully functional (age, height, weight)
+- Exercise details: Full descriptions + step-by-step instructions
+
+### Technical Highlights
+
+1. **Dependency Injection Pattern** - HealthKitService properly injected
+2. **Main Actor Isolation** - Manual singleton pattern for async initialization
+3. **CSV Data Utilization** - Exercise descriptions/instructions now visible
+4. **Error Handling** - Proper try-catch in all async operations
+5. **Debug Logging** - Clear visibility into HealthKit import process
+
+### Lessons Learned
+
+1. **Always check authorization flow** - Toggle enabling ≠ Permission granted
+2. **Lazy properties don't support @MainActor closures** - Use manual initialization
+3. **Aspect ratio matters** - `.scaledToFill()` distorts, `.aspectRatio(contentMode: .fill)` preserves
+4. **Permission scopes are specific** - DateOfBirth is separate from body metrics
+5. **Debug logging is crucial** - Especially for async flows with external dependencies
+
+### Next Steps
+
+**Potential Enhancements:**
+1. BMI calculation display in ProfileView
+2. Body metrics history/chart
+3. Weekly workout goal progress indicator
+4. Export profile data
+5. Profile picture from camera (currently only gallery)
+
+**Known Limitations:**
+- Profile picture limited to 512KB
+- No profile picture editing (crop/rotate)
+- No metric history tracking
 
 ---
 

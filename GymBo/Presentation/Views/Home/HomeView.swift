@@ -883,7 +883,8 @@ struct SheetsModifier: ViewModifier {
                 if let container = dependencyContainer {
                     ProfileView(
                         userProfileRepository: container.makeUserProfileRepository(),
-                        importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase()
+                        importBodyMetricsUseCase: container.makeImportBodyMetricsUseCase(),
+                        healthKitService: container.makeHealthKitService()
                     )
                     .onDisappear {
                         // Reload profile when ProfileView closes

@@ -17,8 +17,8 @@ struct GreetingHeaderView: View {
     let userProfile: DomainUserProfile?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Greeting + Right Side Actions (Locker & Profile)
+        VStack(alignment: .leading, spacing: 8) {
+            // Greeting + Profile Button
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(greeting)
@@ -28,20 +28,15 @@ struct GreetingHeaderView: View {
 
                     if let timeOfDay = timeOfDayGreeting {
                         Text(timeOfDay)
-                            .font(.title3)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
                             .foregroundStyle(.secondary)
                     }
                 }
 
                 Spacer()
 
-                // Locker Number Widget (Compact)
-                LockerNumberButton(
-                    lockerNumber: lockerNumber,
-                    showLockerInput: $showLockerInput
-                )
-
-                // Profile Button with Image or Icon
+                // Profile Button with Image or Icon (larger)
                 Button {
                     showProfile = true
                 } label: {
@@ -51,19 +46,25 @@ struct GreetingHeaderView: View {
                         // Show profile image
                         Image(uiImage: uiImage)
                             .resizable()
-                            .scaledToFill()
-                            .frame(width: 32, height: 32)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 48, height: 48)
                             .clipShape(Circle())
                     } else {
                         // Show default icon
                         Image(systemName: "person.circle")
-                            .font(.title2)
+                            .font(.system(size: 48))
                             .foregroundStyle(.primary)
                     }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Profil öffnen")
             }
+
+            // Locker Number as Text Link (below greeting)
+            LockerNumberTextLink(
+                lockerNumber: lockerNumber,
+                showLockerInput: $showLockerInput
+            )
         }
         .padding(.horizontal)
         .padding(.top, 8)
@@ -75,97 +76,70 @@ struct GreetingHeaderView: View {
 
     private var greeting: String {
         if let name = userProfile?.name, !name.isEmpty {
-            return "Hey \(name)"
+            return "Hey \(name),"
         } else {
             return "Hey"
         }
     }
 
     private var timeOfDayGreeting: String? {
-        // Only show time-of-day greeting if name is set
-        guard userProfile?.name != nil else {
-            // Fallback to old full greeting
-            let hour = Calendar.current.component(.hour, from: Date())
-            switch hour {
-            case 5..<12:
-                return "guten Morgen!"
-            case 18..<24, 0..<5:
-                return "guten Abend!"
-            default:
-                return nil
-            }
-        }
-
         let hour = Calendar.current.component(.hour, from: Date())
+        let hasName = userProfile?.name != nil
+
         switch hour {
         case 5..<12:
-            return "guten Morgen"
+            return hasName ? "guten Morgen!" : "guten Morgen!"
         case 18..<24, 0..<5:
-            return "guten Abend"
+            return hasName ? "guten Abend!" : "guten Abend!"
         default:
             return nil
         }
     }
 }
 
-// MARK: - Locker Number Button (Compact Widget)
+// MARK: - Locker Number Text Link
 
-private struct LockerNumberButton: View {
+private struct LockerNumberTextLink: View {
     let lockerNumber: String?
     @Binding var showLockerInput: Bool
     @State private var showDeleteConfirmation = false
     @AppStorage("lockerNumber") private var storedLockerNumber: String?
 
     var body: some View {
-        if let number = lockerNumber {
-            // Unlocked state: Show number as pill
-            Button {
+        Button {
+            if lockerNumber != nil {
                 showDeleteConfirmation = true
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "lock.open.fill")
-                        .font(.caption)
-                    Text(number)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .monospacedDigit()
-                }
-                .foregroundStyle(.blue)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(Color.blue.opacity(0.12))
-                )
-                .overlay(
-                    Capsule()
-                        .strokeBorder(Color.blue.opacity(0.3), lineWidth: 1)
-                )
+            } else {
+                showLockerInput = true
             }
-            .buttonStyle(ScaleButtonStyle())
-            .confirmationDialog("Spintnummer", isPresented: $showDeleteConfirmation) {
-                Button("Nummer ändern") {
-                    showLockerInput = true
+        } label: {
+            if let number = lockerNumber {
+                // Show: "Spintnummer: XX"
+                Text("Spintnummer: \(number)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                // Show: "Spintnummer hinterlegen"
+                Text("Spintnummer hinterlegen")
+                    .font(.subheadline)
+                    .foregroundStyle(.blue)
+            }
+        }
+        .buttonStyle(.plain)
+        .confirmationDialog("Spintnummer", isPresented: $showDeleteConfirmation) {
+            Button("Nummer ändern") {
+                showLockerInput = true
+            }
+            Button("Nummer löschen", role: .destructive) {
+                withAnimation(.spring(response: 0.3)) {
+                    storedLockerNumber = nil
                 }
-                Button("Nummer löschen", role: .destructive) {
-                    withAnimation(.spring(response: 0.3)) {
-                        storedLockerNumber = nil
-                    }
-                }
-                Button("Abbrechen", role: .cancel) {}
-            } message: {
+            }
+            Button("Abbrechen", role: .cancel) {}
+        } message: {
+            if let number = lockerNumber {
                 Text("Spint \(number)")
             }
-        } else {
-            // Locked state: Show lock icon
-            Button {
-                showLockerInput = true
-            } label: {
-                Image(systemName: "lock.fill")
-                    .font(.title3)
-                    .foregroundColor(.appOrange)
-            }
-            .buttonStyle(ScaleButtonStyle())
         }
     }
 }
