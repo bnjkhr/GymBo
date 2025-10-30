@@ -82,6 +82,9 @@ final class SessionStore {
     private let reorderExercisesUseCase: ReorderExercisesUseCase
     private let finishExerciseUseCase: FinishExerciseUseCase
     private let addExerciseToSessionUseCase: AddExerciseToSessionUseCase
+    private let completeGroupSetUseCase: CompleteGroupSetUseCase?  // V6: Superset/Circuit
+    private let updateGroupSetUseCase: UpdateGroupSetUseCase?  // V6: Superset/Circuit
+    private let advanceToNextRoundUseCase: AdvanceToNextRoundUseCase?  // V6: Superset/Circuit
     private let sessionRepository: SessionRepositoryProtocol
     private let exerciseRepository: ExerciseRepositoryProtocol
     private let workoutRepository: WorkoutRepositoryProtocol
@@ -109,6 +112,9 @@ final class SessionStore {
         reorderExercisesUseCase: ReorderExercisesUseCase,
         finishExerciseUseCase: FinishExerciseUseCase,
         addExerciseToSessionUseCase: AddExerciseToSessionUseCase,
+        completeGroupSetUseCase: CompleteGroupSetUseCase? = nil,  // V6: Optional for backward compatibility
+        updateGroupSetUseCase: UpdateGroupSetUseCase? = nil,  // V6: Optional for backward compatibility
+        advanceToNextRoundUseCase: AdvanceToNextRoundUseCase? = nil,  // V6: Optional for backward compatibility
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol,
         workoutRepository: WorkoutRepositoryProtocol,
@@ -129,6 +135,9 @@ final class SessionStore {
         self.reorderExercisesUseCase = reorderExercisesUseCase
         self.finishExerciseUseCase = finishExerciseUseCase
         self.addExerciseToSessionUseCase = addExerciseToSessionUseCase
+        self.completeGroupSetUseCase = completeGroupSetUseCase  // V6
+        self.updateGroupSetUseCase = updateGroupSetUseCase  // V6
+        self.advanceToNextRoundUseCase = advanceToNextRoundUseCase  // V6
         self.workoutRepository = workoutRepository
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
@@ -906,6 +915,128 @@ final class SessionStore {
         } catch {
             self.error = error
             print("❌ Failed to add exercise: \(error)")
+        }
+    }
+
+    // MARK: - V6: Grouped Workout Actions (Superset/Circuit)
+
+    /// Complete a set within a grouped workout (superset or circuit)
+    /// - Parameters:
+    ///   - groupIndex: Index of the group containing the exercise
+    ///   - exerciseId: ID of the exercise containing the set
+    ///   - setId: ID of the set to complete
+    func completeGroupSet(groupIndex: Int, exerciseId: UUID, setId: UUID) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        guard let useCase = completeGroupSetUseCase else {
+            print("⚠️ CompleteGroupSetUseCase not available")
+            return
+        }
+
+        do {
+            try await useCase.execute(
+                sessionId: sessionId,
+                groupIndex: groupIndex,
+                exerciseId: exerciseId,
+                setId: setId
+            )
+
+            // Refresh session from repository
+            await refreshCurrentSession()
+
+            print("✅ Group set completed successfully")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to complete group set: \(error)")
+            await refreshCurrentSession()
+        }
+    }
+
+    /// Update weight/reps for a set within a grouped workout
+    /// - Parameters:
+    ///   - groupIndex: Index of the group containing the exercise
+    ///   - exerciseId: ID of the exercise containing the set
+    ///   - setId: ID of the set to update
+    ///   - weight: New weight value (optional)
+    ///   - reps: New reps value (optional)
+    func updateGroupSet(
+        groupIndex: Int,
+        exerciseId: UUID,
+        setId: UUID,
+        weight: Double? = nil,
+        reps: Int? = nil
+    ) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        guard let useCase = updateGroupSetUseCase else {
+            print("⚠️ UpdateGroupSetUseCase not available")
+            return
+        }
+
+        do {
+            _ = try await useCase.execute(
+                sessionId: sessionId,
+                groupIndex: groupIndex,
+                exerciseId: exerciseId,
+                setId: setId,
+                weight: weight,
+                reps: reps
+            )
+
+            // Refresh session from repository
+            await refreshCurrentSession()
+
+            print("✅ Group set updated successfully")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to update group set: \(error)")
+            await refreshCurrentSession()
+        }
+    }
+
+    /// Advance to next round in a grouped workout (manual progression)
+    /// - Parameter groupIndex: Index of the group to advance
+    func advanceToNextRound(groupIndex: Int) async {
+        guard let sessionId = currentSession?.id else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        guard let useCase = advanceToNextRoundUseCase else {
+            print("⚠️ AdvanceToNextRoundUseCase not available")
+            return
+        }
+
+        do {
+            try await useCase.execute(sessionId: sessionId, groupIndex: groupIndex)
+
+            // Refresh session from repository
+            await refreshCurrentSession()
+
+            showSuccessMessage("Nächste Runde!")
+            print("✅ Advanced to next round")
+
+        } catch {
+            self.error = error
+            print("❌ Failed to advance to next round: \(error)")
+            await refreshCurrentSession()
         }
     }
 

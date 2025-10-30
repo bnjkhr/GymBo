@@ -46,8 +46,9 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
             SchemaV3.self,  // ✅ Added: Expanded UserProfileEntity with full profile data
             SchemaV4.self,  // ✅ Added: isWarmup and restTime to SessionSetEntity
             SchemaV5.self,  // ✅ Added: warmupStrategy to WorkoutEntity
+            SchemaV6.self,  // ✅ Added: workoutType, exerciseGroups for superset/circuit training
             // Future versions will be added here:
-            // SchemaV6.self,
+            // SchemaV7.self,
             // ...
         ]
     }
@@ -63,8 +64,9 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
             migrateV2toV3,
             migrateV3toV4,
             migrateV4toV5,
+            migrateV5toV6,
             // Future migrations will be added here:
-            // migrateV5toV6,
+            // migrateV6toV7,
             // ...
         ]
     }
@@ -145,6 +147,32 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     static let migrateV4toV5 = MigrationStage.lightweight(
         fromVersion: SchemaV4.self,
         toVersion: SchemaV5.self
+    )
+
+    // MARK: - V5 → V6 Migration
+
+    /// Migration from V5 to V6: Add superset and circuit training support
+    ///
+    /// **Changes:**
+    /// - WorkoutEntity: Add workoutType field (String, default: "standard")
+    /// - WorkoutEntity: Add exerciseGroups relationship (optional)
+    /// - WorkoutExerciseEntity: Add groupId field (UUID?, optional)
+    /// - NEW: ExerciseGroupEntity for grouping exercises
+    /// - WorkoutSessionEntity: Add workoutType field (String, default: "standard")
+    /// - WorkoutSessionEntity: Add exerciseGroups relationship (optional)
+    /// - SessionExerciseEntity: Add groupId field (UUID?, optional)
+    /// - NEW: SessionExerciseGroupEntity for active session groups
+    ///
+    /// **Why:** Enable superset (paired exercises) and circuit training (station rotation)
+    ///         without breaking existing standard workouts
+    ///
+    /// **Backward Compatibility:**
+    /// - All existing workouts remain as workoutType = "standard"
+    /// - All new fields are optional with safe defaults
+    /// - No data loss or breaking changes
+    static let migrateV5toV6 = MigrationStage.lightweight(
+        fromVersion: SchemaV5.self,
+        toVersion: SchemaV6.self
     )
 
     // MARK: - Future Migration Stages (Examples)

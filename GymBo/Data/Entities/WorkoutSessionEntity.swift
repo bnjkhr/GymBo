@@ -57,6 +57,13 @@ final class WorkoutSessionEntity {
     @Relationship(deleteRule: .cascade, inverse: \SessionExerciseEntity.session)
     var exercises: [SessionExerciseEntity]
 
+    /// V6: Workout type copied from template ("standard", "superset", "circuit")
+    var workoutType: String = "standard"
+
+    /// V6: Exercise groups for active superset/circuit sessions
+    @Relationship(deleteRule: .cascade, inverse: \SessionExerciseGroupEntity.session)
+    var exerciseGroups: [SessionExerciseGroupEntity]?
+
     // MARK: - Initialization
 
     init(
@@ -67,7 +74,9 @@ final class WorkoutSessionEntity {
         state: String = "active",
         workoutName: String? = nil,
         healthKitSessionId: String? = nil,
-        exercises: [SessionExerciseEntity] = []
+        exercises: [SessionExerciseEntity] = [],
+        workoutType: String = "standard",
+        exerciseGroups: [SessionExerciseGroupEntity]? = nil
     ) {
         self.id = id
         self.workoutId = workoutId
@@ -77,6 +86,8 @@ final class WorkoutSessionEntity {
         self.workoutName = workoutName
         self.healthKitSessionId = healthKitSessionId
         self.exercises = exercises
+        self.workoutType = workoutType
+        self.exerciseGroups = exerciseGroups
     }
 }
 

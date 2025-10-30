@@ -11,7 +11,10 @@ import SwiftUI
 /// Main view for active workout session - NEW DESIGN
 ///
 /// **Features:**
-/// - ScrollView showing ALL exercises (not TabView)
+/// - Routes to appropriate view based on workout type:
+///   - Standard: ScrollView showing ALL exercises (not TabView)
+///   - Superset: SupersetWorkoutView with paired exercises
+///   - Circuit: CircuitWorkoutView with station rotation
 /// - Timer section at top (conditional - only when rest timer active)
 /// - Eye icon to show/hide completed exercises
 /// - Bottom action bar (fixed)
@@ -42,6 +45,31 @@ struct ActiveWorkoutSheetView: View {
     // MARK: - Body
 
     var body: some View {
+        // Route to appropriate view based on workout type
+        if let session = sessionStore.currentSession {
+            switch session.workoutType {
+            case .superset:
+                SupersetWorkoutView()
+                    .environment(sessionStore)
+            case .circuit:
+                CircuitWorkoutView()
+                    .environment(sessionStore)
+            case .standard:
+                standardWorkoutView
+            }
+        } else {
+            // No session - dismiss immediately
+            Color.clear
+                .onAppear {
+                    dismiss()
+                }
+        }
+    }
+
+    // MARK: - Standard Workout View
+
+    /// Standard workout view (original design for sequential exercises)
+    private var standardWorkoutView: some View {
         NavigationStack {
             ZStack {
                 // Show workout UI only if active session exists
@@ -152,6 +180,7 @@ struct ActiveWorkoutSheetView: View {
                 }
             }
         }
+        // End of standardWorkoutView NavigationStack
     }
 
     // MARK: - Helpers

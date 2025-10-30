@@ -96,6 +96,10 @@ final class WorkoutExerciseEntity {
     var order: Int = 0  // Maintains the order of exercises in the workout (default 0 for existing data)
     var notes: String?  // Optional notes for this exercise (persisted across sessions)
 
+    // V6: Reference to exercise group (for superset/circuit workouts)
+    var groupId: UUID?
+    var group: ExerciseGroupEntity?
+
     init(
         id: UUID = UUID(),
         exerciseId: UUID? = nil,
@@ -104,7 +108,8 @@ final class WorkoutExerciseEntity {
         workout: WorkoutEntity? = nil,
         session: WorkoutSessionEntity? = nil,
         order: Int = 0,
-        notes: String? = nil
+        notes: String? = nil,
+        groupId: UUID? = nil
     ) {
         self.id = id
         self.exerciseId = exerciseId ?? exercise?.id
@@ -114,6 +119,30 @@ final class WorkoutExerciseEntity {
         self.session = session
         self.order = order
         self.notes = notes
+        self.groupId = groupId
+    }
+}
+
+// MARK: - ExerciseGroupEntity (V6: Superset/Circuit Support)
+@Model
+final class ExerciseGroupEntity {
+    @Attribute(.unique) var id: UUID
+    var groupIndex: Int  // Order of this group within the workout
+    var restAfterGroup: TimeInterval  // Rest time after completing the full group/round
+    @Relationship(deleteRule: .cascade, inverse: \WorkoutExerciseEntity.group)
+    var exercises: [WorkoutExerciseEntity]
+    var workout: WorkoutEntity?
+
+    init(
+        id: UUID = UUID(),
+        groupIndex: Int = 0,
+        restAfterGroup: TimeInterval = 120,
+        exercises: [WorkoutExerciseEntity] = []
+    ) {
+        self.id = id
+        self.groupIndex = groupIndex
+        self.restAfterGroup = restAfterGroup
+        self.exercises = exercises
     }
 }
 
@@ -171,6 +200,13 @@ final class WorkoutEntity {
     /// Values: "standard", "conservative", "minimal", "none", or nil for no default
     var warmupStrategy: String? = nil
 
+    /// V6: Workout type - "standard", "superset", or "circuit" (default: "standard")
+    var workoutType: String = "standard"
+
+    /// V6: Exercise groups for superset/circuit training (nil for standard workouts)
+    @Relationship(deleteRule: .cascade, inverse: \ExerciseGroupEntity.workout)
+    var exerciseGroups: [ExerciseGroupEntity]?
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -185,7 +221,9 @@ final class WorkoutEntity {
         equipmentType: String? = nil,
         folder: WorkoutFolderEntity? = nil,
         orderInFolder: Int = 0,
-        warmupStrategy: String? = nil
+        warmupStrategy: String? = nil,
+        workoutType: String = "standard",
+        exerciseGroups: [ExerciseGroupEntity]? = nil
     ) {
         self.id = id
         self.name = name
@@ -202,6 +240,8 @@ final class WorkoutEntity {
         self.folder = folder
         self.orderInFolder = orderInFolder
         self.warmupStrategy = warmupStrategy
+        self.workoutType = workoutType
+        self.exerciseGroups = exerciseGroups
     }
 
     /// Performance: Update cached exercise count
