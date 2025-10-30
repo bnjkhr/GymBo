@@ -49,6 +49,7 @@ struct WorkoutDetailView: View {
     @State private var showEditWorkout = false
     @State private var showDeleteConfirmation = false
     @State private var exerciseToSwap: ExerciseSwapInfo?
+    @State private var selectedWarmupStrategy: WarmupCalculator.Strategy?
 
     // MARK: - Initialization
 
@@ -61,6 +62,7 @@ struct WorkoutDetailView: View {
         self.openExercisePickerOnAppear = openExercisePickerOnAppear
         self._workout = State(initialValue: workout)
         self._isFavorite = State(initialValue: workout.isFavorite)
+        self._selectedWarmupStrategy = State(initialValue: workout.warmupStrategy)
     }
 
     // MARK: - Body
@@ -74,7 +76,7 @@ struct WorkoutDetailView: View {
                         statsSection(for: workout)
 
                         // Warmup Strategy Picker
-                        warmupStrategyPicker(for: workout)
+                        warmupStrategyPicker()
 
                         // Start Button (directly below stats)
                         startButton
@@ -275,7 +277,7 @@ struct WorkoutDetailView: View {
 
     /// Warmup strategy picker
     @ViewBuilder
-    private func warmupStrategyPicker(for workout: Workout) -> some View {
+    private func warmupStrategyPicker() -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label("Aufwärm-Strategie", systemImage: "flame.fill")
@@ -293,14 +295,14 @@ struct WorkoutDetailView: View {
                         title: "Keine",
                         icon: "xmark.circle",
                         strategy: .none,
-                        currentStrategy: workout.warmupStrategy
+                        currentStrategy: selectedWarmupStrategy
                     )
 
                     strategyButton(
                         title: "Standard",
                         icon: "flame",
                         strategy: .standard,
-                        currentStrategy: workout.warmupStrategy,
+                        currentStrategy: selectedWarmupStrategy,
                         detail: "40%, 60%, 80%"
                     )
 
@@ -308,7 +310,7 @@ struct WorkoutDetailView: View {
                         title: "Konservativ",
                         icon: "flame.fill",
                         strategy: .conservative,
-                        currentStrategy: workout.warmupStrategy,
+                        currentStrategy: selectedWarmupStrategy,
                         detail: "30%, 50%, 70%, 85%"
                     )
 
@@ -316,7 +318,7 @@ struct WorkoutDetailView: View {
                         title: "Minimal",
                         icon: "bolt.fill",
                         strategy: .minimal,
-                        currentStrategy: workout.warmupStrategy,
+                        currentStrategy: selectedWarmupStrategy,
                         detail: "50%, 75%"
                     )
                 }
@@ -685,9 +687,12 @@ struct WorkoutDetailView: View {
 
     /// Update warmup strategy for this workout
     private func updateWarmupStrategy(_ strategy: WarmupCalculator.Strategy) async {
+        // Update local state immediately for responsive UI
+        selectedWarmupStrategy = strategy
+
         guard var currentWorkout = workout else { return }
 
-        // Update local workout optimistically
+        // Update workout object
         currentWorkout.warmupStrategy = strategy
         workout = currentWorkout
 
@@ -697,6 +702,7 @@ struct WorkoutDetailView: View {
         // Refresh from store
         if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
+            selectedWarmupStrategy = updatedWorkout.warmupStrategy
         }
     }
 
