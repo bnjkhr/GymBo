@@ -601,6 +601,7 @@ final class WorkoutStore {
                 removeExerciseFromWorkoutUseCase: MockRemoveExerciseFromWorkoutUseCase(),
                 reorderWorkoutExercisesUseCase: MockReorderWorkoutExercisesUseCase(),
                 updateWorkoutExerciseUseCase: MockUpdateWorkoutExerciseUseCase(),
+                swapExerciseUseCase: MockSwapExerciseUseCase(),
                 workoutRepository: MockWorkoutRepository()
             )
 
@@ -712,6 +713,18 @@ final class WorkoutStore {
         ) async throws -> Workout {
             var workout = Workout(name: "Mock Workout")
             // Mock: return workout with updated exercise
+            return workout
+        }
+    }
+
+    private final class MockSwapExerciseUseCase: SwapExerciseUseCase {
+        func execute(
+            workoutId: UUID,
+            oldExerciseId: UUID,
+            newExerciseId: UUID
+        ) async throws -> Workout {
+            var workout = Workout(name: "Mock Workout")
+            // Mock: return workout with swapped exercise
             return workout
         }
     }
