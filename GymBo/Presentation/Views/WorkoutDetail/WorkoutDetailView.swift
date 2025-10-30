@@ -452,9 +452,20 @@ struct WorkoutDetailView: View {
             print("🔵 WorkoutDetailView: Fetching exercise from repository...")
             if let exerciseEntity = try await repository.fetch(id: exercise.exerciseId) {
                 print("✅ WorkoutDetailView: Exercise loaded: \(exerciseEntity.name)")
-                exerciseToSwap = (workoutExercise: exercise, exercise: exerciseEntity)
-                print("🔵 WorkoutDetailView: Setting showExerciseSwapSheet = true")
-                showExerciseSwapSheet = true
+
+                // Ensure state is set on MainActor
+                await MainActor.run {
+                    exerciseToSwap = (workoutExercise: exercise, exercise: exerciseEntity)
+                    print("🔵 WorkoutDetailView: exerciseToSwap set: \(exerciseToSwap != nil)")
+                }
+
+                // Small delay to ensure state is committed before showing sheet
+                try? await Task.sleep(nanoseconds: 100_000_000)  // 0.1 seconds
+
+                await MainActor.run {
+                    showExerciseSwapSheet = true
+                    print("🔵 WorkoutDetailView: showExerciseSwapSheet = \(showExerciseSwapSheet)")
+                }
             } else {
                 print("⚠️ Exercise not found: \(exercise.exerciseId)")
             }
