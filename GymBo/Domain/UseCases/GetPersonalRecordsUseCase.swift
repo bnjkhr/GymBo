@@ -48,7 +48,8 @@ struct GetPersonalRecordsUseCase: GetPersonalRecordsUseCaseProtocol {
 
     /// Get all personal records from all sessions
     func execute() async throws -> [WorkoutStatistics.PersonalRecord] {
-        let sessions = try await sessionRepository.getAllSessions()
+        // Fetch a large number of recent sessions (effectively all)
+        let sessions = try await sessionRepository.fetchRecentSessions(limit: 10000)
         return prService.detectPersonalRecords(in: sessions)
     }
 
@@ -56,7 +57,8 @@ struct GetPersonalRecordsUseCase: GetPersonalRecordsUseCaseProtocol {
     /// - Parameter days: Number of days to look back (default: 7)
     /// - Returns: Array of recent personal records
     func getRecent(days: Int = 7) async throws -> [WorkoutStatistics.PersonalRecord] {
-        let sessions = try await sessionRepository.getAllSessions()
+        // Fetch a large number of recent sessions
+        let sessions = try await sessionRepository.fetchRecentSessions(limit: 10000)
         return prService.getRecentPRs(from: sessions, days: days)
     }
 
