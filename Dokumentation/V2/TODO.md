@@ -662,3 +662,6 @@ catch {
 ---
 
 **Last Updated:** 2025-10-29 - Session 26 Feature Flags Complete
+
+### Session 28 (2025-10-30) - Bugfix: Grouping Crash in Session History
+- ✅ BUGFIX: SessionHistoryStore.swift: sessionsByMonth grouping avoids force unwrap, skips invalid dates, cannot crash on nil grouping key

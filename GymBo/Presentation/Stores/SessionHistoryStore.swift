@@ -146,18 +146,19 @@ final class SessionHistoryStore {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMMM yyyy"
 
-        let grouped = Dictionary(grouping: sessions) { session in
+        let dateSessionPairs = sessions.compactMap { session -> (Date, DomainWorkoutSession)? in
             let components = calendar.dateComponents([.year, .month], from: session.startDate)
-            return calendar.date(from: components)!
+            guard let date = calendar.date(from: components) else { return nil }
+            return (date, session)
         }
+        let grouped = Dictionary(grouping: dateSessionPairs, by: { $0.0 })
 
-        return
-            grouped
+        return grouped
             .sorted { $0.key > $1.key }
             .map {
                 (
                     dateFormatter.string(from: $0.key),
-                    $0.value.sorted { $0.startDate > $1.startDate }
+                    $0.value.map { $0.1 }.sorted { $0.startDate > $1.startDate }
                 )
             }
     }

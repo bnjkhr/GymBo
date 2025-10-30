@@ -1427,3 +1427,12 @@ private struct PerSetRestTimePickerView: View {
 ## ✅ Session 2025-10-25 (Session 18) - Ganzkörper Maschine Workout Update
 
 [... Rest bleibt unverändert ...]
+
+---
+
+## ✅ Session 28 (2025-10-30) - Grouping Bugfix: SessionHistoryStore.swift
+
+**Bugfix:**
+- The force-unwrap on calendar.date(from:) in sessionsByMonth (SessionHistoryStore.swift) was replaced with a safe compactMap and proper optional handling.
+- Sessions with nil grouping dates are now safely skipped, preventing crashes due to invalid dates.
+- Result: Code is more robust; session history view cannot crash due to date grouping bugs.
