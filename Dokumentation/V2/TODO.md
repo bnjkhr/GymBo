@@ -3,7 +3,7 @@
 **Stand:** 2025-10-30
 **Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.5.0)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 30 - SessionHistoryView Phase 4 Animations & Polish
+**Letzte Änderungen:** Session 32 - Aufwärmsätze (Warmup Sets) Complete
 
 ---
 
@@ -22,7 +22,7 @@
 - [ ] **Progression** - Automatische Gewichtssteigerung & Progression Tracking
 - [ ] **Widgets** - iOS Home Screen Widgets für schnellen Zugriff
 - [ ] **Workout Import** - Workouts von anderen Plattformen importieren
-- [ ] **Aufwärmsätze** - Warmup sets für bessere Trainingsstruktur
+- [x] ~~**Aufwärmsätze**~~ - Warmup sets für bessere Trainingsstruktur (DONE Session 32)
 
 ### 🟢 Low Priority / Nice-to-Have
 
@@ -163,7 +163,7 @@
 ---
 
 ### 3. Aufwärmsätze (Medium Effort - 4-5 Std)
-**Status:** 🔴 High Priority (Kanban)
+**Status:** ✅ DONE (Session 32)
 **Ziel:** Warmup sets vor Arbeitssätzen
 
 **Features:**
@@ -172,10 +172,22 @@
 - Separate Statistiken (warmup vs. working sets)
 - Optional: Warmup templates
 
+**Implementiert:**
+- Phase 1: Schema migration V3→V4 with `isWarmup: Bool` and `restTime: TimeInterval?`
+- Phase 2: AddWarmupSetsSheet with strategy selection (standard, conservative, minimal, custom)
+- WarmupCalculator with percentage-based progression (40%, 60%, 80%)
+- Visual distinction with orange "W" badge on warmup sets
+- SessionStore.addWarmupSets() inserts warmup sets before working sets
+- Proper orderIndex management for set sequencing
+- CompactExerciseCard shows "Aufwärmen" button (flame icon) when no warmup sets exist
+
 **Dateien:**
-- Update `SessionSet` Entity mit `isWarmup: Bool`
-- Update UI in `CompactSetRow`
-- Update Use Cases für Set-Creation
+- NEW: `WarmupCalculator.swift` - Warmup calculation strategies
+- NEW: `AddWarmupSetsSheet.swift` - UI for warmup strategy selection
+- NEW: `SchemaV4.swift` - Database schema with warmup support
+- MODIFIED: `SessionSetEntity.swift`, `DomainSessionSet.swift`, `SessionMapper.swift`
+- MODIFIED: `SessionStore.swift`, `CompactExerciseCard.swift`, `CompactSetRow.swift`
+- MODIFIED: `ActiveWorkoutSheetView.swift`, `GymBoApp.swift`, `GymBoMigrationPlan.swift`
 
 ---
 
@@ -360,6 +372,32 @@
 ---
 
 ## ✅ ABGESCHLOSSEN
+
+### Session 32 (2025-10-30) - Aufwärmsätze (Warmup Sets) Feature
+- ✅ **Phase 1 - Schema Migration & Data Layer**
+  - Created SchemaV4 with `isWarmup: Bool` and `restTime: TimeInterval?` fields
+  - Updated SessionSetEntity to match SchemaV4
+  - Extended DomainSessionSet domain model with warmup support
+  - Updated GymBoMigrationPlan with V3→V4 lightweight migration
+  - Updated SessionMapper to handle new fields (toEntity, toDomain, updateSetEntity)
+  - Updated GymBoApp to use SchemaV4 for production
+  - Created WarmupCalculator utility with strategy pattern
+  - Added warmup badge to CompactSetRow (orange "W" circle)
+- ✅ **Phase 2 - UI & Functionality**
+  - Created AddWarmupSetsSheet with strategy selection UI
+  - Strategies: standard (40/60/80%), conservative (30/50/70/85%), minimal (50/75%), custom
+  - Added addWarmupSets() method to SessionStore
+  - Warmup sets inserted before working sets with proper orderIndex management
+  - Added onAddWarmupSets callback to CompactExerciseCard
+  - Added "Aufwärmen" button (flame icon + orange styling) to exercise header
+  - Button only shows when no warmup sets exist yet
+  - Connected sheet to ActiveWorkoutSheetView
+- ✅ **Bug Fixes**
+  - Fixed missing onAddWarmupSets parameter in previews
+  - Fixed Strategy enum ambiguity with SwiftUI's .standard by using explicit type qualification
+  - Added Equatable conformance to Strategy enum
+- Files: WarmupCalculator.swift (NEW), AddWarmupSetsSheet.swift (NEW), SchemaV4.swift (NEW), SessionStore.swift, CompactExerciseCard.swift, CompactSetRow.swift, ActiveWorkoutSheetView.swift, SessionMapper.swift, DomainSessionSet.swift, SessionSetEntity.swift, GymBoApp.swift, GymBoMigrationPlan.swift
+- Commits: 7695e87 (Phase 1), c1e29be (Phase 2)
 
 ### Session 31 (2025-10-30) - Exercise Swap Feature
 - ✅ **Exercise Swap Implementation**
