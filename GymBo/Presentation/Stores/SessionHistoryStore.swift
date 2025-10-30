@@ -57,6 +57,9 @@ final class SessionHistoryStore {
     /// Current statistics period
     private(set) var currentPeriod: WorkoutStatistics.TimePeriod = .week
 
+    /// Whether to include warmup sets in statistics
+    var includeWarmupSets: Bool = false
+
     /// Loading state for history
     private(set) var isLoadingHistory = false
 
@@ -114,7 +117,10 @@ final class SessionHistoryStore {
 
         do {
             statistics = try await calculateStatsUseCase.execute(
-                period: period, referenceDate: Date())
+                period: period,
+                referenceDate: Date(),
+                includeWarmupSets: includeWarmupSets
+            )
         } catch {
             self.error = error
             statistics = nil
@@ -148,7 +154,8 @@ final class SessionHistoryStore {
             // Load current week
             weekStats = try await calculateStatsUseCase.execute(
                 period: .week,
-                referenceDate: Date()
+                referenceDate: Date(),
+                includeWarmupSets: includeWarmupSets
             )
 
             // Load previous week (7 days ago)
@@ -156,13 +163,15 @@ final class SessionHistoryStore {
                 Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
             previousWeekStats = try await calculateStatsUseCase.execute(
                 period: .week,
-                referenceDate: previousWeekDate
+                referenceDate: previousWeekDate,
+                includeWarmupSets: includeWarmupSets
             )
 
             // Load all-time stats
             allTimeStats = try await calculateStatsUseCase.execute(
                 period: .allTime,
-                referenceDate: Date()
+                referenceDate: Date(),
+                includeWarmupSets: includeWarmupSets
             )
 
             // Calculate personal records

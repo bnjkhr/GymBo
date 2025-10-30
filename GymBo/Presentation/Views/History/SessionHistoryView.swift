@@ -83,6 +83,10 @@ struct SessionHistoryView: View {
                     .padding(.top, 8)
                     .cardEntryAnimation(delay: 0.1)
 
+                // Warmup Toggle
+                warmupToggleView
+                    .padding(.horizontal, 16)
+
                 // Hero Stats Card
                 HeroStatsCard(
                     weekStats: historyStore.weekStats,
@@ -209,6 +213,34 @@ struct SessionHistoryView: View {
     private struct SessionGroup {
         let section: String
         let sessions: [DomainWorkoutSession]
+    }
+
+    private var warmupToggleView: some View {
+        HStack {
+            Label("Aufwärmsätze einbeziehen", systemImage: "flame.fill")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            Toggle(
+                "",
+                isOn: Binding(
+                    get: { historyStore.includeWarmupSets },
+                    set: { newValue in
+                        historyStore.includeWarmupSets = newValue
+                        Task {
+                            await historyStore.refreshStatistics()
+                            await historyStore.loadMultiPeriodStatistics()
+                        }
+                    }
+                )
+            )
+            .tint(.orange)
+        }
+        .padding()
+        .background(Color(uiColor: .secondarySystemBackground))
+        .cornerRadius(12)
     }
 
     private var emptyStateView: some View {

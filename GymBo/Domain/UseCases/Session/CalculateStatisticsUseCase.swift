@@ -21,7 +21,8 @@ import Foundation
 /// let stats = try await useCase.execute(period: .week)
 /// ```
 protocol CalculateStatisticsUseCaseProtocol {
-    func execute(period: WorkoutStatistics.TimePeriod, referenceDate: Date) async throws
+    func execute(period: WorkoutStatistics.TimePeriod, referenceDate: Date, includeWarmupSets: Bool)
+        async throws
         -> WorkoutStatistics
 }
 
@@ -41,13 +42,19 @@ final class CalculateStatisticsUseCase: CalculateStatisticsUseCaseProtocol {
 
     func execute(
         period: WorkoutStatistics.TimePeriod,
-        referenceDate: Date = Date()
+        referenceDate: Date = Date(),
+        includeWarmupSets: Bool = false
     ) async throws -> WorkoutStatistics {
         // Get date range for the period
         let dateRange = period.dateRange(from: referenceDate)
         guard let dateRange = dateRange else {
             // Handle this as needed: for now we throw.
-            throw NSError(domain: "CalculateStatisticsUseCase", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not compute the date range for period \(period)"])
+            throw NSError(
+                domain: "CalculateStatisticsUseCase", code: 1,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "Could not compute the date range for period \(period)"
+                ])
         }
 
         // Fetch all completed sessions in this period
@@ -60,7 +67,8 @@ final class CalculateStatisticsUseCase: CalculateStatisticsUseCaseProtocol {
         let statistics = WorkoutStatistics.compute(
             from: sessions,
             period: period,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
+            includeWarmupSets: includeWarmupSets
         )
 
         return statistics

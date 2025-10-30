@@ -87,7 +87,7 @@ struct WorkoutStatistics: Equatable {
         case month = "Month"
         case year = "Year"
         case allTime = "All Time"
-        
+
         /// Returns a localized display name for this period
         var localizedDisplayName: String {
             switch self {
@@ -112,27 +112,39 @@ struct WorkoutStatistics: Equatable {
 
             switch self {
             case .week:
-                guard let startOfWeek = calendar.date(
-                        from: calendar.dateComponents([
-                            .yearForWeekOfYear, .weekOfYear
-                        ], from: referenceDate)) else { return nil }
-                guard let endOfWeek = calendar.date(byAdding: .day, value: 7, to: startOfWeek) else { return nil }
+                guard
+                    let startOfWeek = calendar.date(
+                        from: calendar.dateComponents(
+                            [
+                                .yearForWeekOfYear, .weekOfYear,
+                            ], from: referenceDate))
+                else { return nil }
+                guard let endOfWeek = calendar.date(byAdding: .day, value: 7, to: startOfWeek)
+                else { return nil }
                 return (startOfWeek, endOfWeek)
 
             case .month:
-                guard let startOfMonth = calendar.date(
-                        from: calendar.dateComponents([
-                            .year, .month
-                        ], from: referenceDate)) else { return nil }
-                guard let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth) else { return nil }
+                guard
+                    let startOfMonth = calendar.date(
+                        from: calendar.dateComponents(
+                            [
+                                .year, .month,
+                            ], from: referenceDate))
+                else { return nil }
+                guard let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)
+                else { return nil }
                 return (startOfMonth, endOfMonth)
 
             case .year:
-                guard let startOfYear = calendar.date(
-                        from: calendar.dateComponents([
-                            .year
-                        ], from: referenceDate)) else { return nil }
-                guard let endOfYear = calendar.date(byAdding: .year, value: 1, to: startOfYear) else { return nil }
+                guard
+                    let startOfYear = calendar.date(
+                        from: calendar.dateComponents(
+                            [
+                                .year
+                            ], from: referenceDate))
+                else { return nil }
+                guard let endOfYear = calendar.date(byAdding: .year, value: 1, to: startOfYear)
+                else { return nil }
                 return (startOfYear, endOfYear)
 
             case .allTime:
@@ -191,8 +203,16 @@ struct WorkoutStatistics: Equatable {
     // MARK: - Computation
 
     /// Compute statistics from a list of sessions
+    /// - Parameters:
+    ///   - sessions: List of workout sessions to analyze
+    ///   - period: Time period for statistics
+    ///   - referenceDate: Reference date for period calculation
+    ///   - includeWarmupSets: Whether to include warmup sets in statistics (default: false)
     static func compute(
-        from sessions: [DomainWorkoutSession], period: TimePeriod, referenceDate: Date = Date()
+        from sessions: [DomainWorkoutSession],
+        period: TimePeriod,
+        referenceDate: Date = Date(),
+        includeWarmupSets: Bool = false
     ) -> WorkoutStatistics {
         let dateRange = period.dateRange(from: referenceDate)
         guard let dateRange = dateRange else {
@@ -224,12 +244,35 @@ struct WorkoutStatistics: Equatable {
         // Basic stats
         let totalWorkouts = filteredSessions.count
         let totalDuration = filteredSessions.reduce(0.0) { $0 + $1.duration }
-        let totalVolume = filteredSessions.reduce(0.0) { $0 + $1.totalVolume }
-        let totalSets = filteredSessions.reduce(0) { $0 + $1.completedSets }
-        let totalReps = filteredSessions.reduce(0) { total, session in
-            total
+
+        // Filter sets based on includeWarmupSets parameter
+        let totalVolume = filteredSessions.reduce(0.0) { sessionTotal, session in
+            sessionTotal
+                + session.exercises.reduce(0.0) { exerciseTotal, exercise in
+                    exerciseTotal
+                        + exercise.sets
+                        .filter { $0.completed && (includeWarmupSets || !$0.isWarmup) }
+                        .reduce(0.0) { $0 + ($1.weight * Double($1.reps)) }
+                }
+        }
+
+        let totalSets = filteredSessions.reduce(0) { sessionTotal, session in
+            sessionTotal
                 + session.exercises.reduce(0) { exerciseTotal, exercise in
-                    exerciseTotal + exercise.sets.filter { $0.completed }.reduce(0) { $0 + $1.reps }
+                    exerciseTotal
+                        + exercise.sets.filter {
+                            $0.completed && (includeWarmupSets || !$0.isWarmup)
+                        }.count
+                }
+        }
+
+        let totalReps = filteredSessions.reduce(0) { sessionTotal, session in
+            sessionTotal
+                + session.exercises.reduce(0) { exerciseTotal, exercise in
+                    exerciseTotal
+                        + exercise.sets
+                        .filter { $0.completed && (includeWarmupSets || !$0.isWarmup) }
+                        .reduce(0) { $0 + $1.reps }
                 }
         }
 
