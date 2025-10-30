@@ -59,6 +59,10 @@ struct DomainWorkoutSession: Identifiable, Equatable {
     /// HealthKit workout session ID (for syncing with Apple Health)
     var healthKitSessionId: String?
 
+    // V6: Superset/Circuit Support
+    var workoutType: WorkoutType  // Type of workout (standard, superset, circuit)
+    var exerciseGroups: [SessionExerciseGroup]?  // Exercise groups for superset/circuit (nil for standard)
+
     // MARK: - Nested Types
 
     /// Possible states of a workout session
@@ -152,7 +156,9 @@ struct DomainWorkoutSession: Identifiable, Equatable {
         exercises: [DomainSessionExercise] = [],
         state: SessionState = .active,
         workoutName: String? = nil,
-        healthKitSessionId: String? = nil
+        healthKitSessionId: String? = nil,
+        workoutType: WorkoutType = .standard,
+        exerciseGroups: [SessionExerciseGroup]? = nil
     ) {
         self.id = id
         self.workoutId = workoutId
@@ -162,6 +168,8 @@ struct DomainWorkoutSession: Identifiable, Equatable {
         self.state = state
         self.workoutName = workoutName
         self.healthKitSessionId = healthKitSessionId
+        self.workoutType = workoutType
+        self.exerciseGroups = exerciseGroups
     }
 
     // MARK: - Equatable

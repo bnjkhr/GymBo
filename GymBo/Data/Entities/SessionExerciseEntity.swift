@@ -49,6 +49,10 @@ final class SessionExerciseEntity {
     /// Parent session (inverse relationship)
     var session: WorkoutSessionEntity?
 
+    /// V6: Reference to session exercise group (for superset/circuit workouts)
+    var groupId: UUID?
+    var group: SessionExerciseGroupEntity?
+
     // MARK: - Initialization
 
     init(
@@ -59,7 +63,8 @@ final class SessionExerciseEntity {
         restTimeToNext: TimeInterval? = nil,
         orderIndex: Int = 0,
         isFinished: Bool = false,
-        sets: [SessionSetEntity] = []
+        sets: [SessionSetEntity] = [],
+        groupId: UUID? = nil
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -69,5 +74,6 @@ final class SessionExerciseEntity {
         self.orderIndex = orderIndex
         self.isFinished = isFinished
         self.sets = sets
+        self.groupId = groupId
     }
 }
