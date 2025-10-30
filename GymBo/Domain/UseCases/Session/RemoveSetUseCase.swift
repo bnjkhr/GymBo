@@ -90,7 +90,15 @@ final class DefaultRemoveSetUseCase: RemoveSetUseCase {
         let removedSet = session.exercises[exerciseIndex].sets[setIndex]
         session.exercises[exerciseIndex].sets.remove(at: setIndex)
 
-        // 7. Persist changes to session
+        // 7. Re-index remaining sets to maintain correct order
+        // ⚠️ CRITICAL: Must preserve warmup → working order
+        // Sort by current orderIndex, then reassign sequential indices
+        session.exercises[exerciseIndex].sets.sort { $0.orderIndex < $1.orderIndex }
+        for (newIndex, _) in session.exercises[exerciseIndex].sets.enumerated() {
+            session.exercises[exerciseIndex].sets[newIndex].orderIndex = newIndex
+        }
+
+        // 8. Persist changes to session
         try await repository.update(session)
 
         print(

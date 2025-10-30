@@ -217,7 +217,7 @@ struct ProgressionCard: View {
                 .foregroundStyle(.primary.opacity(0.8))
 
             VStack(alignment: .leading, spacing: 6) {
-                ForEach(getTopLifts(type: type), id: \.exercise) { lift in
+                ForEach(getTopLifts(type: type)) { lift in
                     HStack(spacing: 8) {
                         Text("•")
                             .foregroundStyle(lift.isPR ? .yellow : Color.appOrange)
@@ -362,7 +362,8 @@ struct ProgressionCard: View {
         case pr
     }
 
-    struct TopLift {
+    struct TopLift: Identifiable {
+        let id = UUID()
         let exercise: String
         let value: String
         let delta: String

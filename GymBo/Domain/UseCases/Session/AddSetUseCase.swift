@@ -97,13 +97,16 @@ final class DefaultAddSetUseCase: AddSetUseCase {
         }
 
         // 6. Create new set with correct orderIndex
-        let currentSetCount = session.exercises[exerciseIndex].sets.count
+        // ⚠️ IMPORTANT: Working sets must come AFTER warmup sets
+        // Find the max orderIndex to ensure new set is added at the end
+        let maxOrderIndex = session.exercises[exerciseIndex].sets.map { $0.orderIndex }.max() ?? -1
 
         let newSet = DomainSessionSet(
             weight: finalWeight,
             reps: finalReps,
             completed: false,
-            orderIndex: currentSetCount
+            orderIndex: maxOrderIndex + 1,  // Add at end, preserving warmup order
+            isWarmup: false  // New sets are always working sets
         )
 
         // 7. Add set to exercise

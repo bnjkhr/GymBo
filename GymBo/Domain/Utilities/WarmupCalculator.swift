@@ -103,17 +103,31 @@ struct WarmupCalculator {
         workingReps: Int,
         strategy: Strategy = .standard
     ) -> [WarmupSet] {
+        // ⚠️ EDGE CASE: If working weight is too low, warmups don't make sense
+        // For very light weights (< 10kg), skip warmup calculation
+        guard workingWeight >= 10.0 else {
+            return []  // No warmup needed for very light weights
+        }
+
         let percentages = getPercentages(for: strategy)
 
-        return percentages.map { percentage in
-            let weight = round(workingWeight * percentage / 2.5) * 2.5  // Round to nearest 2.5kg
+        return percentages.compactMap { percentage in
+            let calculatedWeight = workingWeight * percentage
+            let roundedWeight = round(calculatedWeight / 2.5) * 2.5  // Round to nearest 2.5kg
+
+            // Skip warmup sets that are too close to working weight
+            // or below minimum meaningful weight (2.5kg)
+            guard roundedWeight >= 2.5 && roundedWeight < workingWeight else {
+                return nil
+            }
+
             let reps = calculateWarmupReps(
                 percentage: percentage,
                 workingReps: workingReps
             )
 
             return WarmupSet(
-                weight: max(weight, 5.0),  // Minimum 5kg (empty bar might be 20kg)
+                weight: roundedWeight,
                 reps: reps,
                 percentageOfMax: percentage
             )

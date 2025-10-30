@@ -134,7 +134,8 @@ final class DependencyContainer {
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository(),
             workoutRepository: makeWorkoutRepository(),
-            healthKitService: makeHealthKitService()
+            healthKitService: makeHealthKitService(),
+            featureFlagService: makeFeatureFlagService()
         )
     }
 

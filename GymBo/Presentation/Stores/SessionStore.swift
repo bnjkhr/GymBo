@@ -193,10 +193,18 @@ final class SessionStore {
             return
         }
 
+        // Capture the current completion state so we can TOGGLE it
+        var currentCompletedState = false
+        if let exercise = currentSession?.exercises.first(where: { $0.id == exerciseId }),
+            let set = exercise.sets.first(where: { $0.id == setId })
+        {
+            currentCompletedState = set.completed
+        }
+
         // OPTIMISTIC UPDATE: Update UI immediately (before await)
-        print("🔵 BEFORE updateLocalSet - currentSession exists: \(currentSession != nil)")
-        updateLocalSet(exerciseId: exerciseId, setId: setId, completed: true)
-        print("🔵 AFTER updateLocalSet - currentSession updated")
+        // ⚠️ IMPORTANT: Toggle the current state to match what CompleteSetUseCase does
+        let newCompletedState = !currentCompletedState
+        updateLocalSet(exerciseId: exerciseId, setId: setId, completed: newCompletedState)
 
         do {
             // Execute use case (async - happens in background)
@@ -523,6 +531,15 @@ final class SessionStore {
 
         var exercise = session.exercises[exerciseIndex]
 
+        // ⚠️ SAFETY: Check if warmup sets already exist
+        if exercise.sets.contains(where: { $0.isWarmup }) {
+            print("⚠️ Warmup sets already exist for exercise \(exerciseIndex). Skipping.")
+            return  // Gracefully skip, no error
+        }
+
+        // Get restTime from first working set (for rest timer after warmup sets)
+        let workingSetRestTime = exercise.sets.first(where: { !$0.isWarmup })?.restTime
+
         // Create warmup set entities
         let newSets = warmupSets.enumerated().map { index, warmupSet in
             DomainSessionSet(
@@ -530,6 +547,7 @@ final class SessionStore {
                 reps: warmupSet.reps,
                 completed: false,
                 orderIndex: index,  // Warmup sets come first
+                restTime: workingSetRestTime,  // Use same rest time as working sets
                 isWarmup: true
             )
         }
@@ -559,6 +577,90 @@ final class SessionStore {
         } catch {
             self.error = error
             print("❌ Failed to add warmup sets: \(error)")
+        }
+    }
+
+    /// Add warmup sets to multiple exercises in a single batch operation
+    /// This is more efficient than calling addWarmupSets() multiple times
+    /// - Parameter warmupData: Dictionary mapping exercise IDs to their warmup sets
+    func addWarmupSetsBatch(
+        _ warmupData: [UUID: [WarmupCalculator.WarmupSet]]
+    ) async {
+        guard let sessionId = currentSession?.id,
+            var session = currentSession
+        else {
+            error = NSError(
+                domain: "SessionStore", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No active session"]
+            )
+            return
+        }
+
+        var totalWarmupSets = 0
+        var processedExercises = 0
+
+        // Process all exercises
+        for (exerciseId, warmupSets) in warmupData {
+            guard let exerciseIndex = session.exercises.firstIndex(where: { $0.id == exerciseId })
+            else {
+                continue
+            }
+
+            let hasWarmup = session.exercises[exerciseIndex].sets.contains(where: { $0.isWarmup })
+
+            // ⚠️ SAFETY: Skip if warmup sets already exist for this exercise
+            if hasWarmup {
+                continue  // Skip this exercise, continue with others
+            }
+
+            // Get restTime from first working set (for rest timer after warmup sets)
+            let workingSetRestTime = session.exercises[exerciseIndex].sets.first(where: {
+                !$0.isWarmup
+            })?.restTime
+
+            // Create warmup set entities
+            let newSets = warmupSets.enumerated().map { index, warmupSet in
+                DomainSessionSet(
+                    weight: warmupSet.weight,
+                    reps: warmupSet.reps,
+                    completed: false,
+                    orderIndex: index,  // Warmup sets come first
+                    restTime: workingSetRestTime,  // Use same rest time as working sets
+                    isWarmup: true
+                )
+            }
+
+            // Update orderIndex for existing sets (shift them down)
+            let updatedExistingSets = session.exercises[exerciseIndex].sets.map { set in
+                var updatedSet = set
+                updatedSet.orderIndex += warmupSets.count
+                return updatedSet
+            }
+
+            // Combine warmup + existing sets and update directly in session
+            session.exercises[exerciseIndex].sets = newSets + updatedExistingSets
+
+            totalWarmupSets += warmupSets.count
+            processedExercises += 1
+        }
+
+        print(
+            "🔥 Processed \(processedExercises) exercises, added \(totalWarmupSets) warmup sets total"
+        )
+
+        // Save to repository ONCE at the end
+        do {
+            try await sessionRepository.update(session)
+
+            // Force UI update ONCE
+            currentSession = nil
+            let refreshedSession = try await sessionRepository.fetch(id: sessionId)
+            currentSession = refreshedSession
+
+            showSuccessMessage("Aufwärmsätze hinzugefügt (\(totalWarmupSets) Sätze)")
+
+        } catch {
+            self.error = error
         }
     }
 
@@ -603,7 +705,8 @@ final class SessionStore {
         guard let sessionId = currentSession?.id else { return }
 
         do {
-            currentSession = try await sessionRepository.fetch(id: sessionId)
+            let refreshedSession = try await sessionRepository.fetch(id: sessionId)
+            currentSession = refreshedSession
         } catch {
             self.error = error
             print("❌ Failed to refresh session: \(error)")
@@ -903,20 +1006,14 @@ final class SessionStore {
             return
         }
 
-        print("✅ updateLocalSet: Found exercise[\(exerciseIndex)] set[\(setIndex)]")
-        print(
-            "   - Before: completed = \(session.exercises[exerciseIndex].sets[setIndex].completed)")
-
         // Update set
         session.exercises[exerciseIndex].sets[setIndex].completed = completed
         session.exercises[exerciseIndex].sets[setIndex].completedAt = completed ? Date() : nil
 
-        print(
-            "   - After: completed = \(session.exercises[exerciseIndex].sets[setIndex].completed)")
-
-        // Update published state (TRIGGERS @Published)
+        // Force UI update by setting to nil first, then to new value
+        // This ensures @Observable detects the change even for nested struct modifications
+        currentSession = nil
         currentSession = session
-        print("✅ updateLocalSet: currentSession @Published updated!")
     }
 
     /// Check if an exercise is now fully completed (all sets done)
@@ -1064,12 +1161,14 @@ extension SessionStore {
             let exerciseRepository = MockExerciseRepository()
             let workoutRepository = MockWorkoutRepository()
             let healthKitService = MockHealthKitService()
+            let featureFlagService = FeatureFlagService()
             return SessionStore(
                 startSessionUseCase: DefaultStartSessionUseCase(
                     sessionRepository: repository,
                     exerciseRepository: exerciseRepository,
                     workoutRepository: workoutRepository,
-                    healthKitService: healthKitService
+                    healthKitService: healthKitService,
+                    featureFlagService: featureFlagService
                 ),
                 completeSetUseCase: DefaultCompleteSetUseCase(sessionRepository: repository),
                 endSessionUseCase: DefaultEndSessionUseCase(

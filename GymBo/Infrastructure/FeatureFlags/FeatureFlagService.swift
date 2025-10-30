@@ -11,14 +11,12 @@ import Foundation
 // MARK: - Feature Flag Enum
 
 enum FeatureFlag: String, CaseIterable {
-    case exerciseSwap
     case widgets
     case liveActivities
     case dynamicIsland
 
     var defaultEnabled: Bool {
         switch self {
-        case .exerciseSwap: return false
         case .widgets: return false
         case .liveActivities: return false
         case .dynamicIsland: return false
@@ -77,5 +75,3 @@ final class FeatureFlagService: FeatureFlagServiceProtocol {
         }
     }
 }
-
-

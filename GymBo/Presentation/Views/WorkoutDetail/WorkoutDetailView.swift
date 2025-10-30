@@ -62,7 +62,7 @@ struct WorkoutDetailView: View {
         self.openExercisePickerOnAppear = openExercisePickerOnAppear
         self._workout = State(initialValue: workout)
         self._isFavorite = State(initialValue: workout.isFavorite)
-        self._selectedWarmupStrategy = State(initialValue: workout.warmupStrategy)
+        self._selectedWarmupStrategy = State(initialValue: workout.warmupStrategy ?? .none)
     }
 
     // MARK: - Body
@@ -345,7 +345,7 @@ struct WorkoutDetailView: View {
             VStack(spacing: 6) {
                 Image(systemName: icon)
                     .font(.title3)
-                    .foregroundStyle(isSelected ? .white : .orange)
+                    .foregroundStyle(isSelected ? .white : .primary)
                     .frame(height: 22)  // Fixed height for icon
 
                 Text(title)
@@ -365,7 +365,7 @@ struct WorkoutDetailView: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.orange : Color(uiColor: .secondarySystemBackground))
+                    .fill(isSelected ? Color.black : Color(uiColor: .secondarySystemBackground))
             )
         }
     }
@@ -707,13 +707,21 @@ struct WorkoutDetailView: View {
     private func applyWarmupStrategyToSession(strategy: WarmupCalculator.Strategy, workout: Workout)
         async
     {
-        guard let session = sessionStore.currentSession else { return }
+        guard let session = sessionStore.currentSession else {
+            return
+        }
 
-        // Add warmup sets to each exercise that has working sets
-        for exercise in session.exercises {
+        // IMPORTANT: Capture all warmup data BEFORE any async operations
+        // Each addWarmupSets() call modifies currentSession, so we must not iterate over a changing collection
+        struct ExerciseWarmupData {
+            let exerciseId: UUID
+            let warmupSets: [WarmupCalculator.WarmupSet]
+        }
+
+        let warmupData: [ExerciseWarmupData] = session.exercises.compactMap { exercise in
             // Find the first working set (non-warmup) to base warmup calculations on
             guard let firstWorkingSet = exercise.sets.first(where: { !$0.isWarmup }) else {
-                continue
+                return nil
             }
 
             // Calculate warmup sets
@@ -723,12 +731,16 @@ struct WorkoutDetailView: View {
                 strategy: strategy
             )
 
-            // Add warmup sets to this exercise
-            await sessionStore.addWarmupSets(
-                exerciseId: exercise.id,
-                warmupSets: warmupSets
-            )
+            return ExerciseWarmupData(exerciseId: exercise.id, warmupSets: warmupSets)
         }
+
+        // Convert to dictionary for batch operation
+        let warmupDict = Dictionary(
+            uniqueKeysWithValues: warmupData.map { ($0.exerciseId, $0.warmupSets) })
+
+        // Add all warmup sets in a single batch operation
+        // This prevents multiple UI refreshes and race conditions
+        await sessionStore.addWarmupSetsBatch(warmupDict)
     }
 
     /// Update warmup strategy for this workout
@@ -749,6 +761,11 @@ struct WorkoutDetailView: View {
         if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
             selectedWarmupStrategy = updatedWorkout.warmupStrategy
+        }
+
+        // ⚠️ IMPORTANT: If there's an active session, apply warmup strategy immediately
+        if sessionStore.currentSession != nil && strategy != .none {
+            await applyWarmupStrategyToSession(strategy: strategy, workout: currentWorkout)
         }
     }
 

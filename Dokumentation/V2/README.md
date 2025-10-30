@@ -16,6 +16,13 @@
 - **[TECHNICAL_CONCEPT_V2.md](./TECHNICAL_CONCEPT_V2.md)** - Clean Architecture Specs (vollständig)
 - **[UX_CONCEPT_V2.md](./UX_CONCEPT_V2.md)** - UX/UI Design & User Flows
 
+### 🔥 Feature Documentation
+- **[Features/WarmupSets/](./Features/WarmupSets/)** - Warmup Sets Feature (Complete)
+  - Auto-calculated warmup sets
+  - 3 progressive strategies
+  - Architecture rules & bug fixes
+  - Production ready
+
 ### 📚 Weitere Dokumentation
 - **[V2_CLEAN_ARCHITECTURE_ROADMAP.md](./V2_CLEAN_ARCHITECTURE_ROADMAP.md)** - Migrations-Roadmap
 - **[V2_MASTER_PROGRESS.md](./V2_MASTER_PROGRESS.md)** - Sprint-Progress

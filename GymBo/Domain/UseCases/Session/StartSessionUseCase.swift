@@ -46,6 +46,7 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
     private let exerciseRepository: ExerciseRepositoryProtocol
     private let workoutRepository: WorkoutRepositoryProtocol
     private let healthKitService: HealthKitServiceProtocol
+    private let featureFlagService: FeatureFlagServiceProtocol
 
     // MARK: - Initialization
 
@@ -53,12 +54,14 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
         sessionRepository: SessionRepositoryProtocol,
         exerciseRepository: ExerciseRepositoryProtocol,
         workoutRepository: WorkoutRepositoryProtocol,
-        healthKitService: HealthKitServiceProtocol
+        healthKitService: HealthKitServiceProtocol,
+        featureFlagService: FeatureFlagServiceProtocol
     ) {
         self.sessionRepository = sessionRepository
         self.exerciseRepository = exerciseRepository
         self.workoutRepository = workoutRepository
         self.healthKitService = healthKitService
+        self.featureFlagService = featureFlagService
     }
 
     // MARK: - Execute
@@ -110,34 +113,51 @@ final class DefaultStartSessionUseCase: StartSessionUseCase {
         }
 
         // Start HealthKit session (fire-and-forget, non-blocking)
-        Task.detached(priority: .background) { [weak self] in
-            guard let self = self else { return }
+        // Only if dynamicIsland OR liveActivities feature is enabled
+        let dynamicIslandEnabled = featureFlagService.isEnabled(.dynamicIsland)
+        let liveActivitiesEnabled = featureFlagService.isEnabled(.liveActivities)
 
-            print("🔵 StartSessionUseCase: Starting HealthKit session")
-            let result = await self.healthKitService.startWorkoutSession(
-                type: .traditionalStrengthTraining,
-                startDate: session.startDate
-            )
+        if dynamicIslandEnabled || liveActivitiesEnabled {
+            Task.detached(priority: .background) { [weak self] in
+                guard let self = self else { return }
 
-            switch result {
-            case .success(let sessionId):
-                print("✅ HealthKit session started: \(sessionId)")
+                print("🔵 StartSessionUseCase: Starting HealthKit session")
+                let result = await self.healthKitService.startWorkoutSession(
+                    type: .traditionalStrengthTraining,
+                    startDate: session.startDate
+                )
 
-                // Update session with HealthKit ID
-                var updatedSession = session
-                updatedSession.healthKitSessionId = sessionId
+                switch result {
+                case .success(let healthKitSessionId):
+                    print("✅ HealthKit session started: \(healthKitSessionId)")
 
-                do {
-                    try await self.sessionRepository.update(updatedSession)
-                    print("✅ Session updated with HealthKit ID")
-                } catch {
-                    print("⚠️ Failed to update session with HealthKit ID: \(error)")
+                    // ⚠️ IMPORTANT: Fetch the CURRENT session from DB instead of using the stale copy
+                    // The session may have been modified (e.g., warmup sets added) since it was created
+                    do {
+                        guard
+                            var currentSession = try await self.sessionRepository.fetch(
+                                id: session.id)
+                        else {
+                            print("⚠️ Session not found when updating HealthKit ID")
+                            return
+                        }
+
+                        // Update session with HealthKit ID
+                        currentSession.healthKitSessionId = healthKitSessionId
+
+                        try await self.sessionRepository.update(currentSession)
+                        print("✅ Session updated with HealthKit ID")
+                    } catch {
+                        print("⚠️ Failed to update session with HealthKit ID: \(error)")
+                    }
+
+                case .failure(let error):
+                    // Log but don't fail the workout - graceful degradation
+                    print("⚠️ HealthKit session failed to start: \(error.localizedDescription)")
                 }
-
-            case .failure(let error):
-                // Log but don't fail the workout - graceful degradation
-                print("⚠️ HealthKit session failed to start: \(error.localizedDescription)")
             }
+        } else {
+            print("⚠️ HealthKit session skipped (dynamicIsland and liveActivities disabled)")
         }
 
         return session

@@ -320,15 +320,6 @@ struct ActiveWorkoutSheetView: View {
                         notes: notes
                     )
                 }
-            },
-            onAddWarmupSets: { warmupSets in
-                Task {
-                    print("🔥 Adding \(warmupSets.count) warmup sets")
-                    await sessionStore.addWarmupSets(
-                        exerciseId: exercise.id,
-                        warmupSets: warmupSets
-                    )
-                }
             }
         )
     }

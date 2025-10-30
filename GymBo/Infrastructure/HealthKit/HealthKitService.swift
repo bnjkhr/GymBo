@@ -178,29 +178,21 @@ final class HealthKitService: HealthKitServiceProtocol {
             return .failure(.sessionNotFound)
         }
 
-        do {
-            // End collection without saving
-            try await builder.endCollection(at: Date())
+        // ⚠️ CRITICAL: Use discardWorkout() to properly discard without saving
+        // This also closes the Live Activity/Dynamic Island
+        builder.discardWorkout()
 
-            // End session
-            session.end()
+        // End the session
+        session.end()
 
-            // Discard workout (don't call finishWorkout - just end it)
-            // Note: Simply ending the session without finishWorkout() will discard it
+        // Clean up
+        self.activeWorkoutSession = nil
+        self.activeWorkoutBuilder = nil
+        self.activeWorkoutSessionId = nil
 
-            // Clean up
-            self.activeWorkoutSession = nil
-            self.activeWorkoutBuilder = nil
-            self.activeWorkoutSessionId = nil
+        print("🗑️ HealthKit workout session cancelled and discarded (not saved)")
 
-            print("🗑️ HealthKit workout session cancelled (not saved)")
-
-            return .success(())
-
-        } catch {
-            print("❌ HealthKit workout cancel failed: \(error)")
-            return .failure(.saveFailed(underlying: error))
-        }
+        return .success(())
     }
 
     func pauseWorkoutSession(sessionId: String) async -> Result<Void, HealthKitError> {

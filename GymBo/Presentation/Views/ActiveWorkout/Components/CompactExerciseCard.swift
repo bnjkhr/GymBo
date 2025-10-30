@@ -41,12 +41,10 @@ struct CompactExerciseCard: View {
     let onMarkAllComplete: (() -> Void)?
     let onReorder: (() -> Void)?  // Show reorder sheet
     let onUpdateNotes: ((String) -> Void)?  // Update exercise notes
-    let onAddWarmupSets: (([WarmupCalculator.WarmupSet]) -> Void)?  // Add warmup sets
 
     // MARK: - State
 
     @State private var quickAddText: String = ""
-    @State private var showWarmupSheet = false
 
     // MARK: - Layout Constants
 
@@ -152,41 +150,11 @@ struct CompactExerciseCard: View {
 
             Spacer()
 
-            // Warmup Button (if no warmup sets exist yet)
-            if !exercise.sets.contains(where: { $0.isWarmup }) {
-                Button {
-                    showWarmupSheet = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "flame.fill")
-                            .font(.caption)
-                        Text("Aufwärmen")
-                            .font(.caption)
-                    }
-                    .foregroundStyle(.orange)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.orange.opacity(0.1))
-                    .cornerRadius(6)
-                }
-            }
-
             // Equipment Icon (top-right, aligned with name)
             if let equipment = equipment {
                 Image(systemName: equipmentIcon(for: equipment))
                     .font(.title2)
                     .foregroundStyle(.secondary)
-            }
-        }
-        .sheet(isPresented: $showWarmupSheet) {
-            if let firstWorkingSet = exercise.sets.first(where: { !$0.isWarmup }) {
-                AddWarmupSetsSheet(
-                    workingWeight: firstWorkingSet.weight,
-                    workingReps: firstWorkingSet.reps,
-                    onAdd: { warmupSets, _ in
-                        onAddWarmupSets?(warmupSets)
-                    }
-                )
             }
         }
     }
@@ -361,8 +329,7 @@ struct CompactExerciseCard: View {
         onRemoveSet: { _ in },
         onMarkAllComplete: {},
         onReorder: {},
-        onUpdateNotes: { _ in },
-        onAddWarmupSets: { _ in }
+        onUpdateNotes: { _ in }
     )
     .padding()
 }
@@ -382,8 +349,7 @@ struct CompactExerciseCard: View {
         onRemoveSet: { _ in },
         onMarkAllComplete: {},
         onReorder: {},
-        onUpdateNotes: { _ in },
-        onAddWarmupSets: { _ in }
+        onUpdateNotes: { _ in }
     )
     .padding()
 }
