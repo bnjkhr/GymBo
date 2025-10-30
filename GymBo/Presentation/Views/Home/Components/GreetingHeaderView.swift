@@ -84,13 +84,14 @@ struct GreetingHeaderView: View {
 
     private var timeOfDayGreeting: String? {
         let hour = Calendar.current.component(.hour, from: Date())
-        let hasName = userProfile?.name != nil
 
         switch hour {
         case 5..<12:
-            return hasName ? "guten Morgen!" : "guten Morgen!"
+            return "guten Morgen!"
+        case 12..<18:
+            return "guten Tag!"
         case 18..<24, 0..<5:
-            return hasName ? "guten Abend!" : "guten Abend!"
+            return "guten Abend!"
         default:
             return nil
         }
