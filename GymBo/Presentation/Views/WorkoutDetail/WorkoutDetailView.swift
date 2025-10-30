@@ -41,6 +41,8 @@ struct WorkoutDetailView: View {
     @State private var exerciseToEdit: WorkoutExercise?
     @State private var showEditWorkout = false
     @State private var showDeleteConfirmation = false
+    @State private var exerciseToSwap: (workoutExercise: WorkoutExercise, exercise: ExerciseEntity)?
+    @State private var showExerciseSwapSheet = false
 
     // MARK: - Initialization
 
@@ -185,6 +187,23 @@ struct WorkoutDetailView: View {
                 .environment(workoutStore)
             }
         }
+        .sheet(isPresented: $showExerciseSwapSheet) {
+            if let swapInfo = exerciseToSwap {
+                ExerciseSwapSheet(
+                    currentExercise: swapInfo.exercise,
+                    currentWorkoutExercise: swapInfo.workoutExercise,
+                    onSwap: { newExercise in
+                        Task {
+                            await swapExercise(
+                                oldExercise: swapInfo.workoutExercise,
+                                newExercise: newExercise
+                            )
+                        }
+                    }
+                )
+                .environment(\.dependencyContainer, dependencyContainer)
+            }
+        }
         .confirmationDialog(
             "Workout löschen?",
             isPresented: $showDeleteConfirmation,
@@ -280,7 +299,22 @@ struct WorkoutDetailView: View {
                         exerciseToEdit = exercise
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     }
+                    .onLongPressGesture {
+                        // Long press to swap exercise
+                        Task {
+                            await showSwapSheet(for: exercise)
+                        }
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    }
                     .contextMenu {
+                        Button {
+                            Task {
+                                await showSwapSheet(for: exercise)
+                            }
+                        } label: {
+                            Label("Übung ersetzen", systemImage: "arrow.triangle.2.circlepath")
+                        }
+
                         Button(role: .destructive) {
                             Task {
                                 await removeExercise(exercise)
@@ -401,6 +435,41 @@ struct WorkoutDetailView: View {
         if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
             workout = updatedWorkout
         }
+    }
+
+    /// Show swap sheet for an exercise
+    private func showSwapSheet(for exercise: WorkoutExercise) async {
+        // Load the exercise entity to show in the sheet
+        guard let container = dependencyContainer else { return }
+        let repository = container.makeExerciseRepository()
+
+        do {
+            if let exerciseEntity = try await repository.fetch(id: exercise.exerciseId) {
+                exerciseToSwap = (workoutExercise: exercise, exercise: exerciseEntity)
+                showExerciseSwapSheet = true
+            } else {
+                print("⚠️ Exercise not found: \(exercise.exerciseId)")
+            }
+        } catch {
+            print("❌ Failed to load exercise for swap: \(error)")
+        }
+    }
+
+    /// Swap exercise with an alternative
+    private func swapExercise(oldExercise: WorkoutExercise, newExercise: ExerciseEntity) async {
+        await workoutStore.swapExercise(
+            in: workoutId,
+            oldExerciseId: oldExercise.exerciseId,
+            newExerciseId: newExercise.id
+        )
+
+        // Update local workout from store
+        if let updatedWorkout = workoutStore.workouts.first(where: { $0.id == workoutId }) {
+            workout = updatedWorkout
+        }
+
+        // Reload exercise names for the new exercise
+        await loadExerciseNames()
     }
 
     /// Add multiple exercises to workout

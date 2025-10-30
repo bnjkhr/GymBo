@@ -80,6 +80,7 @@ final class WorkoutStore {
     private let removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase
     private let reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase
     private let updateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase
+    private let swapExerciseUseCase: SwapExerciseUseCase
     private let workoutRepository: WorkoutRepositoryProtocol  // For direct folder access
 
     // MARK: - Private State
@@ -99,6 +100,7 @@ final class WorkoutStore {
         removeExerciseFromWorkoutUseCase: RemoveExerciseFromWorkoutUseCase,
         reorderWorkoutExercisesUseCase: ReorderWorkoutExercisesUseCase,
         updateWorkoutExerciseUseCase: UpdateWorkoutExerciseUseCase,
+        swapExerciseUseCase: SwapExerciseUseCase,
         workoutRepository: WorkoutRepositoryProtocol
     ) {
         self.getAllWorkoutsUseCase = getAllWorkoutsUseCase
@@ -111,6 +113,7 @@ final class WorkoutStore {
         self.removeExerciseFromWorkoutUseCase = removeExerciseFromWorkoutUseCase
         self.reorderWorkoutExercisesUseCase = reorderWorkoutExercisesUseCase
         self.updateWorkoutExerciseUseCase = updateWorkoutExerciseUseCase
+        self.swapExerciseUseCase = swapExerciseUseCase
         self.workoutRepository = workoutRepository
     }
 
@@ -507,6 +510,35 @@ final class WorkoutStore {
         } catch {
             self.error = error
             print("❌ Failed to update exercise: \(error.localizedDescription)")
+        }
+    }
+
+    /// Swap an exercise with an alternative
+    /// - Parameters:
+    ///   - workoutId: Workout containing the exercise
+    ///   - oldExerciseId: Exercise ID to replace
+    ///   - newExerciseId: New exercise ID
+    func swapExercise(
+        in workoutId: UUID,
+        oldExerciseId: UUID,
+        newExerciseId: UUID
+    ) async {
+        do {
+            let updatedWorkout = try await swapExerciseUseCase.execute(
+                workoutId: workoutId,
+                oldExerciseId: oldExerciseId,
+                newExerciseId: newExerciseId
+            )
+
+            // Update local workout list
+            if let index = workouts.firstIndex(where: { $0.id == workoutId }) {
+                workouts[index] = updatedWorkout
+            }
+
+            showSuccess("Übung ersetzt")
+        } catch {
+            self.error = error
+            print("❌ Failed to swap exercise: \(error.localizedDescription)")
         }
     }
 
