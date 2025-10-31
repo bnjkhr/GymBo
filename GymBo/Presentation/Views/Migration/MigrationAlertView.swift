@@ -33,10 +33,9 @@ struct MigrationAlertView: View {
             VStack(spacing: 24) {
                 // Icon
                 VStack(spacing: 12) {
-                    Image(systemName: "sparkles")
+                    Image(systemName: "dumbbell.fill")
                         .font(.system(size: 60))
                         .foregroundColor(.black)
-                        .symbolEffect(.pulse)
 
                     Text("GymBo 2.0")
                         .font(.title)
