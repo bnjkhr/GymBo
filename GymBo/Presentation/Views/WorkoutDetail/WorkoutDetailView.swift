@@ -105,7 +105,7 @@ struct WorkoutDetailView: View {
                         showExercisePicker = true
                     } label: {
                         Image(systemName: "plus.circle")
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(.black)
                     }
                     .accessibilityLabel("Übung hinzufügen")
 
@@ -116,7 +116,7 @@ struct WorkoutDetailView: View {
                         }
                     } label: {
                         Image(systemName: isFavorite ? "star.fill" : "star")
-                            .foregroundColor(isFavorite ? .appOrange : .primary)
+                            .foregroundColor(isFavorite ? .appOrange : .black)
                     }
                     .accessibilityLabel(
                         isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")
@@ -126,7 +126,7 @@ struct WorkoutDetailView: View {
                         showEditWorkout = true
                     } label: {
                         Image(systemName: "pencil.circle")
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(.black)
                     }
                     .accessibilityLabel("Workout bearbeiten")
 
