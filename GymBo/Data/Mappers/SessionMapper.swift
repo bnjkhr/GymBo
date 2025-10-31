@@ -125,6 +125,16 @@ struct SessionMapper {
                 }) {
                     // Update existing group
                     sessionExerciseGroupMapper.updateEntity(existingGroup, from: domainGroup)
+                    // ✅ FIX: Ensure inverse relationship is maintained after update
+                    if existingGroup.session == nil {
+                        existingGroup.session = entity
+                    }
+                    // ✅ FIX: Ensure all exercises in group have correct session reference
+                    for exercise in existingGroup.exercises {
+                        if exercise.session == nil {
+                            exercise.session = entity
+                        }
+                    }
                 } else {
                     // Add new group (shouldn't happen during normal workflow)
                     let newGroup = sessionExerciseGroupMapper.toEntity(domainGroup)
@@ -151,6 +161,10 @@ struct SessionMapper {
             {
                 // Update existing exercise
                 updateExerciseEntity(existingExercise, from: domainExercise)
+                // ✅ FIX: Ensure inverse relationship is maintained after update
+                if existingExercise.session == nil {
+                    existingExercise.session = entity
+                }
             } else {
                 // Add new exercise (shouldn't happen during set completion, but handle it)
                 let newExercise = toEntity(domainExercise)
@@ -179,6 +193,10 @@ struct SessionMapper {
             if let existingSet = entity.sets.first(where: { $0.id == domainSet.id }) {
                 // Update existing set
                 updateSetEntity(existingSet, from: domainSet)
+                // ✅ FIX: Ensure inverse relationship is maintained
+                if existingSet.exercise == nil {
+                    existingSet.exercise = entity
+                }
             } else {
                 // Add new set
                 let newSet = toEntity(domainSet)

@@ -5,11 +5,42 @@
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
 **Design:** Modern iOS 26 mit Brand Color #F77E2D
 
+✅ **NEW (Session 35):** CRITICAL BUG FIX! SwiftData Migration Crash behoben
 ✅ **NEW (Session 33):** Superset & Circuit Training! Backend komplett, UI für Erstellung pending
 ✅ **NEW (Session 32):** Warmup Sets Feature! Automatische Aufwärmsätze mit 3 Strategien
 ✅ **NEW (Session 27-30):** Session History & Statistics! Workout-Tracking mit Streak-Berechnung
 
-**Letzte Session (2025-10-31 - Session 34 - SUPERSET/CIRCUIT DOCUMENTATION):**
+**Letzte Session (2025-10-31 - Session 35 - CRITICAL: SWIFTDATA CRASH FIX):**
+- 🔥 **CRITICAL BUG FIX: SwiftData Migration Crash**
+  - **Problem:** App crashed beim Speichern von Sessions nach V1→V2 Update (TestFlight Feedback)
+  - **Root Cause:** Broken inverse relationships nach Schema-Migration
+    - `SessionExerciseEntity.session` wurde `nil` nach Migration
+    - `SessionSetEntity.exercise` wurde `nil` nach Migration
+    - `SessionExerciseGroupEntity.session` wurde `nil` nach Migration (V6)
+  - **Fix 1: Runtime Protection (SessionMapper.swift)**
+    - `updateExerciseEntity()`: Stellt `exercise.session` nach Update wieder her
+    - `updateSetEntity()`: Stellt `set.exercise` nach Update wieder her  
+    - `updateEntity()`: Stellt `group.session` + alle Group-Exercises wieder her
+  - **Fix 2: Migration Protection (GymBoMigrationPlan.swift)**
+    - Migration V1→V2: Jetzt `custom` statt `lightweight`
+      - `didMigrate`: Restored alle inverse relationships für WorkoutSessions
+      - Restored alle exercise→session und set→exercise Referenzen
+    - Migration V5→V6: Jetzt `custom` statt `lightweight`
+      - `didMigrate`: Restored alle inverse relationships inkl. ExerciseGroups
+      - Restored alle group→session und group.exercises→session Referenzen
+  - **Impact:** 
+    - ✅ Bestehende User mit laufenden V1-Sessions können jetzt sicher updaten
+    - ✅ Keine Crashes mehr beim Set-Completion nach Migration
+    - ✅ Alle zukünftigen Updates geschützt durch Runtime-Fix
+  - **Files Changed:** 
+    - `SessionMapper.swift`: 3 fixes (exercise, set, group relationships)
+    - `GymBoMigrationPlan.swift`: 2 migration fixes (V1→V2, V5→V6)
+  - **Crash Log Analysis:** 
+    - Thread 0: `_assertionFailure` in `ModelContext.updateModel`
+    - Frame 12-13: GymBo code calling `modelContext.save()`
+    - Cause: SwiftData validation failed wegen `nil` inverse relationships
+
+**Session 34 (2025-10-31 - SUPERSET/CIRCUIT DOCUMENTATION):**
 - ✅ **Documentation Update**
   - Created comprehensive User Guide for Superset/Circuit features
   - Updated TODO.md with Session 33 implementation details

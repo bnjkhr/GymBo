@@ -78,9 +78,13 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     /// **Changes:**
     /// - WorkoutExerciseEntity: Add exerciseId field populated from exercise.id
     /// - UserProfileEntity: Create default profile if none exists
+    /// - FIX: Restore inverse relationships for WorkoutSessionEntity after migration
     ///
     /// **Why:** Fixes issue where exercise names weren't loading due to lazy relationship loading
     ///           and ensures UserProfile exists for HealthKit integration
+    ///
+    /// **Bug Fix (2025-10-31):** Restore inverse relationships after migration to prevent
+    ///                           SwiftData crashes when updating migrated sessions
     static let migrateV1toV2 = MigrationStage.custom(
         fromVersion: SchemaV1.self,
         toVersion: SchemaV2.self,
@@ -102,6 +106,42 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
                 print("✅ Default UserProfile created")
             } else {
                 print("✅ UserProfile already exists")
+            }
+
+            // ✅ FIX: Restore inverse relationships for all sessions
+            // This fixes crashes when updating sessions after migration
+            print("🔄 Restoring inverse relationships for WorkoutSessions...")
+            let sessionDescriptor = FetchDescriptor<SchemaV2.WorkoutSessionEntity>()
+            if let sessions = try? context.fetch(sessionDescriptor) {
+                var restoredExercises = 0
+                var restoredSets = 0
+
+                for session in sessions {
+                    // Restore session → exercise relationships
+                    for exercise in session.exercises {
+                        if exercise.session == nil {
+                            exercise.session = session
+                            restoredExercises += 1
+                        }
+
+                        // Restore exercise → set relationships
+                        for set in exercise.sets {
+                            if set.exercise == nil {
+                                set.exercise = exercise
+                                restoredSets += 1
+                            }
+                        }
+                    }
+                }
+
+                if restoredExercises > 0 || restoredSets > 0 {
+                    try? context.save()
+                    print(
+                        "✅ Restored \(restoredExercises) exercise relationships and \(restoredSets) set relationships"
+                    )
+                } else {
+                    print("✅ All inverse relationships already intact")
+                }
             }
         }
     )
@@ -162,6 +202,7 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     /// - WorkoutSessionEntity: Add exerciseGroups relationship (optional)
     /// - SessionExerciseEntity: Add groupId field (UUID?, optional)
     /// - NEW: SessionExerciseGroupEntity for active session groups
+    /// - FIX: Restore inverse relationships for WorkoutSessionEntity after migration
     ///
     /// **Why:** Enable superset (paired exercises) and circuit training (station rotation)
     ///         without breaking existing standard workouts
@@ -170,9 +211,73 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     /// - All existing workouts remain as workoutType = "standard"
     /// - All new fields are optional with safe defaults
     /// - No data loss or breaking changes
-    static let migrateV5toV6 = MigrationStage.lightweight(
+    ///
+    /// **Bug Fix (2025-10-31):** Restore inverse relationships after migration to prevent
+    ///                           SwiftData crashes when updating migrated sessions
+    static let migrateV5toV6 = MigrationStage.custom(
         fromVersion: SchemaV5.self,
-        toVersion: SchemaV6.self
+        toVersion: SchemaV6.self,
+        willMigrate: { context in
+            print("🔄 Starting migration V5 → V6")
+        },
+        didMigrate: { context in
+            print("✅ Migration V5 → V6 complete")
+
+            // ✅ FIX: Restore inverse relationships for all sessions
+            // This fixes crashes when updating sessions after migration
+            print("🔄 Restoring inverse relationships for WorkoutSessions...")
+            let sessionDescriptor = FetchDescriptor<SchemaV6.WorkoutSessionEntity>()
+            if let sessions = try? context.fetch(sessionDescriptor) {
+                var restoredExercises = 0
+                var restoredSets = 0
+                var restoredGroups = 0
+
+                for session in sessions {
+                    // Restore session → exercise relationships
+                    for exercise in session.exercises {
+                        if exercise.session == nil {
+                            exercise.session = session
+                            restoredExercises += 1
+                        }
+
+                        // Restore exercise → set relationships
+                        for set in exercise.sets {
+                            if set.exercise == nil {
+                                set.exercise = exercise
+                                restoredSets += 1
+                            }
+                        }
+                    }
+
+                    // Restore session → exerciseGroup relationships (new in V6)
+                    if let groups = session.exerciseGroups {
+                        for group in groups {
+                            if group.session == nil {
+                                group.session = session
+                                restoredGroups += 1
+                            }
+
+                            // Restore group → exercise relationships
+                            for exercise in group.exercises {
+                                if exercise.session == nil {
+                                    exercise.session = session
+                                    restoredExercises += 1
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if restoredExercises > 0 || restoredSets > 0 || restoredGroups > 0 {
+                    try? context.save()
+                    print(
+                        "✅ Restored \(restoredExercises) exercise, \(restoredSets) set, and \(restoredGroups) group relationships"
+                    )
+                } else {
+                    print("✅ All inverse relationships already intact")
+                }
+            }
+        }
     )
 
     // MARK: - Future Migration Stages (Examples)

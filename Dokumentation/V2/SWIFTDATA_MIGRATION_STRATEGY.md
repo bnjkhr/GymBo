@@ -13,6 +13,50 @@ Während der Entwicklung haben wir `isFinished` zu `SessionExerciseEntity` hinzu
 
 ---
 
+## ⚠️ CRITICAL: Inverse Relationships Nach Migration (2025-10-31)
+
+### Problem
+Bei Schema-Migrationen stellt SwiftData **inverse relationships NICHT automatisch** wieder her, auch bei `lightweight` Migrationen!
+
+**Symptome:**
+- `SessionExerciseEntity.session = nil` nach Migration
+- `SessionSetEntity.exercise = nil` nach Migration  
+- `SessionExerciseGroupEntity.session = nil` nach Migration
+- **Result:** `assertionFailure` in `ModelContext.save()` → App Crash
+
+### Lösung: Custom Migration mit Relationship Restoration
+
+**IMMER verwenden bei Schema-Migrationen:**
+```swift
+static let migrateVXtoVY = MigrationStage.custom(
+    fromVersion: SchemaVX.self,
+    toVersion: SchemaVY.self,
+    didMigrate: { context in
+        // ✅ FIX: Restore inverse relationships
+        let sessionDescriptor = FetchDescriptor<SchemaVY.WorkoutSessionEntity>()
+        if let sessions = try? context.fetch(sessionDescriptor) {
+            for session in sessions {
+                for exercise in session.exercises {
+                    if exercise.session == nil {
+                        exercise.session = session  // ✅ Restore
+                    }
+                    for set in exercise.sets {
+                        if set.exercise == nil {
+                            set.exercise = exercise  // ✅ Restore
+                        }
+                    }
+                }
+            }
+            try? context.save()
+        }
+    }
+)
+```
+
+**Siehe:** `GymBoMigrationPlan.swift` - Migration V1→V2 und V5→V6 für vollständige Implementierung
+
+---
+
 ## SwiftData Migration Konzepte
 
 ### 1. Lightweight Migration (Automatic)
