@@ -35,7 +35,7 @@ struct MigrationAlertView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 60))
-                        .foregroundColor(.appOrange)
+                        .foregroundColor(.black)
                         .symbolEffect(.pulse)
 
                     Text("GymBo 2.0")
@@ -66,10 +66,12 @@ struct MigrationAlertView: View {
 
                     Divider()
 
-                    Text("Deine bisherigen Daten können leider nicht übernommen werden. Die App startet mit einer frischen Datenbank.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                    Text(
+                        "Deine bisherigen Daten können leider nicht übernommen werden. Die App startet mit einer frischen Datenbank."
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
                 }
 
                 // Button
@@ -81,7 +83,7 @@ struct MigrationAlertView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.appOrange)
+                        .background(Color.black)
                         .cornerRadius(12)
                 }
             }
@@ -97,7 +99,7 @@ struct MigrationAlertView: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.body)
-                .foregroundColor(.appOrange)
+                .foregroundColor(.black)
                 .frame(width: 24)
 
             Text(text)
@@ -112,9 +114,9 @@ struct MigrationAlertView: View {
 // MARK: - Preview
 
 #if DEBUG
-#Preview {
-    MigrationAlertView {
-        print("Migration confirmed")
+    #Preview {
+        MigrationAlertView {
+            print("Migration confirmed")
+        }
     }
-}
 #endif

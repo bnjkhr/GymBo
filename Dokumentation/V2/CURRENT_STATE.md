@@ -10,12 +10,17 @@
 ✅ **NEW (Session 32):** Warmup Sets Feature! Automatische Aufwärmsätze mit 3 Strategien
 ✅ **NEW (Session 27-30):** Session History & Statistics! Workout-Tracking mit Streak-Berechnung
 
-**Letzte Session (2025-10-31 - Session 36 - UI POLISH: HEALTHKIT WELCOME SCREEN):**
-- 🎨 **UI Polish: HealthKit Welcome Screen**
-  - Changed benefit icons from orange (.appOrange) to black
-  - Changed "Zugriff erlauben" button from orange to black background
+**Letzte Session (2025-10-31 - Session 36 - UI POLISH: WELCOME SCREENS):**
+- 🎨 **UI Polish: Welcome Screens to Black Design**
+  - **MigrationAlertView** ("Willkommen zu GymBo 2.0"):
+    - Sparkles icon: orange → black
+    - Feature icons (folder, heart, clock, sparkles, paintbrush): orange → black
+    - "Verstanden, weiter" button: orange background → black background
+  - **HealthKitPermissionView**:
+    - Benefit icons (chart, heart, flame, figure): orange → black
+    - "Zugriff erlauben" button: orange background → black background
   - Cleaner, more neutral design for initial app experience
-  - Updated HealthKitPermissionView.swift
+  - Consistent black branding across all onboarding screens
 
 **Session 35 (2025-10-31 - CRITICAL: SWIFTDATA CRASH FIX):**
 - 🔥 **CRITICAL BUG FIX: SwiftData Migration Crash**
