@@ -139,15 +139,26 @@ struct GymBoApp: App {
             }
 
         #else
-            // PRODUCTION: Use versioned schema with migration plan
-            let schema = Schema(versionedSchema: SchemaV6.self)
+            // PRODUCTION: Use direct entity schema (NO migration - Build 15 forces fresh DB)
+            // VersionedSchema caused cast errors in Builds 10-14
+            let schema = Schema([
+                WorkoutSessionEntity.self,
+                SessionExerciseEntity.self,
+                SessionSetEntity.self,
+                SessionExerciseGroupEntity.self,  // V6: Superset/Circuit groups
+                ExerciseEntity.self,
+                ExerciseSetEntity.self,
+                WorkoutExerciseEntity.self,
+                ExerciseGroupEntity.self,  // V6: Exercise groups
+                WorkoutEntity.self,
+                UserProfileEntity.self,
+                ExerciseRecordEntity.self,
+                WorkoutFolderEntity.self,
+            ])
 
             do {
-                container = try ModelContainer(
-                    for: schema,
-                    migrationPlan: GymBoMigrationPlan.self
-                )
-                AppLogger.app.info("✅ SwiftData container created with V6 schema")
+                container = try ModelContainer(for: schema)
+                AppLogger.app.info("✅ SwiftData container created (PRODUCTION mode)")
             } catch {
                 // If container creation fails, delete old database and try again
                 AppLogger.app.error("❌ Failed to create ModelContainer: \(error)")
@@ -168,10 +179,7 @@ struct GymBoApp: App {
                 }
 
                 // Retry container creation
-                container = try! ModelContainer(
-                    for: schema,
-                    migrationPlan: GymBoMigrationPlan.self
-                )
+                container = try! ModelContainer(for: schema)
                 AppLogger.app.info("✅ SwiftData container created after cleanup")
             }
         #endif

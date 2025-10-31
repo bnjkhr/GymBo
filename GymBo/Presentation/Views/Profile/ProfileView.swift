@@ -65,11 +65,6 @@ struct ProfileView: View {
 
                     // Notifications Section
                     notificationsSection
-
-                    #if DEBUG
-                        // Developer Section (Feature Flags)
-                        developerSection
-                    #endif
                 }
                 .padding()
             }
@@ -573,55 +568,6 @@ struct ProfileView: View {
             .cornerRadius(12)
         }
     }
-
-    #if DEBUG
-        // MARK: - Developer Section (DEBUG only)
-
-        private var developerSection: some View {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Developer")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-
-                VStack(spacing: 0) {
-                    ForEach(Array(FeatureFlag.allCases.enumerated()), id: \.offset) { index, flag in
-                        HStack {
-                            Image(systemName: "flag")
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .frame(width: 24)
-
-                            Text(flag.rawValue)
-                                .font(.body)
-
-                            Spacer()
-
-                            Toggle(
-                                "",
-                                isOn: Binding(
-                                    get: { appSettings.isFeatureEnabled(flag) },
-                                    set: { newValue in
-                                        appSettings.setFeature(flag, enabled: newValue)
-                                    }
-                                )
-                            )
-                            .labelsHidden()
-                        }
-                        .padding()
-                        .background(Color(.secondarySystemGroupedBackground))
-
-                        if index < FeatureFlag.allCases.count - 1 {
-                            Divider()
-                                .padding(.leading, 48)
-                        }
-                    }
-                }
-                .cornerRadius(12)
-            }
-        }
-    #endif
 
     // MARK: - Helper Methods
 
