@@ -124,7 +124,7 @@ private struct ModeCard: View {
                 // Icon
                 Image(systemName: icon)
                     .font(.system(size: 32))
-                    .foregroundColor(isEnabled ? .appOrange : .secondary)
+                    .foregroundColor(isEnabled ? .primary : .secondary)
                     .frame(width: 56, height: 56)
                     .background(
                         Circle()
