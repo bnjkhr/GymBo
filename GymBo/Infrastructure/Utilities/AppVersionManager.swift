@@ -36,7 +36,8 @@ final class AppVersionManager {
         static let hasPerformedV2Migration = "hasPerformedV2Migration"
         static let isFirstLaunch = "isFirstLaunch"
         static let build5CleanupDone = "build5CleanupDone"  // Build 5 (failed)
-        static let build6CleanupDone = "build6CleanupDone"  // ⚠️ EMERGENCY: Track if build 6 cleanup was done
+        static let build6CleanupDone = "build6CleanupDone"  // Build 6-8 (failed)
+        static let build9CleanupDone = "build9CleanupDone"  // ⚠️ EMERGENCY: Track if build 9 cleanup was done
     }
 
     // MARK: - Current Version
@@ -91,6 +92,14 @@ final class AppVersionManager {
     var build6CleanupDone: Bool {
         get { userDefaults.bool(forKey: Keys.build6CleanupDone) }
         set { userDefaults.set(newValue, forKey: Keys.build6CleanupDone) }
+    }
+
+    /// ⚠️ EMERGENCY: Whether build 9 cleanup has been performed
+    /// Builds 5-8 all failed for various reasons
+    /// Build 9 uses ANOTHER new flag to ensure cleanup
+    var build9CleanupDone: Bool {
+        get { userDefaults.bool(forKey: Keys.build9CleanupDone) }
+        set { userDefaults.set(newValue, forKey: Keys.build9CleanupDone) }
     }
 
     // MARK: - Migration Detection
