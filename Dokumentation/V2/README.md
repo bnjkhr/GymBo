@@ -22,6 +22,12 @@
   - 3 progressive strategies
   - Architecture rules & bug fixes
   - Production ready
+- **[Features/SupersetCircuit/](./Features/SupersetCircuit/)** - Superset & Circuit Training (Backend Complete)
+  - Superset training (paired exercises)
+  - Circuit training (station rotation)
+  - Round tracking & completion
+  - User guide & examples
+  - UI for creation pending
 
 ### 📚 Weitere Dokumentation
 - **[V2_CLEAN_ARCHITECTURE_ROADMAP.md](./V2_CLEAN_ARCHITECTURE_ROADMAP.md)** - Migrations-Roadmap
@@ -58,18 +64,28 @@
 - ✅ Create/Edit/Delete Workouts
 - ✅ Toggle Favorite (Stern-Icon)
 - ✅ Workout List mit Favoriten-Sektion
-- ✅ **Workout Folders/Categories** (NEU - organize workouts in colored folders)
+- ✅ **Workout Folders/Categories** (organize workouts in colored folders)
   - Create/Edit/Delete Folders
   - 8 predefined colors
   - Move workouts between folders (context menu)
   - Collapsible folder sections
   - Auto-move to "Ohne Kategorie" on folder deletion
+- ✅ **Superset Training** (Backend complete - UI pending)
+  - Paired exercises (A1/A2, B1/B2)
+  - Round-based progression
+  - SupersetWorkoutView with specialized UI
+  - See [User Guide](./Features/SupersetCircuit/USER_GUIDE.md)
+- ✅ **Circuit Training** (Backend complete - UI pending)
+  - Station rotation (A→B→C→D→E)
+  - Round tracking
+  - CircuitWorkoutView with station overview
+  - See [User Guide](./Features/SupersetCircuit/USER_GUIDE.md)
 - ✅ Pull-to-refresh
 - ✅ WorkoutStore mit allen Use Cases
 - ✅ 6 Comprehensive Sample Workouts (2x Maschinen, 2x Freie Gewichte, 2x Gemischt)
 - ✅ Difficulty Levels (Anfänger 🍃, Fortgeschritten 🔥, Profi ⚡)
 - ✅ Equipment Type Labels (Maschine, Freie Gewichte, Gemischt)
-- ✅ **Quick-Setup Workout Creation** (NEU - wizard for fast workout creation)
+- ✅ **Quick-Setup Workout Creation** (wizard for fast workout creation)
   - Equipment category selection
   - Duration & goal selection
   - AI-based exercise generation
@@ -133,29 +149,30 @@
 **Architecture:**
 
 - ✅ Clean Architecture (4 Layers)
-- ✅ **25 Use Cases** (Domain Layer)
-  - 12 Session Use Cases (Start, End, Cancel, Pause, Resume, etc.)
-  - 11 Workout Use Cases (Create, Update, Delete, QuickSetup, etc.)
+- ✅ **32 Use Cases** (Domain Layer)
+  - 19 Session Use Cases (Start, End, Cancel, CompleteGroupSet, AdvanceToNextRound, etc.)
+  - 11 Workout Use Cases (Create, Update, Delete, CreateSuperset, CreateCircuit, etc.)
   - 2 Exercise Use Cases (Create, Delete)
 - ✅ **3 Repositories + Mappers** (Data Layer)
-  - SwiftDataWorkoutRepository (with folder support)
-  - SwiftDataSessionRepository
+  - SwiftDataWorkoutRepository (with folder & workout type support)
+  - SwiftDataSessionRepository (with group support)
   - SwiftDataExerciseRepository
-- ✅ **11 SwiftData Entities** (@Model classes)
-- ✅ **7 Domain Entities** (Pure Swift structs)
-- ✅ 2 Stores @Observable (Presentation) - SessionStore, WorkoutStore
+- ✅ **13 SwiftData Entities** (@Model classes - Schema V6)
+  - NEW: ExerciseGroupEntity, SessionExerciseGroupEntity
+- ✅ **10 Domain Entities** (Pure Swift structs)
+  - NEW: ExerciseGroup, SessionExerciseGroup, WorkoutType enum
+- ✅ 3 Stores @Observable (Presentation) - SessionStore, WorkoutStore, SessionHistoryStore
 - ✅ DI Container (Infrastructure)
-- ✅ SwiftData Migration Plan (V1 → V2)
+- ✅ SwiftData Migration Plan (V1 → V6)
 - ✅ Refresh Trigger Pattern (reaktive UI updates)
 - ✅ @Bindable + local @State for UI reactivity
 
 ### 🟡 Nice-to-Have (Später)
 
-- Session History View
+- Superset/Circuit Creation UI (Backend fertig, UI fehlt noch)
 - Statistics & Charts
 - Localization Support (Deutsch/Englisch)
-- Exercise Swap Feature (long-press → suggest alternatives)
-- Profile Page (Button ist da, View noch Placeholder)
+- Profile Page enhancements
 
 ---
 

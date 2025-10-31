@@ -30,10 +30,6 @@ import SwiftData
 /// ```
 struct ExerciseGroupMapper {
 
-    // MARK: - Dependencies
-
-    private let workoutMapper = WorkoutMapper()
-
     // MARK: - ExerciseGroup Mapping
 
     /// Convert Domain ExerciseGroup to SwiftData Entity

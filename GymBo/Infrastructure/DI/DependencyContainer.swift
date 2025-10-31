@@ -337,6 +337,59 @@ final class DependencyContainer {
         )
     }
 
+    /// Creates CreateSupersetWorkoutUseCase
+    /// - Returns: Use case for creating superset workouts
+    func makeCreateSupersetWorkoutUseCase() -> CreateSupersetWorkoutUseCase {
+        return DefaultCreateSupersetWorkoutUseCase(
+            workoutRepository: makeWorkoutRepository()
+        )
+    }
+
+    /// Creates CreateCircuitWorkoutUseCase
+    /// - Returns: Use case for creating circuit workouts
+    func makeCreateCircuitWorkoutUseCase() -> CreateCircuitWorkoutUseCase {
+        return DefaultCreateCircuitWorkoutUseCase(
+            workoutRepository: makeWorkoutRepository()
+        )
+    }
+
+    /// Creates StartGroupedWorkoutSessionUseCase
+    /// - Returns: Use case for starting superset/circuit sessions
+    func makeStartGroupedWorkoutSessionUseCase() -> StartGroupedWorkoutSessionUseCase {
+        return DefaultStartGroupedWorkoutSessionUseCase(
+            sessionRepository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository(),
+            workoutRepository: makeWorkoutRepository(),
+            healthKitService: makeHealthKitService(),
+            featureFlagService: makeFeatureFlagService()
+        )
+    }
+
+    /// Creates CompleteGroupSetUseCase
+    /// - Returns: Use case for completing sets in groups
+    func makeCompleteGroupSetUseCase() -> CompleteGroupSetUseCase {
+        return DefaultCompleteGroupSetUseCase(
+            sessionRepository: makeSessionRepository()
+        )
+    }
+
+    /// Creates UpdateGroupSetUseCase
+    /// - Returns: Use case for updating sets in groups
+    func makeUpdateGroupSetUseCase() -> UpdateGroupSetUseCase {
+        return DefaultUpdateGroupSetUseCase(
+            repository: makeSessionRepository(),
+            exerciseRepository: makeExerciseRepository()
+        )
+    }
+
+    /// Creates AdvanceToNextRoundUseCase
+    /// - Returns: Use case for advancing to next round in circuits
+    func makeAdvanceToNextRoundUseCase() -> AdvanceToNextRoundUseCase {
+        return DefaultAdvanceToNextRoundUseCase(
+            sessionRepository: makeSessionRepository()
+        )
+    }
+
     /// Creates ImportBodyMetricsUseCase
     /// - Returns: Use case for importing body metrics from HealthKit
     func makeImportBodyMetricsUseCase() -> ImportBodyMetricsUseCase {
@@ -370,6 +423,9 @@ final class DependencyContainer {
             reorderExercisesUseCase: makeReorderExercisesUseCase(),
             finishExerciseUseCase: makeFinishExerciseUseCase(),
             addExerciseToSessionUseCase: makeAddExerciseToSessionUseCase(),
+            completeGroupSetUseCase: makeCompleteGroupSetUseCase(),
+            updateGroupSetUseCase: makeUpdateGroupSetUseCase(),
+            advanceToNextRoundUseCase: makeAdvanceToNextRoundUseCase(),
             sessionRepository: makeSessionRepository(),
             exerciseRepository: makeExerciseRepository(),
             workoutRepository: makeWorkoutRepository(),

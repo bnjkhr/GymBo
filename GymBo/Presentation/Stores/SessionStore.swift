@@ -922,10 +922,10 @@ final class SessionStore {
 
     /// Complete a set within a grouped workout (superset or circuit)
     /// - Parameters:
-    ///   - groupIndex: Index of the group containing the exercise
+    ///   - groupId: ID of the group containing the exercise
     ///   - exerciseId: ID of the exercise containing the set
     ///   - setId: ID of the set to complete
-    func completeGroupSet(groupIndex: Int, exerciseId: UUID, setId: UUID) async {
+    func completeGroupSet(groupId: UUID, exerciseId: UUID, setId: UUID) async {
         guard let sessionId = currentSession?.id else {
             error = NSError(
                 domain: "SessionStore", code: -1,
@@ -942,7 +942,7 @@ final class SessionStore {
         do {
             try await useCase.execute(
                 sessionId: sessionId,
-                groupIndex: groupIndex,
+                groupId: groupId,
                 exerciseId: exerciseId,
                 setId: setId
             )
@@ -1009,8 +1009,8 @@ final class SessionStore {
     }
 
     /// Advance to next round in a grouped workout (manual progression)
-    /// - Parameter groupIndex: Index of the group to advance
-    func advanceToNextRound(groupIndex: Int) async {
+    /// - Parameter groupId: ID of the group to advance
+    func advanceToNextRound(groupId: UUID) async {
         guard let sessionId = currentSession?.id else {
             error = NSError(
                 domain: "SessionStore", code: -1,
@@ -1025,7 +1025,7 @@ final class SessionStore {
         }
 
         do {
-            try await useCase.execute(sessionId: sessionId, groupIndex: groupIndex)
+            try await useCase.execute(sessionId: sessionId, groupId: groupId)
 
             // Refresh session from repository
             await refreshCurrentSession()
@@ -1352,6 +1352,22 @@ extension SessionStore {
         /// Create a preview SessionStore with active session
         static var previewWithSession: SessionStore {
             let store = SessionStore.preview
+            store.currentSession = .preview
+            return store
+        }
+
+        /// Create a preview SessionStore with circuit session
+        static var previewWithCircuitSession: SessionStore {
+            let store = SessionStore.preview
+            // Create a mock circuit session
+            store.currentSession = .preview
+            return store
+        }
+
+        /// Create a preview SessionStore with superset session
+        static var previewWithSupersetSession: SessionStore {
+            let store = SessionStore.preview
+            // Create a mock superset session
             store.currentSession = .preview
             return store
         }

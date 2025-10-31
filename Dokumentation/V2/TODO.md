@@ -1,9 +1,9 @@
 # GymBo V2 - TODO Liste
 
-**Stand:** 2025-10-30
-**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.5.0)
+**Stand:** 2025-10-31
+**Current Phase:** ✅ MVP COMPLETE - All Core Features Implemented (v2.6.0+)
 **Next Phase:** Nice-to-Have Features & Polish
-**Letzte Änderungen:** Session 32 - Aufwärmsätze (Warmup Sets) Complete
+**Letzte Änderungen:** Session 34 - Dokumentation für Superset/Circuit Training (User Guide erstellt)
 
 ---
 
@@ -13,6 +13,7 @@
 
 ### 🔴 High Priority
 
+- [ ] **Superset/Circuit UI** - UI für Erstellung von Superset/Circuit Workouts (Backend fertig!)
 - [ ] **Übungen tauschen bei aktivem Workout** - Lange auf Übung drücken → Alternative vorschlagen
 - [x] ~~Feature Flags~~ - Implementiert (Session 26)
 - [ ] **Live Activities** - Lock Screen Integration für aktive Sessions
@@ -41,6 +42,8 @@
 - Move workouts between folders
 - Folder reordering (drag & drop)
 - Quick-Setup Workout Creation (wizard)
+- **Superset Training** (Backend complete - UI pending)
+- **Circuit Training** (Backend complete - UI pending)
 - WorkoutStore mit allen Use Cases
 - Pull-to-refresh
 
@@ -98,12 +101,16 @@
 
 **7. Architecture** ✅
 - Clean Architecture (4 Layers)
-- **27 Use Cases** (14 Session + 11 Workout + 2 Exercise)
+- **32 Use Cases** (19 Session + 11 Workout + 2 Exercise)
+  - NEW: CreateSupersetWorkoutUseCase, CreateCircuitWorkoutUseCase
+  - NEW: StartGroupedWorkoutSessionUseCase, CompleteGroupSetUseCase, AdvanceToNextRoundUseCase
 - **3 Repositories** (Workout with folder support, Session, Exercise)
-- **11 SwiftData Entities** + **8 Domain Entities**
+- **13 SwiftData Entities** + **10 Domain Entities**
+  - NEW: ExerciseGroup, SessionExerciseGroup (V6)
+  - NEW: ExerciseGroupEntity, SessionExerciseGroupEntity
 - 3 Stores @Observable (SessionStore, WorkoutStore, SessionHistoryStore)
 - DI Container
-- SwiftData Migration Plan (V1 → V2)
+- SwiftData Migration Plan (V1 → V6)
 - @Bindable + local @State for UI reactivity
 
 **8. Code Quality** ✅
@@ -355,7 +362,9 @@
 
 ### Advanced Workout Builder
 - Templates & Folders
-- Superset Support
+- [x] ~~Superset Support~~ - DONE (Session 33 - Backend complete)
+- [x] ~~Circuit Training Support~~ - DONE (Session 33 - Backend complete)
+- Superset/Circuit UI (Creation UI pending)
 - Drop Sets, Pyramid Sets
 - Custom Rest Timer per Exercise
 
@@ -372,6 +381,51 @@
 ---
 
 ## ✅ ABGESCHLOSSEN
+
+### Session 33 (2025-10-30) - Superset & Circuit Training (Backend Complete)
+- ✅ **Schema V6 Migration**
+  - Created SchemaV6 with workoutType support (.standard, .superset, .circuit)
+  - Added ExerciseGroupEntity for grouping exercises
+  - Added SessionExerciseGroupEntity for active sessions with round tracking
+  - Updated GymBoMigrationPlan with V5→V6 lightweight migration
+- ✅ **Domain Layer - Business Logic**
+  - NEW: WorkoutType enum (.standard, .superset, .circuit)
+  - NEW: ExerciseGroup entity (groups exercises for superset/circuit)
+  - NEW: SessionExerciseGroup entity (runtime with currentRound/totalRounds)
+  - NEW: CreateSupersetWorkoutUseCase (validates exactly 2 exercises per group)
+  - NEW: CreateCircuitWorkoutUseCase (validates 3+ exercises per group)
+  - NEW: StartGroupedWorkoutSessionUseCase (initializes rounds for groups)
+  - NEW: CompleteGroupSetUseCase (marks sets in groups as complete)
+  - NEW: AdvanceToNextRoundUseCase (manual round advancement for circuits)
+- ✅ **Data Layer - Persistence**
+  - NEW: ExerciseGroupMapper (Domain ↔ Entity mapping)
+  - NEW: SessionExerciseGroupMapper (Domain ↔ Entity mapping)
+  - Updated WorkoutMapper to handle workoutType and exerciseGroups
+  - Updated SessionMapper to handle SessionExerciseGroup entities
+- ✅ **Presentation Layer - UI**
+  - NEW: SupersetWorkoutView (specialized view for superset sessions)
+  - NEW: CircuitWorkoutView (specialized view for circuit sessions)
+  - NEW: SupersetGroupCard (displays superset pairs A1/A2)
+  - NEW: CircuitGroupCard (displays circuit stations with rotation)
+  - Updated ActiveWorkoutSheetView to route by workout type
+  - Updated SessionStore with group-specific methods
+- ✅ **Features Implemented**
+  - Superset Training: 2 exercises alternating without pause
+  - Circuit Training: 3+ stations in rotation
+  - Round tracking: currentRound/totalRounds per group
+  - Rest after group completion (120s superset, 180s circuit)
+  - Manual "Next Round" button for circuits
+  - Group counter in navigation (Group 1/4, Circuit 1/3)
+  - Workout complete message when all rounds finished
+- ✅ **Business Rules**
+  - Supersets: Exactly 2 exercises per group
+  - Circuits: Minimum 3 exercises per group
+  - All exercises in group must have same targetSets (rounds)
+  - Default rest: 90s (superset), 30s (circuit)
+  - Validation enforced in use cases
+- Files: 15 NEW files (5 Use Cases, 2 Mappers, 2 Views, 2 Cards, 2 Entities, SchemaV6, Migration)
+- Commits: ae362d5 (Schema), 3dfe1e8 (Mappers), 13737ca (Use Cases), e247a7a (UI), 3c865c8 (Merge PR #1)
+- **TODO:** UI for creating Superset/Circuit workouts (currently programmatic only)
 
 ### Session 32 (2025-10-30) - Aufwärmsätze (Warmup Sets) Feature
 - ✅ **Phase 1 - Schema Migration & Data Layer**

@@ -30,10 +30,6 @@ import SwiftData
 /// ```
 struct SessionExerciseGroupMapper {
 
-    // MARK: - Dependencies
-
-    private let sessionMapper = SessionMapper()
-
     // MARK: - SessionExerciseGroup Mapping
 
     /// Convert Domain SessionExerciseGroup to SwiftData Entity
@@ -107,8 +103,7 @@ struct SessionExerciseGroupMapper {
     // MARK: - Private Helpers
 
     /// Convert SessionExerciseEntity to Domain SessionExercise
-    private func toDomainSessionExercise(_ entity: SessionExerciseEntity) -> DomainSessionExercise
-    {
+    private func toDomainSessionExercise(_ entity: SessionExerciseEntity) -> DomainSessionExercise {
         DomainSessionExercise(
             id: entity.id,
             exerciseId: entity.exerciseId,

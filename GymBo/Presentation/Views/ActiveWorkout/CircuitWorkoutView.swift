@@ -131,62 +131,9 @@ struct CircuitWorkoutView: View {
         ScrollView {
             VStack(spacing: 12) {
                 ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
-                    CircuitGroupCard(
-                        group: group,
-                        groupIndex: index,
-                        exerciseNames: exerciseNames,
-                        onToggleCompletion: { exerciseId, setId in
-                            Task {
-                                // Find the set BEFORE completing it (to get restTime)
-                                let exercise = group.exercises.first(where: { $0.id == exerciseId })
-                                let setRestTime = exercise?.sets.first(where: { $0.id == setId })?
-                                    .restTime
-
-                                // Complete the set using group-aware use case
-                                await sessionStore.completeGroupSet(
-                                    groupIndex: index,
-                                    exerciseId: exerciseId,
-                                    setId: setId
-                                )
-
-                                // Start rest timer (station rest)
-                                if let restTime = setRestTime {
-                                    restTimerManager.startRest(duration: restTime)
-                                }
-                            }
-                        },
-                        onUpdateWeight: { exerciseId, setId, newWeight in
-                            Task {
-                                await sessionStore.updateGroupSet(
-                                    groupIndex: index,
-                                    exerciseId: exerciseId,
-                                    setId: setId,
-                                    weight: newWeight
-                                )
-                            }
-                        },
-                        onUpdateReps: { exerciseId, setId, newReps in
-                            Task {
-                                await sessionStore.updateGroupSet(
-                                    groupIndex: index,
-                                    exerciseId: exerciseId,
-                                    setId: setId,
-                                    reps: newReps
-                                )
-                            }
-                        },
-                        onAdvanceRound: {
-                            Task {
-                                // Manual round advancement for circuit
-                                await sessionStore.advanceToNextRound(groupIndex: index)
-
-                                // Start rest after circuit
-                                restTimerManager.startRest(duration: group.restAfterGroup)
-                            }
-                        }
-                    )
-                    .padding(.horizontal, 12)
-                    .padding(.top, index == 0 ? 12 : 0)
+                    makeCircuitGroupCard(group: group, index: index)
+                        .padding(.horizontal, 12)
+                        .padding(.top, index == 0 ? 12 : 0)
                 }
 
                 // Workout Complete Message
@@ -199,6 +146,57 @@ struct CircuitWorkoutView: View {
             .padding(.bottom, 12)
         }
         .background(Color.black)
+    }
+
+    /// Create a circuit group card with all closures
+    private func makeCircuitGroupCard(group: SessionExerciseGroup, index: Int) -> some View {
+        CircuitGroupCard(
+            group: group,
+            groupIndex: index,
+            exerciseNames: exerciseNames,
+            onToggleCompletion: { exerciseId, setId in
+                Task {
+                    let exercise = group.exercises.first(where: { $0.id == exerciseId })
+                    let setRestTime = exercise?.sets.first(where: { $0.id == setId })?.restTime
+
+                    await sessionStore.completeGroupSet(
+                        groupId: group.id,
+                        exerciseId: exerciseId,
+                        setId: setId
+                    )
+
+                    if let restTime = setRestTime {
+                        restTimerManager.startRest(duration: restTime)
+                    }
+                }
+            },
+            onUpdateWeight: { exerciseId, setId, newWeight in
+                Task {
+                    await sessionStore.updateGroupSet(
+                        groupIndex: index,
+                        exerciseId: exerciseId,
+                        setId: setId,
+                        weight: newWeight
+                    )
+                }
+            },
+            onUpdateReps: { exerciseId, setId, newReps in
+                Task {
+                    await sessionStore.updateGroupSet(
+                        groupIndex: index,
+                        exerciseId: exerciseId,
+                        setId: setId,
+                        reps: newReps
+                    )
+                }
+            },
+            onAdvanceRound: {
+                Task {
+                    await sessionStore.advanceToNextRound(groupId: group.id)
+                    restTimerManager.startRest(duration: group.restAfterGroup)
+                }
+            }
+        )
     }
 
     /// Empty state when no circuits

@@ -1,20 +1,64 @@
-# GymBo V2 - Aktueller Stand (2025-10-27)
+# GymBo V2 - Aktueller Stand (2025-10-31)
 
-**Status:** ✅ PRODUCTION-READY! Apple Health Integration + V1.0 Migration Complete
-**Version:** 2.4.0
+**Status:** ✅ PRODUCTION-READY! Superset & Circuit Training Backend Complete
+**Version:** 2.6.0+
 **Architektur:** Clean Architecture (4 Layers) + iOS 17 @Observable
 **Design:** Modern iOS 26 mit Brand Color #F77E2D
 
-✅ **NEW:** V1.0 → V2.4.0 Clean Slate Migration! User-freundliche Warnung, automatische DB-Reset
-✅ **NEW:** SwiftData Migration V1→V2 implementiert! Custom migration mit UserProfile creation
-✅ **NEW:** Apple Health Integration! Workouts automatisch synchronisiert, Body Metrics Import
+✅ **NEW (Session 33):** Superset & Circuit Training! Backend komplett, UI für Erstellung pending
+✅ **NEW (Session 32):** Warmup Sets Feature! Automatische Aufwärmsätze mit 3 Strategien
+✅ **NEW (Session 27-30):** Session History & Statistics! Workout-Tracking mit Streak-Berechnung
 
-**Letzte Session (2025-10-27 - Session 23 - SESSION CONTINUATION):**
-- ✅ **Session Continuation** (Context limit reached in Session 22)
-  - Uncommitted TODO.md changes committed
-  - Documentation updates (SESSION_MEMORY.md, CURRENT_STATE.md)
-  - Repository state clean und ready für IDE restart
-  - Alle Session 22 Features waren bereits implementiert und committed
+**Letzte Session (2025-10-31 - Session 34 - SUPERSET/CIRCUIT DOCUMENTATION):**
+- ✅ **Documentation Update**
+  - Created comprehensive User Guide for Superset/Circuit features
+  - Updated TODO.md with Session 33 implementation details
+  - Updated README.md with new features and architecture changes
+  - Updated CURRENT_STATE.md with Schema V6 and new use cases
+  - All documentation now current and accurate
+
+**Session 33 (2025-10-30 - SUPERSET & CIRCUIT TRAINING):**
+- ✅ **Schema V6 Migration** (V5 → V6)
+  - NEW: WorkoutType enum support (.standard, .superset, .circuit)
+  - NEW: ExerciseGroupEntity for grouping exercises
+  - NEW: SessionExerciseGroupEntity for runtime round tracking
+  - Lightweight migration from V5 to V6
+- ✅ **Domain Layer Enhancements**
+  - NEW: ExerciseGroup entity (groups 2+ exercises)
+  - NEW: SessionExerciseGroup entity (currentRound/totalRounds)
+  - NEW: CreateSupersetWorkoutUseCase (validates exactly 2 exercises)
+  - NEW: CreateCircuitWorkoutUseCase (validates 3+ exercises)
+  - NEW: StartGroupedWorkoutSessionUseCase (initializes rounds)
+  - NEW: CompleteGroupSetUseCase (set completion in groups)
+  - NEW: AdvanceToNextRoundUseCase (manual round advancement)
+- ✅ **Data Layer Mappers**
+  - NEW: ExerciseGroupMapper (Domain ↔ Entity)
+  - NEW: SessionExerciseGroupMapper (Domain ↔ Entity)
+  - Updated WorkoutMapper for workoutType and exerciseGroups
+  - Updated SessionMapper for SessionExerciseGroup support
+- ✅ **Presentation Layer Views**
+  - NEW: SupersetWorkoutView (specialized UI for supersets)
+  - NEW: CircuitWorkoutView (specialized UI for circuits)
+  - NEW: SupersetGroupCard (displays A1/A2 pairs)
+  - NEW: CircuitGroupCard (station rotation display)
+  - Updated ActiveWorkoutSheetView to route by workout type
+  - Updated SessionStore with group-specific methods
+- ✅ **Features Implemented**
+  - Superset Training: Paired exercises (A1→A2) with round progression
+  - Circuit Training: Multi-station rotation (A→B→C→D→E)
+  - Round tracking: currentRound/totalRounds per group
+  - Rest after group: 120s (superset), 180s (circuit)
+  - Manual "Next Round" button for circuits
+  - Group counter in navigation (Group 1/4, Circuit 1/3)
+  - Workout complete message
+- ✅ **Business Rules**
+  - Supersets: Exactly 2 exercises per group
+  - Circuits: Minimum 3 exercises per group
+  - All exercises in group must have same targetSets
+  - Validation enforced in use cases
+- **TODO:** UI for creating Superset/Circuit workouts (currently programmatic only)
+- Files: 15 NEW (5 Use Cases, 2 Mappers, 2 Views, 2 Cards, 2 Entities, SchemaV6, Migration)
+- Commits: ae362d5, 3dfe1e8, 13737ca, e247a7a, 3c865c8 (Merge PR #1)
 
 **Session 22 (2025-10-27 - APPLE HEALTH + V1.0 MIGRATION):**
 - ✅ **V1.0 → V2.4.0 Migration Strategy** (CRITICAL FEATURE)
