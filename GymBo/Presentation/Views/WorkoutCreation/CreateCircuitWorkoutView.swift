@@ -331,6 +331,11 @@ struct CreateCircuitWorkoutView: View {
             }
             .buttonStyle(.plain)
 
+            // Validation Message
+            if !canProceedFromStep2 {
+                validationMessage
+            }
+
             // Navigation Buttons
             HStack {
                 Button {
@@ -523,6 +528,43 @@ struct CreateCircuitWorkoutView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
+    }
+
+    private var validationMessage: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.subheadline)
+                    .foregroundColor(.orange)
+
+                Text(validationText)
+                    .font(.subheadline)
+                    .foregroundColor(.orange)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.1))
+        .cornerRadius(8)
+    }
+
+    private var validationText: String {
+        if exerciseGroups.isEmpty {
+            return "Füge mindestens einen Circuit hinzu"
+        }
+
+        for (index, group) in exerciseGroups.enumerated() {
+            if group.exercises.count < 3 {
+                let missing = 3 - group.exercises.count
+                return "Circuit \(index + 1) benötigt noch \(missing) Übung\(missing == 1 ? "" : "en") (mindestens 3)"
+            }
+            if !group.hasConsistentRounds {
+                return "Alle Übungen in Circuit \(index + 1) müssen die gleiche Anzahl an Runden haben"
+            }
+        }
+
+        return "Vervollständige alle Circuits"
     }
 
     private var exercisePickerSheet: some View {

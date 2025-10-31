@@ -316,6 +316,11 @@ struct CreateSupersetWorkoutView: View {
             }
             .buttonStyle(.plain)
 
+            // Validation Message
+            if !canProceedFromStep2 {
+                validationMessage
+            }
+
             // Navigation Buttons
             HStack {
                 Button {
@@ -504,6 +509,45 @@ struct CreateSupersetWorkoutView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
+    }
+
+    private var validationMessage: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.subheadline)
+                    .foregroundColor(.orange)
+
+                Text(validationText)
+                    .font(.subheadline)
+                    .foregroundColor(.orange)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.1))
+        .cornerRadius(8)
+    }
+
+    private var validationText: String {
+        if exerciseGroups.isEmpty {
+            return "Füge mindestens ein Superset hinzu"
+        }
+
+        for (index, group) in exerciseGroups.enumerated() {
+            if group.exercises.count < 2 {
+                return "Superset \(index + 1) benötigt genau 2 Übungen"
+            }
+            if group.exercises.count > 2 {
+                return "Superset \(index + 1) darf nur 2 Übungen enthalten"
+            }
+            if !group.hasConsistentRounds {
+                return "Alle Übungen in Superset \(index + 1) müssen die gleiche Anzahl an Runden haben"
+            }
+        }
+
+        return "Vervollständige alle Supersets"
     }
 
     private var exercisePickerSheet: some View {
