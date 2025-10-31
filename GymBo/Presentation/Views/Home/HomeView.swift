@@ -40,6 +40,8 @@ struct HomeView: View {
     @State private var showCreateWorkout = false
     @State private var showCreateWorkoutDirect = false
     @State private var showQuickSetup = false
+    @State private var showCreateSuperset = false  // V6: Superset Training
+    @State private var showCreateCircuit = false   // V6: Circuit Training
     @State private var quickSetupPreviewData: QuickSetupPreviewData? = nil
     @State private var allExercises: [ExerciseEntity] = []
     @State private var showProfile = false
@@ -62,6 +64,8 @@ struct HomeView: View {
                         showCreateWorkout: $showCreateWorkout,
                         showCreateWorkoutDirect: $showCreateWorkoutDirect,
                         showQuickSetup: $showQuickSetup,
+                        showCreateSuperset: $showCreateSuperset,   // V6: NEW
+                        showCreateCircuit: $showCreateCircuit,     // V6: NEW
                         showProfile: $showProfile,
                         showLockerInput: $showLockerInput,
                         showActiveWorkout: $showActiveWorkout,
@@ -812,6 +816,8 @@ struct SheetsModifier: ViewModifier {
     @Binding var showCreateWorkout: Bool
     @Binding var showCreateWorkoutDirect: Bool
     @Binding var showQuickSetup: Bool
+    @Binding var showCreateSuperset: Bool   // V6: NEW
+    @Binding var showCreateCircuit: Bool    // V6: NEW
     @Binding var showProfile: Bool
     @Binding var showLockerInput: Bool
     @Binding var showActiveWorkout: Bool
@@ -836,6 +842,12 @@ struct SheetsModifier: ViewModifier {
                     },
                     onSelectQuickSetup: {
                         showQuickSetup = true
+                    },
+                    onSelectSuperset: {         // V6: NEW
+                        showCreateSuperset = true
+                    },
+                    onSelectCircuit: {          // V6: NEW
+                        showCreateCircuit = true
                     },
                     onSelectWizard: {
                         // Coming soon
@@ -871,6 +883,26 @@ struct SheetsModifier: ViewModifier {
                         }
                     )
                     .environment(store)
+                }
+            }
+            // V6: Superset Creation Sheet
+            .sheet(isPresented: $showCreateSuperset) {
+                if let store = workoutStore, let container = dependencyContainer {
+                    CreateSupersetWorkoutView { createdWorkout in
+                        navigateToNewWorkout = createdWorkout
+                    }
+                    .environment(store)
+                    .environment(\.dependencyContainer, container)
+                }
+            }
+            // V6: Circuit Creation Sheet
+            .sheet(isPresented: $showCreateCircuit) {
+                if let store = workoutStore, let container = dependencyContainer {
+                    CreateCircuitWorkoutView { createdWorkout in
+                        navigateToNewWorkout = createdWorkout
+                    }
+                    .environment(store)
+                    .environment(\.dependencyContainer, container)
                 }
             }
             .sheet(isPresented: $showProfile) {

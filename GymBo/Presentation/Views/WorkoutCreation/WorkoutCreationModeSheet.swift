@@ -15,6 +15,8 @@ struct WorkoutCreationModeSheet: View {
 
     let onSelectEmpty: () -> Void
     let onSelectQuickSetup: () -> Void
+    let onSelectSuperset: () -> Void  // V6: Superset Training
+    let onSelectCircuit: () -> Void   // V6: Circuit Training
     let onSelectWizard: () -> Void
 
     var body: some View {
@@ -44,6 +46,32 @@ struct WorkoutCreationModeSheet: View {
                         action: {
                             dismiss()
                             onSelectQuickSetup()
+                        }
+                    )
+
+                    // Superset Training (V6: NEW)
+                    ModeCard(
+                        icon: "arrow.left.arrow.right",
+                        title: "Superset Training",
+                        description: "Zwei Übungen abwechselnd",
+                        badge: "NEU",
+                        isEnabled: true,
+                        action: {
+                            dismiss()
+                            onSelectSuperset()
+                        }
+                    )
+
+                    // Circuit Training (V6: NEW)
+                    ModeCard(
+                        icon: "arrow.triangle.2.circlepath",
+                        title: "Circuit Training",
+                        description: "Mehrere Stationen in Rotation",
+                        badge: "NEU",
+                        isEnabled: true,
+                        action: {
+                            dismiss()
+                            onSelectCircuit()
                         }
                     )
 
@@ -155,6 +183,8 @@ private struct ModeCard: View {
     WorkoutCreationModeSheet(
         onSelectEmpty: { print("Empty selected") },
         onSelectQuickSetup: { print("Quick-Setup selected") },
+        onSelectSuperset: { print("Superset selected") },
+        onSelectCircuit: { print("Circuit selected") },
         onSelectWizard: { print("Wizard selected") }
     )
 }
