@@ -51,20 +51,19 @@ struct GymBoApp: App {
 
     init() {
         // 🔥 CRITICAL: Delete database BEFORE ModelContainer creation if V1 upgrade
+        NSLog("🔵 INIT START")
         let versionManager = AppVersionManager.shared
         versionManager.printVersionInfo()
 
-        // PROACTIVE database cleanup for Build 6
-        // Build 5 failed - it set build5CleanupDone but crashed before actually deleting
-        // Build 6 uses NEW flag to ensure cleanup happens
-        if !versionManager.build6CleanupDone {
-            NSLog("🔥 BUILD 6 INIT: Deleting database BEFORE ModelContainer creation")
-            GymBoApp.deleteDatabase()
-            versionManager.build6CleanupDone = true
-            versionManager.markV2MigrationComplete()
-            NSLog("✅ BUILD 6 INIT: Database cleanup completed")
-            _showMigrationAlert = State(initialValue: true)
-        }
+        NSLog("🔵 build6CleanupDone = \(versionManager.build6CleanupDone)")
+
+        // FORCE CLEANUP ALWAYS (desperate measure)
+        NSLog("🔥 BUILD 9 INIT: FORCE DELETING database (ignoring flag)")
+        GymBoApp.deleteDatabase()
+        NSLog("✅ BUILD 9 INIT: Database FORCE deleted")
+        versionManager.build6CleanupDone = true
+        versionManager.markV2MigrationComplete()
+        _showMigrationAlert = State(initialValue: true)
 
         // Show migration alert if cleanup was just performed
         if versionManager.build6CleanupDone && versionManager.hasPerformedV2Migration {
