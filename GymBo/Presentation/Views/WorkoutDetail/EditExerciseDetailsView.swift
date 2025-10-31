@@ -801,6 +801,7 @@ private struct PerSetRestTimePickerView: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     EditExerciseDetailsView(
         workoutId: UUID(),
@@ -821,3 +822,4 @@ private struct PerSetRestTimePickerView: View {
         }
     )
 }
+#endif

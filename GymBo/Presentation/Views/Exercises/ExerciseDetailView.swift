@@ -360,6 +360,7 @@ struct FlowLayout: Layout {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     NavigationStack {
         ExerciseDetailView(
@@ -380,3 +381,4 @@ struct FlowLayout: Layout {
         )
     }
 }
+#endif

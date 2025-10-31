@@ -747,13 +747,15 @@ struct ReorderExercisesSheet: View {
 
 // MARK: - Preview
 
-#Preview("Active Workout - New Design") {
-    ActiveWorkoutSheetView()
-        .environment(SessionStore.previewWithSession)
-}
-
-#Preview("Summary") {
-    WorkoutSummaryView(session: .preview) {
-        print("Dismissed")
+#if DEBUG
+    #Preview("Active Workout - New Design") {
+        ActiveWorkoutSheetView()
+            .environment(SessionStore.previewWithSession)
     }
-}
+
+    #Preview("Summary") {
+        WorkoutSummaryView(session: .preview) {
+            print("Dismissed")
+        }
+    }
+#endif

@@ -161,6 +161,7 @@ extension UIImage {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     VStack {
         Text("Image Source Picker Preview")
@@ -176,3 +177,4 @@ extension UIImage {
         )
     }
 }
+#endif

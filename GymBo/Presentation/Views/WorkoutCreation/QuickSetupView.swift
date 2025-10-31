@@ -364,8 +364,10 @@ private struct GoalCard: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     QuickSetupView { config in
         print("Config: \(config)")
     }
 }
+#endif

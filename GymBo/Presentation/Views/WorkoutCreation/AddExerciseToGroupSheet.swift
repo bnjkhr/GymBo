@@ -249,11 +249,13 @@ struct AddExerciseToGroupSheet: View {
 
 // MARK: - Preview
 
-#Preview {
-    AddExerciseToGroupSheet(
-        exerciseName: "Bankdrücken",
-        rounds: 3
-    ) { reps, time, weight in
-        print("Saved: \(reps ?? 0) reps, \(time ?? 0)s, \(weight ?? 0)kg")
+#if DEBUG
+    #Preview {
+        AddExerciseToGroupSheet(
+            exerciseName: "Bankdrücken",
+            rounds: 3
+        ) { reps, time, weight in
+            print("Saved: \(reps ?? 0) reps, \(time ?? 0)s, \(weight ?? 0)kg")
+        }
     }
-}
+#endif

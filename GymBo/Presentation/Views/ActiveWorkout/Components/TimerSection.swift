@@ -248,6 +248,7 @@ extension Notification.Name {
 
 // MARK: - Previews
 
+#if DEBUG
 #Preview("With Rest Timer") {
     let manager = RestTimerStateManager()
     manager.startRest(duration: 90)  // 1:30
@@ -260,7 +261,9 @@ extension Notification.Name {
         totalExercises: 7
     )
 }
+#endif
 
+#if DEBUG
 #Preview("No Rest Timer") {
     TimerSection(
         restTimerManager: nil,
@@ -270,7 +273,9 @@ extension Notification.Name {
         totalExercises: 5
     )
 }
+#endif
 
+#if DEBUG
 #Preview("No Workout Started") {
     TimerSection(
         restTimerManager: nil,
@@ -280,3 +285,4 @@ extension Notification.Name {
         totalExercises: nil
     )
 }
+#endif

@@ -126,6 +126,7 @@ extension View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     VStack(spacing: 20) {
         Text("Tap to show success")
@@ -138,3 +139,4 @@ extension View {
     }
     .successPill(isPresented: .constant(true), message: "Übung hinzugefügt")
 }
+#endif

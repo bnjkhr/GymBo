@@ -932,34 +932,36 @@ private struct ExerciseCard: View {
 
 // MARK: - Preview
 
-#Preview {
-    NavigationStack {
-        WorkoutDetailView(
-            workout: Workout(
-                name: "Push Day",
-                exercises: [
-                    WorkoutExercise(
-                        exerciseId: UUID(),
-                        targetSets: 4,
-                        targetReps: 8,
-                        targetWeight: 100.0,
-                        restTime: 90,
-                        orderIndex: 0
-                    ),
-                    WorkoutExercise(
-                        exerciseId: UUID(),
-                        targetSets: 3,
-                        targetReps: 10,
-                        targetWeight: 80.0,
-                        restTime: 90,
-                        orderIndex: 1
-                    ),
-                ],
-                defaultRestTime: 90,
-                isFavorite: true
-            ),
-            onStartWorkout: { print("Start workout") }
-        )
-        .environment(SessionStore.preview)
+#if DEBUG
+    #Preview {
+        NavigationStack {
+            WorkoutDetailView(
+                workout: Workout(
+                    name: "Push Day",
+                    exercises: [
+                        WorkoutExercise(
+                            exerciseId: UUID(),
+                            targetSets: 4,
+                            targetReps: 8,
+                            targetWeight: 100.0,
+                            restTime: 90,
+                            orderIndex: 0
+                        ),
+                        WorkoutExercise(
+                            exerciseId: UUID(),
+                            targetSets: 3,
+                            targetReps: 10,
+                            targetWeight: 80.0,
+                            restTime: 90,
+                            orderIndex: 1
+                        ),
+                    ],
+                    defaultRestTime: 90,
+                    isFavorite: true
+                ),
+                onStartWorkout: { print("Start workout") }
+            )
+            .environment(SessionStore.preview)
+        }
     }
-}
+#endif

@@ -264,13 +264,17 @@ struct CreateWorkoutView: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview("Create Workout") {
     CreateWorkoutView(onWorkoutCreated: { _ in })
         .environment(WorkoutStore.preview)
 }
+#endif
 
+#if DEBUG
 #Preview("Create Workout - Dark") {
     CreateWorkoutView(onWorkoutCreated: { _ in })
         .environment(WorkoutStore.preview)
         .preferredColorScheme(.dark)
 }
+#endif

@@ -138,6 +138,7 @@ struct HealthKitPermissionView: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     HealthKitPermissionView(
         onAuthorize: {
@@ -149,3 +150,4 @@ struct HealthKitPermissionView: View {
         }
     )
 }
+#endif

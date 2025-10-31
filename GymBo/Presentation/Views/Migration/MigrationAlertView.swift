@@ -111,8 +111,10 @@ struct MigrationAlertView: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     MigrationAlertView {
         print("Migration confirmed")
     }
 }
+#endif

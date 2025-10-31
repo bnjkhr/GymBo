@@ -157,6 +157,7 @@ private struct ScaleButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview("With Profile & Locker") {
     GreetingHeaderView(
         showProfile: .constant(false),
@@ -171,7 +172,9 @@ private struct ScaleButtonStyle: ButtonStyle {
         UserDefaults.standard.set("127", forKey: "lockerNumber")
     }
 }
+#endif
 
+#if DEBUG
 #Preview("Without Profile") {
     GreetingHeaderView(
         showProfile: .constant(false),
@@ -182,3 +185,4 @@ private struct ScaleButtonStyle: ButtonStyle {
         UserDefaults.standard.removeObject(forKey: "lockerNumber")
     }
 }
+#endif

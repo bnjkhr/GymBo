@@ -463,31 +463,33 @@ extension Calendar {
 
 // MARK: - Previews
 
-#Preview("Weight Tab") {
-    ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+#if DEBUG
+    #Preview("Weight Tab") {
+        ZStack {
+            Color(uiColor: .systemBackground).ignoresSafeArea()
 
-        VStack {
-            ProgressionCard(sessions: [.previewCompleted, .preview])
-                .padding(.horizontal, 16)
+            VStack {
+                ProgressionCard(sessions: [.previewCompleted, .preview])
+                    .padding(.horizontal, 16)
 
-            Spacer()
+                Spacer()
+            }
+            .padding(.top, 20)
         }
-        .padding(.top, 20)
     }
-}
 
-#Preview("Dark Mode") {
-    ZStack {
-        Color(uiColor: .systemBackground).ignoresSafeArea()
+    #Preview("Dark Mode") {
+        ZStack {
+            Color(uiColor: .systemBackground).ignoresSafeArea()
 
-        VStack {
-            ProgressionCard(sessions: [.previewCompleted, .preview])
-                .padding(.horizontal, 16)
+            VStack {
+                ProgressionCard(sessions: [.previewCompleted, .preview])
+                    .padding(.horizontal, 16)
 
-            Spacer()
+                Spacer()
+            }
+            .padding(.top, 20)
         }
-        .padding(.top, 20)
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
-}
+#endif

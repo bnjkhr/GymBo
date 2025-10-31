@@ -378,8 +378,10 @@ private struct MuscleGroupChip: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     CreateExerciseView { exercise in
         print("Created: \(exercise.name)")
     }
 }
+#endif

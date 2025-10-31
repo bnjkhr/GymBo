@@ -60,6 +60,8 @@ struct ProgressViewPlaceholder: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     ProgressViewPlaceholder()
 }
+#endif

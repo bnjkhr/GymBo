@@ -305,12 +305,16 @@ struct SessionHistoryView: View {
 
 // MARK: - Previews
 
+#if DEBUG
 #Preview("With Data") {
     SessionHistoryView()
         .environment(SessionHistoryStore.preview(withData: true))
 }
+#endif
 
+#if DEBUG
 #Preview("Empty") {
     SessionHistoryView()
         .environment(SessionHistoryStore.preview(withData: false))
 }
+#endif

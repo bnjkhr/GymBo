@@ -301,6 +301,7 @@ struct WorkoutInsight: Identifiable {
 
 // MARK: - Previews
 
+#if DEBUG
 #Preview("Completed Session") {
     ZStack {
         Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -314,7 +315,9 @@ struct WorkoutInsight: Identifiable {
         .padding(.top, 20)
     }
 }
+#endif
 
+#if DEBUG
 #Preview("Active Session") {
     ZStack {
         Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -328,7 +331,9 @@ struct WorkoutInsight: Identifiable {
         .padding(.top, 20)
     }
 }
+#endif
 
+#if DEBUG
 #Preview("High Volume Session") {
     ZStack {
         Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -352,3 +357,4 @@ struct WorkoutInsight: Identifiable {
         .padding(.top, 20)
     }
 }
+#endif

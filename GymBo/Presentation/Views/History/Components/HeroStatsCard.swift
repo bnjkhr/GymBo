@@ -290,6 +290,7 @@ struct HeroStatsCard: View {
 
 // MARK: - Previews
 
+#if DEBUG
 #Preview("With Data") {
     ZStack {
         Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -319,7 +320,9 @@ struct HeroStatsCard: View {
         .padding(.top, 20)
     }
 }
+#endif
 
+#if DEBUG
 #Preview("No Data") {
     ZStack {
         Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -336,7 +339,9 @@ struct HeroStatsCard: View {
         .padding(.top, 20)
     }
 }
+#endif
 
+#if DEBUG
 #Preview("High Streak") {
     ZStack {
         Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -379,3 +384,4 @@ struct HeroStatsCard: View {
         .padding(.top, 20)
     }
 }
+#endif

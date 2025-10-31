@@ -60,6 +60,8 @@ struct ExercisesViewPlaceholder: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     ExercisesViewPlaceholder()
 }
+#endif

@@ -182,6 +182,7 @@ struct StatTile: View {
 
 // MARK: - Previews
 
+#if DEBUG
 #Preview("With Data") {
     ZStack {
         Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -213,7 +214,9 @@ struct StatTile: View {
         .padding(.top, 20)
     }
 }
+#endif
 
+#if DEBUG
 #Preview("No Data") {
     ZStack {
         Color(uiColor: .systemBackground).ignoresSafeArea()
@@ -232,3 +235,4 @@ struct StatTile: View {
         .padding(.top, 20)
     }
 }
+#endif

@@ -37,6 +37,7 @@ Version 2.0 verwendet eine komplett neue Datenbank-Struktur. Deine alten Workout
 - 🏗️ Komplett neue Clean Architecture
 - ⚡ Deutlich bessere Performance
 - 🐛 Viele Bugs aus V1.0 behoben
+- 📦 Release-Build optimiert (alle Debug-Features entfernt)
 
 ---
 

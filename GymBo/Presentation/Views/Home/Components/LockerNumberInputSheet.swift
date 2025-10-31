@@ -103,13 +103,17 @@ struct LockerNumberInputSheet: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     LockerNumberInputSheet()
 }
+#endif
 
+#if DEBUG
 #Preview("With Existing Number") {
     LockerNumberInputSheet()
         .onAppear {
             UserDefaults.standard.set("127", forKey: "lockerNumber")
         }
 }
+#endif

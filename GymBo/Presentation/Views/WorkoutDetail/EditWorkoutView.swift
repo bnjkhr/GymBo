@@ -256,6 +256,7 @@ struct EditWorkoutView: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     EditWorkoutView(
         workout: Workout(
@@ -268,3 +269,4 @@ struct EditWorkoutView: View {
         print("Updated: \(name), \(restTime)s")
     }
 }
+#endif

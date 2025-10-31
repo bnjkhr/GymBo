@@ -813,7 +813,7 @@ struct ProfileView: View {
                 }
                 if let age = metrics.age {
                     updatedProfile?.age = age
-                    editingAge = age // Sync editing state
+                    editingAge = age  // Sync editing state
                 }
                 userProfile = updatedProfile
 
@@ -830,22 +830,24 @@ struct ProfileView: View {
 
 // MARK: - Preview
 
-#Preview {
-    let mockRepository = MockUserProfileRepository()
-    let mockUseCase = MockImportBodyMetricsUseCase()
-    let mockFeatureFlags = FeatureFlagService()
-    let mockSettings = AppSettings(
-        userProfileRepository: mockRepository,
-        featureFlagService: mockFeatureFlags
-    )
+#if DEBUG
+    #Preview {
+        let mockRepository = MockUserProfileRepository()
+        let mockUseCase = MockImportBodyMetricsUseCase()
+        let mockFeatureFlags = FeatureFlagService()
+        let mockSettings = AppSettings(
+            userProfileRepository: mockRepository,
+            featureFlagService: mockFeatureFlags
+        )
 
-    ProfileView(
-        userProfileRepository: mockRepository,
-        importBodyMetricsUseCase: mockUseCase,
-        healthKitService: MockHealthKitService()
-    )
-    .environment(mockSettings)
-}
+        ProfileView(
+            userProfileRepository: mockRepository,
+            importBodyMetricsUseCase: mockUseCase,
+            healthKitService: MockHealthKitService()
+        )
+        .environment(mockSettings)
+    }
+#endif
 
 // MARK: - Mock Implementation
 
@@ -887,4 +889,3 @@ private class MockImportBodyMetricsUseCase: ImportBodyMetricsUseCase {
         .success(BodyMetrics(bodyMass: 75.0, height: 180.0, age: 28))
     }
 }
-

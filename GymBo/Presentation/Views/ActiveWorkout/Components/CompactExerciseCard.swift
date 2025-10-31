@@ -314,42 +314,44 @@ struct CompactExerciseCard: View {
 
 // MARK: - Previews
 
-#Preview("Single Exercise") {
-    CompactExerciseCard(
-        exercise: .preview,
-        exerciseIndex: 0,
-        totalExercises: 3,
-        exerciseName: "Bankdrücken",
-        equipment: "Barbell",
-        onToggleCompletion: { _ in },
-        onUpdateWeight: { _, _ in },
-        onUpdateReps: { _, _ in },
-        onUpdateAllSets: { _, _ in },
-        onAddSet: { _, _ in },
-        onRemoveSet: { _ in },
-        onMarkAllComplete: {},
-        onReorder: {},
-        onUpdateNotes: { _ in }
-    )
-    .padding()
-}
+#if DEBUG
+    #Preview("Single Exercise") {
+        CompactExerciseCard(
+            exercise: .preview,
+            exerciseIndex: 0,
+            totalExercises: 3,
+            exerciseName: "Bankdrücken",
+            equipment: "Barbell",
+            onToggleCompletion: { _ in },
+            onUpdateWeight: { _, _ in },
+            onUpdateReps: { _, _ in },
+            onUpdateAllSets: { _, _ in },
+            onAddSet: { _, _ in },
+            onRemoveSet: { _ in },
+            onMarkAllComplete: {},
+            onReorder: {},
+            onUpdateNotes: { _ in }
+        )
+        .padding()
+    }
 
-#Preview("With Notes") {
-    CompactExerciseCard(
-        exercise: .previewWithNotes,
-        exerciseIndex: 1,
-        totalExercises: 3,
-        exerciseName: "Lat Pulldown",
-        equipment: "Cable",
-        onToggleCompletion: { _ in },
-        onUpdateWeight: { _, _ in },
-        onUpdateReps: { _, _ in },
-        onUpdateAllSets: { _, _ in },
-        onAddSet: { _, _ in },
-        onRemoveSet: { _ in },
-        onMarkAllComplete: {},
-        onReorder: {},
-        onUpdateNotes: { _ in }
-    )
-    .padding()
-}
+    #Preview("With Notes") {
+        CompactExerciseCard(
+            exercise: .previewWithNotes,
+            exerciseIndex: 1,
+            totalExercises: 3,
+            exerciseName: "Lat Pulldown",
+            equipment: "Cable",
+            onToggleCompletion: { _ in },
+            onUpdateWeight: { _, _ in },
+            onUpdateReps: { _, _ in },
+            onUpdateAllSets: { _, _ in },
+            onAddSet: { _, _ in },
+            onRemoveSet: { _ in },
+            onMarkAllComplete: {},
+            onReorder: {},
+            onUpdateNotes: { _ in }
+        )
+        .padding()
+    }
+#endif

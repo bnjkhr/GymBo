@@ -286,6 +286,7 @@ private struct WarmupSetPreviewRow: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     AddWarmupSetsSheet(
         workingWeight: 100.0,
@@ -295,3 +296,4 @@ private struct WarmupSetPreviewRow: View {
         }
     )
 }
+#endif

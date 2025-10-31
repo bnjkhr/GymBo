@@ -217,7 +217,9 @@ extension CreateFolderSheet.Mode {
     }
 }
 
+#if DEBUG
 #Preview {
     ManageFoldersSheet()
         .environment(WorkoutStore.preview)
 }
+#endif

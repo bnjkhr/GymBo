@@ -401,6 +401,8 @@ private struct FilterChip: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     ExercisesView()
 }
+#endif

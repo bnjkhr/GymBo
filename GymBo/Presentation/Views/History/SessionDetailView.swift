@@ -277,6 +277,8 @@ struct SetDetailRow: View {
 
 // MARK: - Previews
 
+#if DEBUG
 #Preview {
     SessionDetailView(session: .previewCompleted)
 }
+#endif

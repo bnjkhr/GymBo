@@ -380,6 +380,7 @@ private struct EmptyStateView: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     ExerciseSwapSheet(
         currentExercise: ExerciseEntity(
@@ -400,3 +401,4 @@ private struct EmptyStateView: View {
         }
     )
 }
+#endif

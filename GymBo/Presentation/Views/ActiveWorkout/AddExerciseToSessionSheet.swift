@@ -223,8 +223,10 @@ private struct ExerciseRowButton: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     AddExerciseToSessionSheet { exercise, savePermanently in
         print("Selected: \(exercise.name), Save permanently: \(savePermanently)")
     }
 }
+#endif

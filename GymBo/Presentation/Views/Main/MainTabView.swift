@@ -62,7 +62,9 @@ struct MainTabView: View {
 
 // MARK: - Preview
 
-#Preview {
-    MainTabView()
-        .environment(SessionStore.preview)
-}
+#if DEBUG
+    #Preview {
+        MainTabView()
+            .environment(SessionStore.preview)
+    }
+#endif

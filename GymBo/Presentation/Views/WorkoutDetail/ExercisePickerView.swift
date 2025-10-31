@@ -393,8 +393,10 @@ private struct ExercisePickerRow: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     ExercisePickerView { exercises in
         print("Selected \(exercises.count) exercises")
     }
 }
+#endif

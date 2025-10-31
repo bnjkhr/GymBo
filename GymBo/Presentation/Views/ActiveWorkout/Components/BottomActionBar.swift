@@ -66,6 +66,7 @@ struct BottomActionBar: View {
 
 // MARK: - Previews
 
+#if DEBUG
 #Preview {
     VStack {
         Spacer()
@@ -75,3 +76,4 @@ struct BottomActionBar: View {
         )
     }
 }
+#endif

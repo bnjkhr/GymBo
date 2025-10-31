@@ -223,6 +223,7 @@ private struct DayCell: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview("With Workouts") {
     WorkoutCalendarStripView()
         .padding()
@@ -233,8 +234,11 @@ private struct DayCell: View {
             // Note: In production, this would come from the repository
         }
 }
+#endif
 
+#if DEBUG
 #Preview("No Workouts") {
     WorkoutCalendarStripView()
         .padding()
 }
+#endif
