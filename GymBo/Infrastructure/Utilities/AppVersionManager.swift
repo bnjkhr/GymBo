@@ -35,6 +35,7 @@ final class AppVersionManager {
         static let lastAppVersion = "lastAppVersion"
         static let hasPerformedV2Migration = "hasPerformedV2Migration"
         static let isFirstLaunch = "isFirstLaunch"
+        static let build15CleanupDone = "build15CleanupDone"  // Force fresh DB for all users
     }
 
     // MARK: - Current Version
@@ -73,6 +74,12 @@ final class AppVersionManager {
             return userDefaults.bool(forKey: Keys.isFirstLaunch)
         }
         set { userDefaults.set(newValue, forKey: Keys.isFirstLaunch) }
+    }
+
+    /// Whether Build 15 cleanup has been performed
+    var build15CleanupDone: Bool {
+        get { userDefaults.bool(forKey: Keys.build15CleanupDone) }
+        set { userDefaults.set(newValue, forKey: Keys.build15CleanupDone) }
     }
 
     // MARK: - Migration Detection
@@ -148,16 +155,18 @@ final class AppVersionManager {
 
     /// Print current version state (for debugging)
     func printVersionInfo() {
-        print("""
+        print(
+            """
 
-        📱 App Version Info:
-        -------------------
-        Current Version: \(currentVersion) (\(currentBuild))
-        Last Version: \(lastVersion ?? "none")
-        First Launch: \(isFirstLaunch)
-        V2 Migration Done: \(hasPerformedV2Migration)
-        Needs DB Reset: \(needsDatabaseReset())
+            📱 App Version Info:
+            -------------------
+            Current Version: \(currentVersion) (\(currentBuild))
+            Last Version: \(lastVersion ?? "none")
+            First Launch: \(isFirstLaunch)
+            V2 Migration Done: \(hasPerformedV2Migration)
+            Build 15 Cleanup Done: \(build15CleanupDone)
+            Needs DB Reset: \(needsDatabaseReset())
 
-        """)
+            """)
     }
 }

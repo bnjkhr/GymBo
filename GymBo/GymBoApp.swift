@@ -62,6 +62,18 @@ struct GymBoApp: App {
             _showMigrationAlert = State(initialValue: true)
         }
 
+        // Build 15: Force fresh database for ALL users (migration issues in Builds 10-14)
+        if !versionManager.build15CleanupDone {
+            print("🔥 BUILD 15: Deleting ALL databases - fresh V2.0 start for all users")
+            Self.deleteDatabase()
+            print("✅ BUILD 15: Database deleted - fresh start")
+            versionManager.build15CleanupDone = true
+            versionManager.markV2MigrationComplete()
+            _showMigrationAlert = State(initialValue: true)
+        } else {
+            print("✅ BUILD 15: Database already cleaned up previously")
+        }
+
         // ✅ Production-Ready: ModelContainer with V6 schema and migration plan
         // Migrates: V1 → V2 (exerciseId) → V3 (expanded UserProfile) → V4 (warmup sets) → V5 (warmup strategy) → V6 (superset/circuit)
 
