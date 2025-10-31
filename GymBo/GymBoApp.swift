@@ -11,32 +11,7 @@ import SwiftData
 import SwiftUI
 import UserNotifications
 
-// MARK: - App Delegate
-
-/// App Delegate that runs BEFORE @main
-/// This is where we delete the database BEFORE SwiftData tries to load it
-class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool {
-        // 🔥 CRITICAL: This runs BEFORE SwiftData container is created
-        // This is THE fix for the V1→V2 migration crash
-        let versionManager = AppVersionManager.shared
-
-        if !versionManager.build5CleanupDone {
-            NSLog("🔥 BUILD 5 APP DELEGATE: Deleting database BEFORE SwiftData initialization")
-            GymBoApp.deleteDatabase()
-            versionManager.build5CleanupDone = true
-            versionManager.markV2MigrationComplete()
-            NSLog("✅ BUILD 5 APP DELEGATE: Database cleanup completed")
-        } else {
-            NSLog("✅ BUILD 5 APP DELEGATE: Database cleanup already done previously")
-        }
-
-        return true
-    }
-}
+// NOTE: AppDelegate removed - cleanup happens in init() before ModelContainer creation
 
 /// GymBo V2.0 - Clean Architecture App Entry Point
 ///
@@ -53,9 +28,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 /// - 100% testable business logic
 @main
 struct GymBoApp: App {
-
-    // Connect the app delegate - this ensures AppDelegate runs first
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     // MARK: - Properties
 
@@ -78,9 +50,19 @@ struct GymBoApp: App {
     // MARK: - Initialization
 
     init() {
-        // Note: Database cleanup happens in static initializer BEFORE this runs
+        // 🔥 CRITICAL: Delete database BEFORE ModelContainer creation if V1 upgrade
         let versionManager = AppVersionManager.shared
         versionManager.printVersionInfo()
+
+        // PROACTIVE database cleanup for Build 5
+        if !versionManager.build5CleanupDone {
+            NSLog("🔥 BUILD 5 INIT: Deleting database BEFORE ModelContainer creation")
+            GymBoApp.deleteDatabase()
+            versionManager.build5CleanupDone = true
+            versionManager.markV2MigrationComplete()
+            NSLog("✅ BUILD 5 INIT: Database cleanup completed")
+            _showMigrationAlert = State(initialValue: true)
+        }
 
         // Show migration alert if cleanup was just performed
         if versionManager.build5CleanupDone && versionManager.hasPerformedV2Migration {
