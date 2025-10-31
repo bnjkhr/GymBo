@@ -25,7 +25,7 @@ import Foundation
 ///     completed: false
 /// )
 /// ```
-struct DomainSessionSet: Identifiable, Equatable {
+struct DomainSessionSet: Identifiable, Equatable, Hashable {
 
     // MARK: - Properties
 
