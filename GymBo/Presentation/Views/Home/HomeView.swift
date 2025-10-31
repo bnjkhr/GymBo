@@ -671,7 +671,7 @@ private struct WorkoutCard: View {
                             .font(.title3)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
-                            .lineLimit(1)
+                            .lineLimit(2)
 
                         // Equipment Type Icons
                         if let equipmentType = workout.equipmentType {

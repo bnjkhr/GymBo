@@ -105,7 +105,7 @@ struct WorkoutDetailView: View {
                         showExercisePicker = true
                     } label: {
                         Image(systemName: "plus.circle")
-                            .foregroundStyle(.primary)
+                            .foregroundColor(.primary)
                     }
                     .accessibilityLabel("Übung hinzufügen")
 
@@ -126,7 +126,7 @@ struct WorkoutDetailView: View {
                         showEditWorkout = true
                     } label: {
                         Image(systemName: "pencil.circle")
-                            .foregroundStyle(.primary)
+                            .foregroundColor(.primary)
                     }
                     .accessibilityLabel("Workout bearbeiten")
 
@@ -135,7 +135,7 @@ struct WorkoutDetailView: View {
                         showDeleteConfirmation = true
                     } label: {
                         Image(systemName: "trash.circle")
-                            .foregroundStyle(.red)
+                            .foregroundColor(.red)
                     }
                     .accessibilityLabel("Workout löschen")
                 }
