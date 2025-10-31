@@ -866,7 +866,7 @@ private struct ExerciseCard: View {
                     .font(.body)
                     .fontWeight(.medium)
                     .foregroundColor(.primary)
-                    .lineLimit(1)
+                    .lineLimit(2)
 
                 // Stats in compact format
                 HStack(spacing: 10) {
