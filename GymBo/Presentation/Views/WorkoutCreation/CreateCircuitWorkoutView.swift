@@ -45,8 +45,10 @@ struct CreateCircuitWorkoutView: View {
 
     // Exercise picker state
     @State private var showExercisePicker: Bool = false
+    @State private var showExerciseDetailsSheet: Bool = false
     @State private var selectedGroupIndex: Int? = nil
     @State private var selectedExerciseIndex: Int? = nil
+    @State private var selectedExerciseEntity: ExerciseEntity? = nil
 
     // Exercise names cache
     @State private var exerciseNames: [UUID: String] = [:]
@@ -524,8 +526,30 @@ struct CreateCircuitWorkoutView: View {
     }
 
     private var exercisePickerSheet: some View {
-        Text("Exercise Picker - TODO")
-            // TODO: Implement ExercisePicker integration
+        Group {
+            if showExercisePicker {
+                ExercisePickerView { exercises in
+                    // User selected exercise(s), now show details sheet
+                    if let first = exercises.first {
+                        selectedExerciseEntity = first
+                        // Cache exercise name
+                        exerciseNames[first.id] = first.name
+                        showExercisePicker = false
+                        showExerciseDetailsSheet = true
+                    }
+                }
+                .environment(\.dependencyContainer, dependencyContainer)
+            }
+
+            if showExerciseDetailsSheet, let exercise = selectedExerciseEntity, let groupIndex = selectedGroupIndex {
+                AddExerciseToGroupSheet(
+                    exerciseName: exercise.name,
+                    rounds: selectedExerciseIndex == nil ? 3 : exerciseGroups[groupIndex].exercises.first?.targetSets ?? 3
+                ) { reps, time, weight in
+                    handleExerciseConfigured(exerciseId: exercise.id, reps: reps, time: time, weight: weight)
+                }
+            }
+        }
     }
 
     // MARK: - Actions
@@ -579,6 +603,41 @@ struct CreateCircuitWorkoutView: View {
     private func deleteExerciseFromGroup(groupIndex: Int, exerciseId: UUID) {
         exerciseGroups[groupIndex].exercises.removeAll { $0.id == exerciseId }
         HapticFeedback.impact(.light)
+    }
+
+    private func handleExerciseConfigured(exerciseId: UUID, reps: Int?, time: TimeInterval?, weight: Double?) {
+        guard let groupIndex = selectedGroupIndex else { return }
+
+        // Get rounds from existing exercises in group, or use default
+        let rounds = exerciseGroups[groupIndex].exercises.first?.targetSets ?? 3
+
+        if let existingExerciseIndex = selectedExerciseIndex {
+            // Editing existing exercise
+            exerciseGroups[groupIndex].exercises[existingExerciseIndex].targetReps = reps
+            exerciseGroups[groupIndex].exercises[existingExerciseIndex].targetTime = time
+            exerciseGroups[groupIndex].exercises[existingExerciseIndex].targetWeight = weight
+        } else {
+            // Adding new exercise
+            let newExercise = WorkoutExercise(
+                id: UUID(),
+                exerciseId: exerciseId,
+                targetSets: rounds,
+                targetReps: reps,
+                targetTime: time,
+                targetWeight: weight,
+                restTime: defaultRestTime,
+                orderIndex: exerciseGroups[groupIndex].exercises.count
+            )
+            exerciseGroups[groupIndex].exercises.append(newExercise)
+        }
+
+        // Reset state
+        selectedExerciseEntity = nil
+        selectedGroupIndex = nil
+        selectedExerciseIndex = nil
+        showExerciseDetailsSheet = false
+
+        HapticFeedback.notification(.success)
     }
 
     private func bindingForGroup(at index: Int) -> Binding<ExerciseGroup> {
