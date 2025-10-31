@@ -10,7 +10,14 @@
 ✅ **NEW (Session 32):** Warmup Sets Feature! Automatische Aufwärmsätze mit 3 Strategien
 ✅ **NEW (Session 27-30):** Session History & Statistics! Workout-Tracking mit Streak-Berechnung
 
-**Letzte Session (2025-10-31 - Session 35 - CRITICAL: SWIFTDATA CRASH FIX):**
+**Letzte Session (2025-10-31 - Session 36 - UI POLISH: HEALTHKIT WELCOME SCREEN):**
+- 🎨 **UI Polish: HealthKit Welcome Screen**
+  - Changed benefit icons from orange (.appOrange) to black
+  - Changed "Zugriff erlauben" button from orange to black background
+  - Cleaner, more neutral design for initial app experience
+  - Updated HealthKitPermissionView.swift
+
+**Session 35 (2025-10-31 - CRITICAL: SWIFTDATA CRASH FIX):**
 - 🔥 **CRITICAL BUG FIX: SwiftData Migration Crash**
   - **Problem:** App crashed beim Speichern von Sessions nach V1→V2 Update (TestFlight Feedback)
   - **Root Cause:** Broken inverse relationships nach Schema-Migration

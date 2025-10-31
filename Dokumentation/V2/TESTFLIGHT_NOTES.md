@@ -1,17 +1,31 @@
-# GymBo V2.0 - TestFlight Update Notes
+# GymBo V2.0 (Build 4) - EMERGENCY FIX 🔥
 
-## ⚠️ WICHTIG: Datenbank-Migration
+## ⚠️ KRITISCHER FIX für Crash-Problem
 
-**Bei diesem Update werden alle bisherigen Trainingsdaten gelöscht!**
+**Build 4 behebt den Start-Crash aus Build 2 & 3!**
 
-Version 2.0 verwendet eine komplett neue Datenbank-Struktur. Deine alten Workouts und Sessions aus V1.0 können **nicht** übernommen werden.
+Wenn deine App beim Öffnen gecrasht ist: **Dieses Update behebt das Problem.**
 
-**Was passiert:**
-- ✅ Alle neuen Features sind sofort verfügbar
-- ✅ 6 professionelle Beispiel-Workouts werden vorinstalliert
-- ❌ Deine alten V1.0 Daten gehen verloren
+### Was passiert beim Update:
+- ✅ **App startet wieder zuverlässig**
+- ✅ Alle neuen V2.0 Features funktionieren
+- ✅ 6 professionelle Beispiel-Workouts vorinstalliert
+- ❌ **Alle Daten werden zurückgesetzt** (notwendig für den Fix)
 
-**Unsere Empfehlung:** Nutze dieses Update als Neustart mit verbesserter App!
+### Warum werden Daten gelöscht?
+Build 2 & 3 hatten ein kritisches Problem bei der Datenmigration von V1.0 → V2.0. Um sicherzustellen, dass die App bei ALLEN Nutzern funktioniert, setzen wir in Build 4 die Datenbank komplett zurück.
+
+**Dies betrifft:**
+- Workouts (Templates)
+- Trainingshistorie  
+- Benutzerprofil
+- Einstellungen
+
+**Nicht betroffen:**
+- Deine Apple Health Daten bleiben erhalten
+- Die Beispiel-Workouts werden automatisch neu erstellt
+
+**Unsere Entschuldigung:** Wir wissen, dass Datenverlust ärgerlich ist. Build 4 ist der letzte Reset - danach funktioniert die Migration reibungslos!
 
 ---
 

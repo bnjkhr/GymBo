@@ -11,6 +11,33 @@ import SwiftData
 import SwiftUI
 import UserNotifications
 
+// MARK: - App Delegate
+
+/// App Delegate that runs BEFORE @main
+/// This is where we delete the database BEFORE SwiftData tries to load it
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        // 🔥 CRITICAL: This runs BEFORE SwiftData container is created
+        // This is THE fix for the V1→V2 migration crash
+        let versionManager = AppVersionManager.shared
+
+        if !versionManager.build5CleanupDone {
+            NSLog("🔥 BUILD 5 APP DELEGATE: Deleting database BEFORE SwiftData initialization")
+            GymBoApp.deleteDatabase()
+            versionManager.build5CleanupDone = true
+            versionManager.markV2MigrationComplete()
+            NSLog("✅ BUILD 5 APP DELEGATE: Database cleanup completed")
+        } else {
+            NSLog("✅ BUILD 5 APP DELEGATE: Database cleanup already done previously")
+        }
+
+        return true
+    }
+}
+
 /// GymBo V2.0 - Clean Architecture App Entry Point
 ///
 /// **Architecture:**
@@ -26,6 +53,9 @@ import UserNotifications
 /// - 100% testable business logic
 @main
 struct GymBoApp: App {
+
+    // Connect the app delegate - this ensures AppDelegate runs first
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     // MARK: - Properties
 
@@ -48,17 +78,12 @@ struct GymBoApp: App {
     // MARK: - Initialization
 
     init() {
-        // Check if database reset is needed (v1.0 → v2.4.0 upgrade)
+        // Note: Database cleanup happens in static initializer BEFORE this runs
         let versionManager = AppVersionManager.shared
         versionManager.printVersionInfo()
 
-        let needsReset = versionManager.needsDatabaseReset()
-
-        // If upgrading from v1.0, delete old database before creating container
-        if needsReset {
-            AppLogger.app.warning("⚠️ V1.0 detected - deleting old database for clean v2.4.0 start")
-            Self.deleteDatabase()
-            // Will show alert to user after container is created
+        // Show migration alert if cleanup was just performed
+        if versionManager.build5CleanupDone && versionManager.hasPerformedV2Migration {
             _showMigrationAlert = State(initialValue: true)
         }
 
@@ -258,7 +283,7 @@ struct GymBoApp: App {
     /// - Unrecoverable migration errors
     ///
     /// **Warning:** This deletes ALL user data!
-    private static func deleteDatabase() {
+    static func deleteDatabase() {
         let fileManager = FileManager.default
         guard
             let storeURL = fileManager.urls(

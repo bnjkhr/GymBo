@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>GymBo.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>4</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>D9A63965B887238FC8FB991E6AED712C9835B9FC</string>
+				<key>dateExpires</key>
+				<string>25.09.26</string>
+				<key>type</key>
+				<string>Cloud Managed Apple Distribution</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>5N2YD2P2G5.com.example.GymTracker</string>
+				<key>beta-reports-active</key>
+				<true/>
+				<key>com.apple.developer.healthkit</key>
+				<true/>
+				<key>com.apple.developer.healthkit.access</key>
+				<array/>
+				<key>com.apple.developer.team-identifier</key>
+				<string>5N2YD2P2G5</string>
+				<key>get-task-allow</key>
+				<false/>
+			</dict>
+			<key>name</key>
+			<string>GymBo.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>da585df3-c30e-4d64-838f-6c817d7a8689</string>
+				<key>dateExpires</key>
+				<string>25.09.26</string>
+				<key>name</key>
+				<string>iOS Team Store Provisioning Profile: com.example.GymTracker</string>
+			</dict>
+			<key>symbols</key>
+			<true/>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>5N2YD2P2G5</string>
+				<key>name</key>
+				<string></string>
+			</dict>
+			<key>versionNumber</key>
+			<string>2.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -35,6 +35,7 @@ final class AppVersionManager {
         static let lastAppVersion = "lastAppVersion"
         static let hasPerformedV2Migration = "hasPerformedV2Migration"
         static let isFirstLaunch = "isFirstLaunch"
+        static let build5CleanupDone = "build5CleanupDone"  // ⚠️ EMERGENCY: Track if build 5 cleanup was done
     }
 
     // MARK: - Current Version
@@ -75,41 +76,79 @@ final class AppVersionManager {
         set { userDefaults.set(newValue, forKey: Keys.isFirstLaunch) }
     }
 
+    /// ⚠️ EMERGENCY: Whether build 5 cleanup has been performed
+    /// This ensures all users get a clean database on their first launch of build 5
+    /// Uses static initializer to run BEFORE ModelContainer creation
+    var build5CleanupDone: Bool {
+        get { userDefaults.bool(forKey: Keys.build5CleanupDone) }
+        set { userDefaults.set(newValue, forKey: Keys.build5CleanupDone) }
+    }
+
     // MARK: - Migration Detection
 
     /// Check if database needs to be reset (upgrading from v1.0 to v2.4.0)
     ///
     /// **Returns true if:**
     /// - User has v1.x installed (lastVersion starts with "1.")
+    /// - OR database exists but v2 migration has NOT been performed yet (V1 didn't track version)
     /// - AND v2 migration has NOT been performed yet
     ///
     /// **Returns false if:**
-    /// - Fresh install (no lastVersion)
+    /// - Fresh install (no lastVersion AND no database file)
     /// - Already on v2.x
     /// - Migration already performed
     func needsDatabaseReset() -> Bool {
-        // Fresh install - no reset needed
-        guard let last = lastVersion else {
-            print("📱 Fresh install detected - no database reset needed")
-            return false
-        }
-
         // Already performed v2 migration - no reset needed
         if hasPerformedV2Migration {
             print("✅ V2 migration already performed - no database reset needed")
             return false
         }
 
-        // Check if upgrading from v1.x
-        let isUpgradingFromV1 = last.starts(with: "1.")
+        // Check if database file exists
+        let databaseExists = checkDatabaseExists()
 
-        if isUpgradingFromV1 {
-            print("⚠️ Upgrading from v\(last) to v\(currentVersion) - database reset required")
+        // Check lastVersion
+        if let last = lastVersion {
+            // Version tracked - check if upgrading from v1.x
+            let isUpgradingFromV1 = last.starts(with: "1.")
+
+            if isUpgradingFromV1 {
+                print("⚠️ Upgrading from v\(last) to v\(currentVersion) - database reset required")
+                return true
+            }
+
+            print("✅ Already on v2.x (\(last)) - no database reset needed")
+            return false
+        } else if databaseExists {
+            // No version tracked BUT database exists - must be V1!
+            // V1 never set the lastVersion key, so this is a V1 → V2 upgrade
+            print(
+                "⚠️ Database exists but no version tracked - V1 detected - database reset required")
             return true
+        } else {
+            // No version AND no database - fresh install
+            print("📱 Fresh install detected - no database reset needed")
+            return false
+        }
+    }
+
+    /// Check if SwiftData database file exists
+    private func checkDatabaseExists() -> Bool {
+        let fileManager = FileManager.default
+        guard
+            let storeURL = fileManager.urls(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask
+            ).first?.appendingPathComponent("default.store")
+        else {
+            return false
         }
 
-        print("✅ Already on v2.x (\(last)) - no database reset needed")
-        return false
+        let exists = fileManager.fileExists(atPath: storeURL.path)
+        if exists {
+            print("📦 Database file found at: \(storeURL.path)")
+        }
+        return exists
     }
 
     /// Mark that v2 migration has been completed
@@ -148,16 +187,17 @@ final class AppVersionManager {
 
     /// Print current version state (for debugging)
     func printVersionInfo() {
-        print("""
+        print(
+            """
 
-        📱 App Version Info:
-        -------------------
-        Current Version: \(currentVersion) (\(currentBuild))
-        Last Version: \(lastVersion ?? "none")
-        First Launch: \(isFirstLaunch)
-        V2 Migration Done: \(hasPerformedV2Migration)
-        Needs DB Reset: \(needsDatabaseReset())
+            📱 App Version Info:
+            -------------------
+            Current Version: \(currentVersion) (\(currentBuild))
+            Last Version: \(lastVersion ?? "none")
+            First Launch: \(isFirstLaunch)
+            V2 Migration Done: \(hasPerformedV2Migration)
+            Needs DB Reset: \(needsDatabaseReset())
 
-        """)
+            """)
     }
 }

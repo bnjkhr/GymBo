@@ -153,13 +153,54 @@ enum GymBoMigrationPlan: SchemaMigrationPlan {
     /// **Changes:**
     /// - UserProfileEntity: Add displayName, age, experienceLevel, fitnessGoal
     /// - UserProfileEntity: Add weeklyWorkoutGoal, lastHealthKitSync
-    /// - UserProfileEntity: Add healthKitEnabled, healthKitReadEnabled, healthKitWriteEnabled, appTheme
+    /// - UserProfileEntity: Add healthKitEnabled, appTheme
     /// - UserProfileEntity: Add notificationsEnabled, liveActivityEnabled
     ///
     /// **Why:** Complete profile management with personal information, settings, and preferences
-    static let migrateV2toV3 = MigrationStage.lightweight(
+    ///
+    /// **Bug Fix (2025-10-31):** Changed from lightweight to custom migration to properly
+    ///                           initialize new required fields with default values
+    static let migrateV2toV3 = MigrationStage.custom(
         fromVersion: SchemaV2.self,
-        toVersion: SchemaV3.self
+        toVersion: SchemaV3.self,
+        willMigrate: { context in
+            print("🔄 Starting migration V2 → V3")
+        },
+        didMigrate: { context in
+            print("✅ Migration V2 → V3 complete")
+
+            // ✅ CRITICAL FIX: Initialize new required fields with default values
+            // SwiftData does NOT call init() during migration, so we must set defaults manually
+            print("🔄 Initializing new UserProfile fields with defaults...")
+            let profileDescriptor = FetchDescriptor<SchemaV3.UserProfileEntity>()
+            if let profiles = try? context.fetch(profileDescriptor) {
+                var updated = 0
+                for profile in profiles {
+                    // New V3 fields that need default values
+                    // (displayName, age, experienceLevel, fitnessGoal are optional - OK to be nil)
+                    // (lastHealthKitSync is optional - OK to be nil)
+
+                    // healthKitEnabled: Copy from legacy healthKitSyncEnabled
+                    profile.healthKitEnabled = profile.healthKitSyncEnabled
+
+                    // appThemeRaw: Default to "system"
+                    if profile.appThemeRaw.isEmpty {
+                        profile.appThemeRaw = "system"
+                    }
+
+                    // weeklyWorkoutGoal, notificationsEnabled, liveActivityEnabled:
+                    // Already have defaults (3, false, false) from init
+
+                    updated += 1
+                    print("✅ Migrated profile: \(profile.name.isEmpty ? "unnamed" : profile.name)")
+                }
+
+                if updated > 0 {
+                    try? context.save()
+                    print("✅ Initialized \(updated) profile(s) with V3 defaults")
+                }
+            }
+        }
     )
 
     // MARK: - V3 → V4 Migration

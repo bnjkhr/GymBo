@@ -89,7 +89,7 @@ struct HealthKitPermissionView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.appOrange)
+                    .background(Color.black)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
@@ -119,7 +119,7 @@ struct HealthKitPermissionView: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.appOrange)
+                .foregroundColor(.black)
                 .frame(width: 40)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -139,15 +139,15 @@ struct HealthKitPermissionView: View {
 // MARK: - Preview
 
 #if DEBUG
-#Preview {
-    HealthKitPermissionView(
-        onAuthorize: {
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            print("Authorized")
-        },
-        onSkip: {
-            print("Skipped")
-        }
-    )
-}
+    #Preview {
+        HealthKitPermissionView(
+            onAuthorize: {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                print("Authorized")
+            },
+            onSkip: {
+                print("Skipped")
+            }
+        )
+    }
 #endif

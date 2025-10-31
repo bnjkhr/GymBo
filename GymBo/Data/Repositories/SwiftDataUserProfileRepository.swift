@@ -26,21 +26,52 @@ final class SwiftDataUserProfileRepository: UserProfileRepositoryProtocol {
     }
 
     func fetchOrCreate() async throws -> DomainUserProfile {
-        // Try to fetch existing profile
+        // Try to fetch existing profile with error recovery
         let descriptor = FetchDescriptor<UserProfileEntity>()
-        let entities = try modelContext.fetch(descriptor)
 
-        if let entity = entities.first {
-            // Profile exists
-            return mapper.toDomain(entity)
-        } else {
-            // Create new profile
+        do {
+            let entities = try modelContext.fetch(descriptor)
+
+            if let entity = entities.first {
+                // Profile exists and loaded successfully
+                return mapper.toDomain(entity)
+            } else {
+                // No profile exists - create new one
+                let newProfile = DomainUserProfile()
+                let entity = mapper.toEntity(newProfile)
+                modelContext.insert(entity)
+                try modelContext.save()
+
+                print("✅ Created new user profile")
+                return newProfile
+            }
+        } catch {
+            // ⚠️ MIGRATION FIX: If fetch fails due to schema mismatch,
+            // delete corrupted profile and create new one
+            print("❌ Failed to fetch UserProfile (migration error): \(error)")
+            print("🔧 Attempting to recover by deleting corrupted profile...")
+
+            // Delete all existing profiles
+            do {
+                let deleteDescriptor = FetchDescriptor<UserProfileEntity>()
+                if let corruptedEntities = try? modelContext.fetch(deleteDescriptor) {
+                    for entity in corruptedEntities {
+                        modelContext.delete(entity)
+                    }
+                }
+                try modelContext.save()
+                print("🗑️ Deleted corrupted profile(s)")
+            } catch {
+                print("⚠️ Could not delete corrupted profiles: \(error)")
+            }
+
+            // Create fresh profile
             let newProfile = DomainUserProfile()
             let entity = mapper.toEntity(newProfile)
             modelContext.insert(entity)
             try modelContext.save()
 
-            print("✅ Created new user profile")
+            print("✅ Created new user profile after recovery")
             return newProfile
         }
     }

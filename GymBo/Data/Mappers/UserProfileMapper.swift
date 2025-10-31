@@ -35,7 +35,20 @@ struct UserProfileMapper {
             appThemeRaw: domain.appTheme.rawValue,
             notificationsEnabled: domain.notificationsEnabled,
             liveActivityEnabled: domain.liveActivityEnabled,
+            // Legacy fields - maintain for backward compatibility with V1 data
+            name: domain.name ?? "",
+            birthDate: nil,
+            biologicalSexRaw: 0,
+            healthKitSyncEnabled: domain.healthKitEnabled,
+            goalRaw: domain.fitnessGoal?.rawValue ?? "general",
+            experienceRaw: domain.experienceLevel?.rawValue ?? "intermediate",
+            equipmentRaw: "mixed",
+            preferredDurationRaw: 45,
             profileImageData: domain.profileImageData,
+            lockerNumber: nil,
+            hasExploredWorkouts: false,
+            hasCreatedFirstWorkout: false,
+            hasSetupProfile: true,
             createdAt: domain.createdAt,
             updatedAt: domain.updatedAt
         )

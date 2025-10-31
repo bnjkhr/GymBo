@@ -13,9 +13,9 @@
 		<key>CFBundleIdentifier</key>
 		<string>com.example.GymTracker</string>
 		<key>CFBundleShortVersionString</key>
-		<string>1.0</string>
+		<string>2.0</string>
 		<key>CFBundleVersion</key>
-		<string>1</string>
+		<string>5</string>
 		<key>SigningIdentity</key>
 		<string>Apple Development: ben.kohler@me.com (WSW8M6D5YT)</string>
 		<key>Team</key>
@@ -24,7 +24,7 @@
 	<key>ArchiveVersion</key>
 	<integer>2</integer>
 	<key>CreationDate</key>
-	<date>2025-10-31T11:48:23Z</date>
+	<date>2025-10-31T20:10:57Z</date>
 	<key>Name</key>
 	<string>GymBo</string>
 	<key>SchemeName</key>
