@@ -37,7 +37,8 @@ final class AppVersionManager {
         static let isFirstLaunch = "isFirstLaunch"
         static let build5CleanupDone = "build5CleanupDone"  // Build 5 (failed)
         static let build6CleanupDone = "build6CleanupDone"  // Build 6-8 (failed)
-        static let build9CleanupDone = "build9CleanupDone"  // ⚠️ EMERGENCY: Track if build 9 cleanup was done
+        static let build9CleanupDone = "build9CleanupDone"  // Build 9 (failed - flag was already true)
+        static let build10CleanupDone = "build10CleanupDone"  // ⚠️ FINAL FIX: Track if build 10 cleanup was done
     }
 
     // MARK: - Current Version
@@ -100,6 +101,14 @@ final class AppVersionManager {
     var build9CleanupDone: Bool {
         get { userDefaults.bool(forKey: Keys.build9CleanupDone) }
         set { userDefaults.set(newValue, forKey: Keys.build9CleanupDone) }
+    }
+
+    /// ⚠️ FINAL FIX: Whether build 10 cleanup has been performed
+    /// Build 9 failed because flag was already true from debug testing
+    /// Build 10 is the LAST attempt with a fresh flag
+    var build10CleanupDone: Bool {
+        get { userDefaults.bool(forKey: Keys.build10CleanupDone) }
+        set { userDefaults.set(newValue, forKey: Keys.build10CleanupDone) }
     }
 
     // MARK: - Migration Detection

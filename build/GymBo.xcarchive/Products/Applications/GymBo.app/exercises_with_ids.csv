@@ -1,0 +1,146 @@
+id,name,muscleGroups,equipmentType,difficultyLevel,description,instruction1,instruction2,instruction3,instruction4
+1,Kniebeugen,Beine;Gesäß,Freie Gewichte,Fortgeschritten,Kniebeuge mit Langhantel auf dem oberen Rücken,Langhantel auf oberen Rücken legen,Füße schulterbreit aufstellen,Absenken bis Oberschenkel parallel,Durch Fersen nach oben drücken
+2,Kreuzheben,Rücken;Beine;Gesäß,Freie Gewichte,Fortgeschritten,Langhantel vom Boden bis zum Stand heben,Füße hüftbreit positionieren,Langhantel außerhalb der Beine greifen,Rücken gerade halten,Hüfte und Knie strecken
+3,Bankdrücken,Brust;Schultern;Trizeps,Freie Gewichte,Fortgeschritten,Langhantel von der Brust nach oben drücken,Auf flacher Bank liegen,Langhantel etwas breiter als schulterbreit greifen,Zur Brust absenken,Nach oben drücken bis Arme gestreckt
+4,Schulterdrücken,Schultern;Trizeps,Freie Gewichte,Fortgeschritten,Langhantel über Kopf drücken,Langhantel auf Schulterhöhe,Füße schulterbreit,Gerade nach oben drücken,Kontrolliert absenken
+5,Vorgebeugtes Rudern,Rücken;Latissimus,Freie Gewichte,Fortgeschritten,Langhantel zum Oberkörper ziehen,In Hüfte vorbeugen mit geradem Rücken,Langhantel schulterbreit greifen,Zur unteren Brust ziehen,Schulterblätter zusammenziehen
+6,Hip Thrust,Gesäß;Beinbeuger,Freie Gewichte,Anfänger,Hüfte mit Gewicht nach oben drücken,Schultern auf Bank ablegen,Langhantel auf Hüfte platzieren,Durch Fersen nach oben drücken,Gesäß oben anspannen
+7,Ausfallschritte,Beine;Gesäß,Freie Gewichte,Fortgeschritten,Schritt nach vorne in Ausfallschritt,Langhantel auf oberem Rücken,Mit einem Bein nach vorne treten,Absenken bis beide Knie 90 Grad,Zurück zur Ausgangsposition drücken
+8,Good Morning,Beinbeuger;Unterer Rücken,Freie Gewichte,Fortgeschritten,In Hüfte vorbeugen mit Langhantel,Langhantel auf oberem Rücken,In Hüfte als Drehpunkt beugen,Rücken gerade halten,Zurück zur aufrechten Position
+9,Bizeps-Curls,Bizeps,Freie Gewichte,Anfänger,Langhantel zu Schultern curlen,Stehend Langhantel in Händen,Handflächen nach vorne,Zur Schulter curlen,Kontrolliert absenken
+10,Stirndrücken,Trizeps,Freie Gewichte,Fortgeschritten,Langhantel zur Stirn absenken,Auf Bank liegen,Arme über Kopf gestreckt,Zur Stirn absenken,Arme wieder nach oben strecken
+11,Sumo-Kreuzheben,Gesäß;Beinbeuger;Rücken,Freie Gewichte,Fortgeschritten,Kreuzheben mit breitem Stand,Füße breiter als schulterbreit,Zehenspitzen nach außen,Langhantel zwischen Beinen greifen,Hüfte und Knie strecken
+12,Rumänisches Kreuzheben,Beinbeuger;Gesäß,Freie Gewichte,Fortgeschritten,Kreuzheben mit minimaler Kniebeugung,Langhantel auf Oberschenkelhöhe,Leichte Kniebeugung,In Hüfte beugen,Dehnung in Beinbeugern spüren
+13,Frontkniebeugen,Beine;Rumpf,Freie Gewichte,Fortgeschritten,Kniebeuge mit Langhantel vorne,Langhantel auf vordere Schultern,Ellbogen hoch,Absenken mit aufrechter Brust,Durch Fersen nach oben drücken
+14,Enges Bankdrücken,Trizeps;Brust,Freie Gewichte,Fortgeschritten,Bankdrücken mit engem Griff,Auf Bank liegen,Hände schulterbreit oder enger,Zur Brust absenken,Nach oben drücken mit Ellbogen am Körper
+15,Landmine Press,Schultern;Brust,Freie Gewichte,Fortgeschritten,Langhantelende schräg nach oben drücken,Ein Ende der Langhantel fixiert,Anderes Ende auf Schulter,Nach oben und vorne drücken,Kontrolliert absenken
+16,T-Bar Rudern,Rücken;Latissimus,Freie Gewichte,Fortgeschritten,T-Bar zur Brust rudern,Über T-Bar stehen,In Hüfte beugen,Zur Brust ziehen,Schulterblätter zusammenziehen
+17,Floor Press,Trizeps;Brust,Freie Gewichte,Fortgeschritten,Bankdrücken vom Boden,Auf Boden liegen,Absenken bis Ellbogen Boden berühren,Nach oben drücken,Reduzierter Bewegungsumfang
+18,Pendlay Rudern,Rücken;Latissimus,Freie Gewichte,Fortgeschritten,Explosives Rudern vom Boden,Langhantel startet jede Wiederholung am Boden,Explosiv zur Brust ziehen,Zurück zum Boden,Oberkörper parallel zum Boden
+19,Rack Pulls,Rücken;Trapez,Freie Gewichte,Fortgeschritten,Kreuzheben von erhöhter Position,Langhantel auf Rack-Pins,Vom Kniehöhe ziehen,Fokus auf oberen Rücken,Oben auslocken
+20,Schrägbankdrücken,Brust;Schultern,Freie Gewichte,Fortgeschritten,Bankdrücken auf Schrägbank,Bank auf 30-45 Grad einstellen,Zur oberen Brust absenken,Nach oben drücken,Trainiert obere Brust
+21,Negativbankdrücken,Brust;Trizeps,Freie Gewichte,Fortgeschritten,Bankdrücken auf Negativbank,Bank auf Negativwinkel einstellen,Zur unteren Brust absenken,Nach oben drücken,Trainiert untere Brust
+22,Schulterheben,Trapez,Freie Gewichte,Anfänger,Schultern mit Langhantel anheben,Langhantel auf Oberschenkelhöhe,Schultern zu Ohren ziehen,Kurz halten,Kontrolliert absenken
+23,Aufrechtes Rudern,Schultern;Trapez,Freie Gewichte,Fortgeschritten,Langhantel am Körper hochziehen,Langhantel auf Oberschenkelhöhe,Zur Brust hochziehen,Ellbogen führen nach oben,Kontrolliert absenken
+24,Kurzhantel-Bankdrücken,Brust;Schultern;Trizeps,Freie Gewichte,Anfänger,Kurzhanteln von Brust drücken,Auf flacher Bank liegen,Kurzhanteln auf Brusthöhe,Nach oben und zusammen drücken,Kontrolliert absenken
+25,Kurzhantel-Schrägbankdrücken,Brust;Schultern,Freie Gewichte,Anfänger,Kurzhanteln auf Schrägbank drücken,Bank auf 30-45 Grad einstellen,Kurzhanteln auf Brust,Nach oben drücken,Trainiert obere Brust
+26,Kurzhantel-Flys,Brust,Freie Gewichte,Anfänger,Kurzhanteln in Bogenbewegung,Auf Bank liegen,Leichte Beugung in Ellbogen,In Bogen absenken,Oben zusammenführen
+27,Seitheben,Schultern,Freie Gewichte,Anfänger,Kurzhanteln seitlich anheben,Stehend mit Kurzhanteln an Seiten,Leichte Beugung in Ellbogen,Bis Schulterhöhe anheben,Kontrolliert absenken
+28,Frontheben,Schultern,Freie Gewichte,Anfänger,Kurzhanteln nach vorne anheben,Stehend mit Kurzhanteln an Oberschenkeln,Nach vorne bis Schulterhöhe anheben,Abwechselnd oder zusammen,Kontrolliert absenken
+29,Arnold Press,Schultern,Freie Gewichte,Fortgeschritten,Schulterdrücken mit Rotation,Start mit Handflächen zu dir,Beim Hochdrücken rotieren,Ende mit Handflächen nach vorne,Beim Absenken umgekehrt
+30,Kurzhantelrudern,Rücken;Latissimus,Freie Gewichte,Anfänger,Kurzhantel zur Seite rudern,Eine Hand und Knie auf Bank,Kurzhantel zur Hüfte ziehen,Schulterblatt zusammenziehen,Kontrolliert absenken
+31,Goblet Squat,Beine;Gesäß,Freie Gewichte,Anfänger,Kniebeuge mit Kurzhantel vor Brust,Kurzhantel vertikal halten,Auf Brusthöhe,Absenken,Brust oben halten
+32,Bulgarische Split Squats,Beine;Gesäß,Freie Gewichte,Fortgeschritten,Einbeinige Kniebeuge mit hinterem Fuß erhöht,Hinterer Fuß auf Bank,Vorderer Fuß nach vorne,In Ausfallschritt absenken,Durch vorderen Fuß nach oben drücken
+33,Hammer-Curls,Bizeps;Unterarme,Freie Gewichte,Anfänger,Curls mit neutralem Griff,Kurzhanteln an Seiten,Handflächen zueinander,Nach oben curlen,Kontrolliert absenken
+34,Konzentrations-Curls,Bizeps,Freie Gewichte,Anfänger,Curls mit abgestütztem Ellbogen,Sitzend mit Ellbogen auf Oberschenkel,Kurzhantel nach oben curlen,Oben anspannen,Kontrolliert absenken
+35,Trizeps-Kickbacks,Trizeps,Freie Gewichte,Anfänger,Arm mit Kurzhantel nach hinten strecken,In Hüfte vorbeugen,Oberarm parallel zum Boden,Arm nach hinten strecken,Trizeps anspannen
+36,Wadenheben,Waden,Freie Gewichte,Anfänger,Fersen mit Kurzhanteln anheben,Kurzhanteln an Seiten,Auf Zehenspitzen steigen,Oben halten,Kontrolliert absenken
+37,Reverse Curls,Unterarme;Bizeps,Freie Gewichte,Anfänger,Curls mit Obergriff,Langhantel mit Handflächen nach unten,Zu Schultern curlen,Fokus auf Unterarme,Kontrolliert absenken
+38,Schrägbank-Curls,Bizeps,Freie Gewichte,Fortgeschritten,Curls auf Schrägbank,Zurückgelehnt auf Schrägbank,Arme hängen nach unten,Kurzhanteln nach oben curlen,Volle Dehnung unten
+39,Überkopf-Trizepsdrücken,Trizeps,Freie Gewichte,Anfänger,Kurzhantel über Kopf strecken,Kurzhantel über Kopf,Hinter Kopf absenken,Wieder nach oben strecken,Ellbogen nah am Kopf
+40,Überzüge,Brust;Latissimus,Freie Gewichte,Fortgeschritten,Kurzhantel über Kopf ziehen,Quer auf Bank liegen,Kurzhantel über Kopf,Hinter Kopf absenken,Zurück über Kopf ziehen
+41,Farmers Walk,Griffkraft;Ganzkörper,Freie Gewichte,Anfänger,Mit schweren Kurzhanteln gehen,Schwere Kurzhanteln halten,Nach vorne gehen,Rumpf angespannt,Gute Haltung beibehalten
+42,Kettlebell Swing,Gesäß;Beinbeuger;Unterer Rücken,Freie Gewichte,Anfänger,Kettlebell mit Hüftantrieb schwingen,In Hüfte beugen,Kettlebell zwischen Beinen schwingen,Hüfte explosiv nach vorne,Bis Brusthöhe schwingen
+43,Turkish Get-Up,Ganzkörper;Rumpf,Freie Gewichte,Profi,Vom Liegen zum Stehen mit Gewicht,Liegend mit Kettlebell über Kopf,Komplexe Mehrschritt-Bewegung,Arm gestreckt halten,Ganzkörper-Koordination erforderlich
+44,Kettlebell Goblet Squat,Beine;Gesäß;Rumpf,Freie Gewichte,Anfänger,Kniebeuge mit Kettlebell,Kettlebell vor Brust,Ellbogen nach unten,Zwischen Beinen absenken,Brust oben halten
+45,Kettlebell Snatch,Ganzkörper,Freie Gewichte,Profi,Explosive Bewegung über Kopf,Start mit Kettlebell am Boden,Schwingen und über Kopf ziehen,Mit gestrecktem Arm fangen,Hochexplosive Bewegung
+46,Liegestütze,Brust;Schultern;Trizeps,Körpergewicht,Anfänger,Körper vom Boden drücken,Hände schulterbreit,Körper in gerader Linie,Brust zum Boden absenken,Wieder nach oben drücken
+47,Klimmzüge,Rücken;Latissimus;Bizeps,Körpergewicht,Fortgeschritten,Körper zur Stange ziehen,An Stange hängen,Hände breiter als Schultern,Hochziehen bis Kinn über Stange,Kontrolliert absenken
+48,Dips,Trizeps;Brust;Schultern,Körpergewicht,Fortgeschritten,Absenken und Drücken an Barren,Körper an Barren stützen,Absenken bis Ellbogen 90 Grad,Wieder nach oben drücken,Nach vorne lehnen für Brust
+49,Kniebeugen ohne Gewicht,Beine;Gesäß,Körpergewicht,Anfänger,Kniebeuge ohne Zusatzgewicht,Füße schulterbreit,Absenken bis Oberschenkel parallel,Brust oben halten,Durch Fersen nach oben drücken
+50,Ausfallschritte ohne Gewicht,Beine;Gesäß,Körpergewicht,Anfänger,Schritt nach vorne in Ausfallschritt,Mit einem Bein nach vorne treten,Absenken bis beide Knie 90 Grad,Zurück zur Ausgangsposition,Beine abwechseln
+51,Unterarmstütz,Rumpf,Körpergewicht,Anfänger,Körper gerade auf Unterarmen halten,Unterarme am Boden,Körper in gerader Linie,Position halten,Rumpf angespannt
+52,Burpees,Ganzkörper,Körpergewicht,Fortgeschritten,Kniebeuge zu Liegestütz zu Sprung,In Hocke gehen,Füße nach hinten in Liegestütz,Liegestütz ausführen,Füße nach vorne und hochspringen
+53,Bergsteiger,Rumpf;Kardio,Körpergewicht,Anfänger,Knie abwechselnd zur Brust in Liegestütz,In Liegestützposition starten,Ein Knie zur Brust ziehen,Beine schnell abwechseln,Hüfte auf gleicher Höhe
+54,Sit-Ups,Bauch,Körpergewicht,Anfänger,Oberkörper vom Liegen aufrichten,Auf Rücken liegen,Knie gebeugt,Oberkörper zu Knien aufrichten,Kontrolliert absenken
+55,Crunches,Bauch,Körpergewicht,Anfänger,Schultern vom Boden heben,Auf Rücken liegen,Hände hinter Kopf,Schultern vom Boden heben,Kontrolliert absenken
+56,Beinheben,Bauch,Körpergewicht,Fortgeschritten,Beine im Liegen anheben,Auf Rücken liegen,Beine gestreckt,Beine bis senkrecht anheben,Absenken ohne Boden zu berühren
+57,Beckenheben,Gesäß;Unterer Rücken,Körpergewicht,Anfänger,Hüfte vom Boden nach oben drücken,Auf Rücken liegen,Füße flach am Boden,Hüfte nach oben drücken,Gesäß oben anspannen
+58,Pistol Squats,Beine;Gesäß,Körpergewicht,Profi,Einbeinige Kniebeuge,Auf einem Bein stehen,Anderes Bein nach vorne gestreckt,Auf einem Bein absenken,Erfordert Kraft und Balance
+59,Handstand-Liegestütze,Schultern;Trizeps,Körpergewicht,Profi,Liegestütze im Handstand,In Handstand hochkicken,An Wand zur Unterstützung,Kopf zum Boden absenken,Wieder nach oben drücken
+60,Muscle-Up,Rücken;Brust;Schultern;Arme,Körpergewicht,Profi,Klimmzug zu Dip Übergang,Explosiv hochziehen,Über Stange übergang,Zum Stütz drücken,Sehr fortgeschrittene Bewegung
+61,Superman,Unterer Rücken,Körpergewicht,Anfänger,Arme und Beine im Liegen anheben,Auf Bauch liegen,Arme nach vorne gestreckt,Arme und Beine gleichzeitig anheben,Kurz halten
+62,Wandsitz,Beine,Körpergewicht,Anfänger,Kniebeugeposition an Wand halten,Rücken an Wand,In Hocke gleiten,Oberschenkel parallel zum Boden,Position halten
+63,Box Jumps,Beine,Körpergewicht,Fortgeschritten,Auf erhöhte Plattform springen,Vor Box stehen,Arme nach hinten schwingen,Auf Box springen,Weich landen
+64,Diamond Push-Ups,Trizeps;Brust,Körpergewicht,Fortgeschritten,Liegestütze mit Händen zusammen,Hände bilden Diamantform,Brust zu Händen absenken,Wieder nach oben drücken,Betont Trizeps
+65,Pike Push-Ups,Schultern,Körpergewicht,Fortgeschritten,Liegestütze mit erhöhter Hüfte,In herabschauendem Hund starten,Kopf zum Boden absenken,Wieder nach oben drücken,Trainiert Schultern
+66,Chin-Ups,Rücken;Latissimus;Bizeps,Körpergewicht,Fortgeschritten,Klimmzug mit Untergriff,An Stange hängen,Handflächen zu dir,Hochziehen bis Kinn über Stange,Betont Bizeps
+67,Australische Klimmzüge,Rücken,Körpergewicht,Anfänger,Körper zur Stange rudern,Unter Stange hängen,Körper gerade,Brust zur Stange ziehen,Kontrolliert absenken
+68,Sprung-Ausfallschritte,Beine,Körpergewicht,Fortgeschritten,Explosive abwechselnde Ausfallschritte,In Ausfallschritt starten,Springen und Beine wechseln,In Ausfallschritt landen,Plyometrische Bewegung
+69,Step-Ups,Beine;Gesäß,Körpergewicht,Anfänger,Auf erhöhte Plattform steigen,Vor Plattform stehen,Mit einem Bein hochsteigen,Durch Ferse drücken,Beine abwechseln
+70,L-Sit,Rumpf;Hüftbeuger,Körpergewicht,Profi,Körper mit gestreckten Beinen halten,An Barren oder am Boden stützen,Körper anheben,Beine nach vorne strecken,L-Position halten
+71,V-Ups,Bauch,Körpergewicht,Fortgeschritten,Hände zu Füßen führen,Auf Rücken liegen,Gleichzeitig Arme und Beine anheben,In Mitte treffen und V bilden,Kontrolliert absenken
+72,Russian Twists,Bauch;Seitlicher Rumpf,Körpergewicht,Anfänger,Oberkörper seitlich drehen,Sitzend mit gebeugten Knien,Leicht zurücklehnen,Oberkörper von Seite zu Seite,Kann Gewicht halten
+73,Hängendes Beinheben,Bauch;Hüftbeuger,Körpergewicht,Fortgeschritten,Beine im Hängen anheben,An Stange hängen,Beine bis horizontal anheben,Kontrolliert absenken,Beine gestreckt halten
+74,Hängendes Knieheben,Bauch;Hüftbeuger,Körpergewicht,Anfänger,Knie im Hängen anheben,An Stange hängen,Knie zur Brust ziehen,Kontrolliert absenken,Leichter als Beinheben
+75,Dragon Flag,Rumpf,Körpergewicht,Profi,Körper kontrolliert absenken,Auf Bank liegen,Bank hinter Kopf festhalten,Körper bis senkrecht anheben,Mit extremer Kontrolle absenken
+76,Nordic Hamstring Curls,Beinbeuger,Körpergewicht,Profi,Körper von Knien nach vorne absenken,Knien mit fixierten Füßen,Oberkörper nach vorne absenken,Abstieg kontrollieren,Sehr intensiv für Beinbeuger
+77,Wadenheben ohne Gewicht,Waden,Körpergewicht,Anfänger,Auf Zehenspitzen steigen,Am Rand einer Stufe stehen,Fersen unter Stufe absenken,Auf Zehenspitzen steigen,Oben halten
+78,Weitsprung,Beine,Körpergewicht,Anfänger,Nach vorne auf Distanz springen,Stehend mit Füßen zusammen,Arme nach hinten schwingen,Explosiv nach vorne springen,Weich landen
+79,Tuck Jumps,Beine,Körpergewicht,Fortgeschritten,Hochspringen mit Knien zur Brust,Stehend mit Füßen zusammen,Hochspringen,Knie zur Brust ziehen,Weich landen
+80,Bärenkrabbeln,Ganzkörper;Rumpf,Körpergewicht,Anfänger,Auf Händen und Füßen krabbeln,Auf Händen und Knien starten,Knie leicht anheben,Nach vorne krabbeln,Rumpf angespannt
+81,Decline Push-Ups,Brust;Schultern,Körpergewicht,Fortgeschritten,Liegestütze mit erhöhten Füßen,Füße auf erhöhter Fläche,Hände am Boden,Brust zum Boden absenken,Wieder nach oben drücken
+82,Incline Push-Ups,Brust;Schultern;Trizeps,Körpergewicht,Anfänger,Liegestütze mit erhöhten Händen,Hände auf erhöhter Fläche,Körper gerade,Brust zur Fläche absenken,Wieder nach oben drücken
+83,Klatsch-Liegestütze,Brust;Schultern;Trizeps,Körpergewicht,Profi,Explosive Liegestütze mit Klatschen,In Liegestützposition starten,Explosiv nach oben drücken,In Luft klatschen,Landen und wiederholen
+84,Seitstütz,Rumpf;Seitlicher Rumpf,Körpergewicht,Anfänger,Körper seitlich auf einem Arm halten,Auf Seite liegen,Auf einem Unterarm stützen,Hüfte anheben,Gerade Linie halten
+85,Hollow Body Hold,Rumpf,Körpergewicht,Fortgeschritten,Körper in hohler Position halten,Auf Rücken liegen,Schultern und Beine anheben,Unteren Rücken zum Boden drücken,Position halten
+86,Arch Hold,Unterer Rücken,Körpergewicht,Anfänger,Körper in Bogenposition halten,Auf Bauch liegen,Brust und Beine anheben,Bogen im Rücken erzeugen,Position halten
+87,Beinpresse,Beine;Gesäß;Beinbeuger,Maschine,Anfänger,Plattform mit Füßen wegdrücken,In Maschine setzen,Füße auf Plattform,Plattform wegdrücken,Kontrolliert zurück
+88,Beinstrecker,Beine,Maschine,Anfänger,Beine gegen Widerstand strecken,In Maschine setzen,Polster an Unterschenkeln,Beine vollständig strecken,Kontrolliert absenken
+89,Beinbeuger,Beinbeuger,Maschine,Anfänger,Beine gegen Widerstand beugen,Liegend oder sitzend in Maschine,Polster an Unterschenkeln,Beine zu Gesäß beugen,Kontrolliert absenken
+90,Latzug,Rücken;Latissimus,Maschine,Anfänger,Stange zur Brust ziehen,In Maschine sitzen,Stange breit greifen,Zur oberen Brust ziehen,Kontrolliert loslassen
+91,Rudern am Kabel,Rücken;Latissimus,Maschine,Anfänger,Griff zum Bauch rudern,Am Kabelzug sitzen,Griff fassen,Zum Bauch ziehen,Schulterblätter zusammen
+92,Brustpresse,Brust;Schultern;Trizeps,Maschine,Anfänger,Griffe nach vorne drücken,In Maschine setzen,Griffe fassen,Nach vorne drücken,Kontrolliert zurück
+93,Butterfly,Brust,Maschine,Anfänger,Polster vor Brust zusammenführen,In Maschine setzen,Arme an Polstern,Polster zusammenführen,Kontrolliert zurück
+94,Schulterdrücken Maschine,Schultern,Maschine,Anfänger,Griffe über Kopf drücken,In Maschine setzen,Griffe auf Schulterhöhe,Über Kopf drücken,Kontrolliert absenken
+95,Seitheben Maschine,Schultern,Maschine,Anfänger,Arme seitlich anheben,In Maschine setzen,Arme an Polstern,Bis Schulterhöhe anheben,Kontrolliert absenken
+96,Bizeps-Curl Maschine,Bizeps,Maschine,Anfänger,Arme gegen Widerstand beugen,In Maschine setzen,Griffe fassen,Zu Schultern curlen,Kontrolliert absenken
+97,Trizepsdrücken Maschine,Trizeps,Maschine,Anfänger,Arme gegen Widerstand strecken,In oder an Maschine stehen,Griffe fassen,Arme nach unten strecken,Kontrolliert zurück
+98,Wadenheben Maschine,Waden,Maschine,Anfänger,Fersen gegen Widerstand anheben,Stehend in Maschine,Schultern unter Polstern,Auf Zehenspitzen steigen,Kontrolliert absenken
+99,Hüftabduktion,Hüfte;Gesäß,Maschine,Anfänger,Beine nach außen drücken,In Maschine setzen,Beine zusammen,Beine auseinander drücken,Kontrolliert zurück
+100,Hüftadduktion,Hüfte,Maschine,Anfänger,Beine zusammenführen,In Maschine setzen,Beine auseinander,Beine zusammenführen,Kontrolliert zurück
+101,Smith-Maschine Kniebeugen,Beine;Gesäß,Maschine,Anfänger,Kniebeuge mit geführter Langhantel,Langhantel auf oberem Rücken,Füße leicht nach vorne,Absenken,Nach oben drücken
+102,Smith-Maschine Bankdrücken,Brust;Schultern;Trizeps,Maschine,Anfänger,Bankdrücken mit geführter Stange,Unter Stange liegen,Stange greifen,Zur Brust absenken,Nach oben drücken
+103,Kabelzug Crossover,Brust,Maschine,Fortgeschritten,Kabel vor Brust zusammenführen,Zwischen Kabeln stehen,Leicht nach vorne lehnen,Griffe zusammenführen,Kontrolliert zurück
+104,Trizepsdrücken am Kabel,Trizeps,Maschine,Anfänger,Kabel nach unten drücken,An Kabelzug stehen,Stange oder Seil greifen,Nach unten drücken,Kontrolliert zurück
+105,Bizeps-Curls am Kabel,Bizeps,Maschine,Anfänger,Kabel nach oben curlen,An Kabelzug stehen,Griff fassen,Zu Schultern curlen,Kontrolliert absenken
+106,Hackenschmidt-Kniebeuge,Beine,Maschine,Fortgeschritten,Kniebeuge an geneigter Maschine,Rücken an Polster,Füße auf Plattform,Absenken,Nach oben drücken
+107,Rückenstrecker,Unterer Rücken,Maschine,Anfänger,Oberkörper gegen Widerstand aufrichten,In Maschine positionieren,Nach vorne beugen,Zurück aufrichten,Bewegung kontrollieren
+108,Bauchpresse,Bauch,Maschine,Anfänger,Crunches gegen Widerstand,In Maschine sitzen,Griffe fassen,Nach vorne crunchen,Kontrolliert zurück
+109,Assistierte Klimmzüge,Rücken;Bizeps,Maschine,Anfänger,Klimmzug mit Unterstützung,Auf Plattform knien,Stange über Kopf greifen,Hochziehen,Plattform unterstützt
+110,Reverse Butterfly,Schultern,Maschine,Anfänger,Griffe nach hinten ziehen,Sitzend zur Maschine,Griffe fassen,Griffe nach hinten ziehen,Schulterblätter zusammen
+111,Scott-Bank Curls,Bizeps,Maschine,Anfänger,Curls mit Armauflage,Sitzend mit Armen auf Polster,Griffe fassen,Nach oben curlen,Kontrolliert absenken
+112,Face Pulls,Schultern;Oberer Rücken,Maschine,Anfänger,Seil zum Gesicht ziehen,An Kabelzug stehen,Seil greifen,Zum Gesicht ziehen,Ellbogen hoch
+113,Kabel-Holzhacken,Bauch;Seitlicher Rumpf,Maschine,Fortgeschritten,Kabel diagonal ziehen,An Kabelzug stehen,Griff fassen,Diagonal über Körper ziehen,Oberkörper rotieren
+114,Beinbeuger sitzend,Beinbeuger,Maschine,Anfänger,Beine im Sitzen beugen,In Maschine setzen,Polster an Unterschenkeln,Beine unter Sitz beugen,Kontrolliert zurück
+115,Wadenheben stehend,Waden,Maschine,Anfänger,Fersen im Stehen anheben,Stehend in Maschine,Schultern unter Polstern,Auf Zehenspitzen steigen,Fersen unter Plattform absenken
+116,Wadenheben sitzend,Waden,Maschine,Anfänger,Fersen im Sitzen anheben,In Maschine setzen,Knie unter Polster,Auf Zehenspitzen steigen,Kontrolliert absenken
+117,Gesäß-Kickback,Gesäß,Maschine,Anfänger,Bein gegen Polster nach hinten drücken,Stehend in Maschine,Ein Bein an Polster,Bein nach hinten drücken,Gesäß anspannen
+118,Rumpfdrehung,Bauch;Seitlicher Rumpf,Maschine,Anfänger,Oberkörper gegen Widerstand drehen,In Maschine setzen,Griffe fassen,Zur Seite drehen,Seiten abwechseln
+119,Laufband,Kardio,Kardio,Anfänger,Auf bewegtem Band gehen oder laufen,Auf Laufband steigen,Geschwindigkeit und Steigung einstellen,Gehen oder laufen,Herzfrequenz überwachen
+120,Ergometer,Kardio,Kardio,Anfänger,Im Sitzen treten,Sitzhöhe einstellen,Bei gewünschtem Widerstand treten,Gleichmäßiges Tempo halten,Herzfrequenz überwachen
+121,Rudergerät,Kardio;Rücken;Beine,Kardio,Anfänger,Mit Armen und Beinen rudern,Auf Rudergerät setzen,Füße festschnallen,Mit Beinen drücken dann mit Armen ziehen,In umgekehrter Reihenfolge zurück
+122,Crosstrainer,Kardio,Kardio,Anfänger,Pedale in elliptischer Bewegung,Auf Pedale steigen,Griffe festhalten,In fließender Bewegung bewegen,Gelenkschonendes Kardio
+123,Treppensteiger,Kardio;Beine,Kardio,Fortgeschritten,Rotierende Treppen steigen,Auf Maschine steigen,Kontinuierlich steigen,Gleichmäßiges Tempo halten,Intensives Beintraining
+124,Assault Bike,Kardio,Kardio,Fortgeschritten,Treten und Griffe bewegen,Auf Bike setzen,Treten und Griffe bewegen,Hohe Intensität,Ganzkörper-Kardio
+125,Battle Ropes,Kardio;Schultern,Kardio,Fortgeschritten,Schwere Seile schwingen,Seilenden halten,Wellen erzeugen,Abwechselnd oder zusammen,Hohe Intensität
+126,Seilspringen,Kardio,Kardio,Anfänger,Über rotierendes Seil springen,Seilgriffe halten,Seil über Kopf schwingen,Springen wenn es unten durchgeht,Rhythmus halten
+127,Schlitten schieben,Beine;Ganzkörper,Kardio,Fortgeschritten,Gewichteten Schlitten schieben,In Schlitten lehnen,Mit Beinen antreiben,Nach vorne schieben,Explosive Kraft
+128,Schlitten ziehen,Rücken;Beine,Kardio,Fortgeschritten,Gewichteten Schlitten ziehen,Gurt befestigen,Rückwärts gehen,Schlitten ziehen,Spannung halten
+129,Box Step-Ups,Beine;Kardio,Kardio,Anfänger,Wiederholt auf Box steigen,Vor Box stehen,Abwechselnd hochsteigen,Gleichmäßiges Tempo halten,Kardio und Kraft
+130,Kettlebell Clean,Ganzkörper,Freie Gewichte,Fortgeschritten,Kettlebell zur Schulter cleanen,Start mit Kettlebell am Boden,Schwingen und zur Schulter ziehen,Auf Schulter fangen,Explosive Bewegung
+131,Kurzhantel Snatch,Ganzkörper,Freie Gewichte,Fortgeschritten,Kurzhantel über Kopf reißen,Start mit Kurzhantel am Boden,Explosiv über Kopf ziehen,Mit gestrecktem Arm fangen,Einarmige Bewegung
+132,Langhantel Hip Thrust,Gesäß,Freie Gewichte,Fortgeschritten,Mit Langhantel auf Hüfte heben,Schultern auf Bank,Langhantel auf Hüfte,Hüfte nach oben drücken,Gesäß fest anspannen
+133,Seitheben am Kabel,Schultern,Maschine,Anfänger,Kabel seitlich anheben,An Kabelzug stehen,Griff unten fassen,Bis Schulterhöhe anheben,Kontrolliert absenken
+134,Frontheben am Kabel,Schultern,Maschine,Anfänger,Kabel nach vorne anheben,An Kabelzug stehen,Griff unten fassen,Nach vorne anheben,Kontrolliert absenken
+135,Kurzhantel-Schulterheben,Trapez,Freie Gewichte,Anfänger,Schultern mit Kurzhanteln anheben,Kurzhanteln an Seiten,Schultern nach oben ziehen,Kurz halten,Kontrolliert absenken
+136,Langhantel-Frontheben,Schultern,Freie Gewichte,Anfänger,Langhantel nach vorne anheben,Langhantel an Oberschenkeln,Nach vorne bis Schulterhöhe anheben,Arme gestreckt halten,Kontrolliert absenken
+137,Kurzhantel-Seitheben,Schultern,Freie Gewichte,Anfänger,Kurzhanteln seitlich anheben,Stehend mit Kurzhanteln an Seiten,Bis Schulterhöhe anheben,Leichte Beugung in Ellbogen,Kontrolliert absenken
+138,Kurzhantel-Frontheben,Schultern,Freie Gewichte,Anfänger,Kurzhanteln nach vorne anheben,Kurzhanteln an Oberschenkeln,Nach vorne anheben,Bis Schulterhöhe,Kontrolliert absenken
+139,Reverse Flys am Kabel,Schultern,Maschine,Anfänger,Kabel nach hinten ziehen,An Kabelzug stehen,Kabel kreuzen,Griffe nach hinten ziehen,Schulterblätter zusammen
+140,Langhantel-Schulterdrücken,Schultern;Trizeps,Freie Gewichte,Fortgeschritten,Langhantel über Kopf drücken,Start auf Schultern,Gerade nach oben drücken,Oben auslocken,Zu Schultern absenken
+141,Kurzhantel-Schulterdrücken,Schultern;Trizeps,Freie Gewichte,Anfänger,Kurzhanteln über Kopf drücken,Kurzhanteln auf Schultern,Nach oben drücken,Oben zusammenführen,Zu Schultern absenken
+142,Schulterdrücken sitzend,Schultern,Maschine,Anfänger,Griffe in Maschine über Kopf drücken,In Maschine setzen,Griffe auf Schultern,Über Kopf drücken,Kontrolliert absenken
+143,Kurzhantel-Flys Schrägbank,Brust,Freie Gewichte,Anfänger,Flys auf Schrägbank,Auf Schrägbank liegen,Kurzhanteln über Brust,In Bogen absenken,Oben zusammenführen
+144,Kabel-Flys,Brust,Maschine,Fortgeschritten,Kabel vor Brust zusammenführen,Zwischen Kabeln stehen,Arme seitlich,Griffe zusammenführen,Brust anspannen
+145,Butterfly-Flys,Brust,Maschine,Anfänger,Griffe in Maschine zusammenführen,In Maschine setzen,Arme an Polstern,Polster zusammenführen,Kontrolliert zurück
