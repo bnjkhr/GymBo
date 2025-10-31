@@ -23,6 +23,12 @@ struct ProfileView: View {
     @State private var userProfile: DomainUserProfile?
     @State private var isLoading = false
 
+    // Local state for editing (prevents update loop)
+    @State private var editingName: String = ""
+    @State private var editingAge: Int = 25
+    @State private var editingHeight: Double = 175
+    @State private var editingBodyMass: Double = 75
+
     // Image Picker
     @State private var showImageSourcePicker = false
     @State private var showCameraPicker = false
@@ -79,6 +85,14 @@ struct ProfileView: View {
             }
             .task {
                 await loadUserProfile()
+            }
+            .onDisappear {
+                // Save any pending changes when view is dismissed
+                Task {
+                    if editingName != (userProfile?.name ?? "") {
+                        await updatePersonalInfo(name: editingName)
+                    }
+                }
             }
             .sheet(isPresented: $showCameraPicker) {
                 ImagePicker(
@@ -176,18 +190,13 @@ struct ProfileView: View {
                         .foregroundStyle(.secondary)
                         .frame(width: 24)
 
-                    TextField(
-                        "Name",
-                        text: Binding(
-                            get: { userProfile?.name ?? "" },
-                            set: { newValue in
-                                Task {
-                                    await updatePersonalInfo(name: newValue)
-                                }
+                    TextField("Name", text: $editingName)
+                        .font(.body)
+                        .onSubmit {
+                            Task {
+                                await updatePersonalInfo(name: editingName)
                             }
-                        )
-                    )
-                    .font(.body)
+                        }
                 }
                 .padding()
                 .background(Color(.secondarySystemGroupedBackground))
@@ -207,21 +216,19 @@ struct ProfileView: View {
 
                     Spacer()
 
-                    if let age = userProfile?.age {
-                        Text("\(age) Jahre")
-                            .foregroundStyle(.secondary)
-                    }
+                    Text("\(editingAge) Jahre")
+                        .foregroundStyle(.secondary)
 
                     Stepper(
-                        value: Binding(
-                            get: { userProfile?.age ?? 25 },
-                            set: { newValue in
+                        value: $editingAge,
+                        in: 10...100,
+                        onEditingChanged: { editing in
+                            if !editing {
                                 Task {
-                                    await updatePersonalInfo(age: newValue)
+                                    await updatePersonalInfo(age: editingAge)
                                 }
                             }
-                        ),
-                        in: 10...100
+                        }
                     ) {
                         EmptyView()
                     }
@@ -331,30 +338,31 @@ struct ProfileView: View {
 
                     Spacer()
 
-                    if let height = userProfile?.height {
-                        Text("\(Int(height)) cm")
-                            .foregroundStyle(.secondary)
-                    }
+                    Text("\(Int(editingHeight)) cm")
+                        .foregroundStyle(.secondary)
 
                     Stepper(
-                        value: Binding(
-                            get: { userProfile?.height ?? 175 },
-                            set: { newValue in
+                        value: $editingHeight,
+                        in: 100...250,
+                        step: 1,
+                        onEditingChanged: { editing in
+                            if !editing {
                                 Task {
                                     do {
                                         try await userProfileRepository.updateBodyMetrics(
-                                            bodyMass: userProfile?.bodyMass,
-                                            height: newValue
+                                            bodyMass: editingBodyMass,
+                                            height: editingHeight
                                         )
-                                        await loadUserProfile()
+                                        var updatedProfile = userProfile
+                                        updatedProfile?.height = editingHeight
+                                        userProfile = updatedProfile
+                                        print("✅ Height updated")
                                     } catch {
                                         print("❌ Failed to update height: \(error)")
                                     }
                                 }
                             }
-                        ),
-                        in: 100...250,
-                        step: 1
+                        }
                     ) {
                         EmptyView()
                     }
@@ -378,30 +386,31 @@ struct ProfileView: View {
 
                     Spacer()
 
-                    if let bodyMass = userProfile?.bodyMass {
-                        Text(String(format: "%.1f kg", bodyMass))
-                            .foregroundStyle(.secondary)
-                    }
+                    Text(String(format: "%.1f kg", editingBodyMass))
+                        .foregroundStyle(.secondary)
 
                     Stepper(
-                        value: Binding(
-                            get: { userProfile?.bodyMass ?? 75 },
-                            set: { newValue in
+                        value: $editingBodyMass,
+                        in: 30...250,
+                        step: 0.5,
+                        onEditingChanged: { editing in
+                            if !editing {
                                 Task {
                                     do {
                                         try await userProfileRepository.updateBodyMetrics(
-                                            bodyMass: newValue,
-                                            height: userProfile?.height
+                                            bodyMass: editingBodyMass,
+                                            height: editingHeight
                                         )
-                                        await loadUserProfile()
+                                        var updatedProfile = userProfile
+                                        updatedProfile?.bodyMass = editingBodyMass
+                                        userProfile = updatedProfile
+                                        print("✅ Body mass updated")
                                     } catch {
                                         print("❌ Failed to update body mass: \(error)")
                                     }
                                 }
                             }
-                        ),
-                        in: 30...250,
-                        step: 0.5
+                        }
                     ) {
                         EmptyView()
                     }
@@ -619,6 +628,11 @@ struct ProfileView: View {
     private func loadUserProfile() async {
         do {
             userProfile = try await userProfileRepository.fetchOrCreate()
+            // Sync local editing state with loaded profile
+            editingName = userProfile?.name ?? ""
+            editingAge = userProfile?.age ?? 25
+            editingHeight = userProfile?.height ?? 175
+            editingBodyMass = userProfile?.bodyMass ?? 75
             print("✅ User profile loaded")
         } catch {
             print("❌ Failed to load user profile: \(error)")
@@ -634,7 +648,10 @@ struct ProfileView: View {
 
         do {
             try await userProfileRepository.updateProfileImage(resizedImage)
-            await loadUserProfile()
+            // Update local state without reloading from repository
+            var updatedProfile = userProfile
+            updatedProfile?.profileImageData = resizedImage
+            userProfile = updatedProfile
             print("✅ Profile image updated")
         } catch {
             print("❌ Failed to update profile image: \(error)")
@@ -654,7 +671,21 @@ struct ProfileView: View {
                 experienceLevel: experienceLevel,
                 fitnessGoal: fitnessGoal
             )
-            await loadUserProfile()
+            // Update local state without reloading from repository
+            var updatedProfile = userProfile
+            if let name = name {
+                updatedProfile?.name = name
+            }
+            if let age = age {
+                updatedProfile?.age = age
+            }
+            if let experienceLevel = experienceLevel {
+                updatedProfile?.experienceLevel = experienceLevel
+            }
+            if let fitnessGoal = fitnessGoal {
+                updatedProfile?.fitnessGoal = fitnessGoal
+            }
+            userProfile = updatedProfile
             print("✅ Personal info updated")
         } catch {
             print("❌ Failed to update personal info: \(error)")
@@ -681,7 +712,10 @@ struct ProfileView: View {
                 healthKitEnabled: enabled,
                 appTheme: nil
             )
-            await loadUserProfile()
+            // Update local state without reloading
+            var updatedProfile = userProfile
+            updatedProfile?.healthKitEnabled = enabled
+            userProfile = updatedProfile
             print("✅ HealthKit setting updated to: \(enabled)")
         } catch {
             print("❌ Failed to update HealthKit setting: \(error)")
@@ -697,7 +731,15 @@ struct ProfileView: View {
                 notificationsEnabled: notificationsEnabled,
                 liveActivityEnabled: liveActivityEnabled
             )
-            await loadUserProfile()
+            // Update local state without reloading
+            var updatedProfile = userProfile
+            if let notificationsEnabled = notificationsEnabled {
+                updatedProfile?.notificationsEnabled = notificationsEnabled
+            }
+            if let liveActivityEnabled = liveActivityEnabled {
+                updatedProfile?.liveActivityEnabled = liveActivityEnabled
+            }
+            userProfile = updatedProfile
             print("✅ Notification settings updated")
         } catch {
             print("❌ Failed to update notification settings: \(error)")
@@ -761,8 +803,19 @@ struct ProfileView: View {
                     try await update()
                 }
 
-                // Reload profile to show new data
-                await loadUserProfile()
+                // Update local state with imported data (no reload needed)
+                var updatedProfile = userProfile
+                if let bodyMass = metrics.bodyMass {
+                    updatedProfile?.bodyMass = bodyMass
+                }
+                if let height = metrics.height {
+                    updatedProfile?.height = height
+                }
+                if let age = metrics.age {
+                    updatedProfile?.age = age
+                    editingAge = age // Sync editing state
+                }
+                userProfile = updatedProfile
 
                 print("✅ HealthKit data imported and saved successfully")
             } catch {
