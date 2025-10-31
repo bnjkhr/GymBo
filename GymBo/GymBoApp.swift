@@ -272,27 +272,55 @@ struct GymBoApp: App {
     /// **Warning:** This deletes ALL user data!
     static func deleteDatabase() {
         let fileManager = FileManager.default
-        guard
-            let storeURL = fileManager.urls(
-                for: .applicationSupportDirectory,
-                in: .userDomainMask
-            ).first?.appendingPathComponent("default.store")
-        else {
-            AppLogger.app.warning("⚠️ Could not find database URL")
-            return
+
+        // Try MULTIPLE possible locations where SwiftData might store the database
+        let possibleLocations = [
+            // Location 1: Application Support (what we've been using)
+            fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+                .appendingPathComponent("default.store"),
+            // Location 2: Documents directory
+            fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?
+                .appendingPathComponent("default.store"),
+            // Location 3: Library directory
+            fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first?
+                .appendingPathComponent("default.store"),
+            // Location 4: Caches directory
+            fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first?
+                .appendingPathComponent("default.store"),
+        ]
+
+        var deletedAny = false
+
+        for (index, storeURL) in possibleLocations.enumerated() {
+            guard let url = storeURL else { continue }
+
+            NSLog("🔍 Checking location \(index + 1): \(url.path)")
+
+            if fileManager.fileExists(atPath: url.path) {
+                NSLog("✅ FOUND database at location \(index + 1): \(url.path)")
+
+                // Delete main store file
+                try? fileManager.removeItem(at: url)
+
+                // Delete Write-Ahead Logging files
+                try? fileManager.removeItem(
+                    at: url.deletingPathExtension().appendingPathExtension("store-shm")
+                )
+                try? fileManager.removeItem(
+                    at: url.deletingPathExtension().appendingPathExtension("store-wal")
+                )
+
+                NSLog("🗑️ Deleted database at location \(index + 1)")
+                deletedAny = true
+            } else {
+                NSLog("❌ No database at location \(index + 1)")
+            }
         }
 
-        // Delete main store file
-        try? fileManager.removeItem(at: storeURL)
-
-        // Delete Write-Ahead Logging files
-        try? fileManager.removeItem(
-            at: storeURL.deletingPathExtension().appendingPathExtension("store-shm")
-        )
-        try? fileManager.removeItem(
-            at: storeURL.deletingPathExtension().appendingPathExtension("store-wal")
-        )
-
-        AppLogger.app.info("🗑️ Database deleted successfully")
+        if deletedAny {
+            NSLog("✅ Database deletion completed - deleted from at least one location")
+        } else {
+            NSLog("⚠️ No database found in ANY of the checked locations!")
+        }
     }
 }
