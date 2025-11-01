@@ -33,6 +33,12 @@ struct ExercisesView: View {
     @State private var selectedExercise: ExerciseEntity?
     @State private var showCreateExercise = false
 
+    // Workout Selection Sheet (NEW)
+    @State private var exerciseToAddToWorkout: ExerciseEntity?
+    @State private var showWorkoutSelectionSheet = false
+    @State private var successMessage: String?
+    @State private var workoutStore: WorkoutStore?
+
     // Performance: Cached filtered/sorted results
     @State private var cachedFilteredExercises: [ExerciseEntity] = []
     @State private var cachedMuscleGroups: [String] = []
@@ -80,8 +86,30 @@ struct ExercisesView: View {
                 }
                 .environment(\.dependencyContainer, dependencyContainer)
             }
+            .sheet(item: $exerciseToAddToWorkout) { exercise in
+                if let store = workoutStore {
+                    WorkoutSelectionSheet(exercise: exercise) { workout in
+                        Task {
+                            await addExerciseToWorkout(exercise, workout)
+                        }
+                    }
+                    .environment(store)
+                }
+            }
+            .overlay(alignment: .top) {
+                if let message = successMessage {
+                    SuccessPill(message: message)
+                        .padding(.top, 8)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .animation(.spring(duration: 0.3), value: successMessage)
+                }
+            }
             .task {
                 await loadExercises()
+                // Initialize workout store
+                if workoutStore == nil, let container = dependencyContainer {
+                    workoutStore = container.makeWorkoutStore()
+                }
             }
             .onChange(of: searchText) { _, _ in
                 updateFilteredExercises()
@@ -203,6 +231,23 @@ struct ExercisesView: View {
                         selectedExercise = exercise
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     }
+                    .contextMenu {
+                        // Details anzeigen
+                        Button {
+                            selectedExercise = exercise
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        } label: {
+                            Label("Details anzeigen", systemImage: "info.circle")
+                        }
+
+                        // Zu Workout hinzufügen (NEW!)
+                        Button {
+                            exerciseToAddToWorkout = exercise
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        } label: {
+                            Label("Zu Workout hinzufügen", systemImage: "plus.circle")
+                        }
+                    }
                 }
             }
             .padding(.horizontal, 16)
@@ -300,6 +345,24 @@ struct ExercisesView: View {
         } catch {
             print("❌ Failed to load exercises: \(error)")
         }
+    }
+
+    @MainActor
+    private func addExerciseToWorkout(_ exercise: ExerciseEntity, _ workout: Workout) async {
+        guard let store = workoutStore else { return }
+
+        await store.addExercise(exerciseId: exercise.id, to: workout.id)
+
+        // Show success message
+        successMessage = "Zu '\(workout.name)' hinzugefügt"
+
+        // Auto-dismiss after 2 seconds
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            successMessage = nil
+        }
+
+        print("✅ Added exercise '\(exercise.name)' to workout '\(workout.name)'")
     }
 }
 
